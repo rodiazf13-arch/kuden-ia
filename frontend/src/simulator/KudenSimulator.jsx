@@ -2,15 +2,15 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 const PROFILES = [
   { id:"nuevo",   label:"Cliente nuevo",   desc:"Primera vez, curioso y amable",      icon:"ti-user-plus",  color:"#1D9E75", bg:"#E1F5EE", text:"#085041", hint:"Hola, acabo de contratar el servicio y tengo algunas dudas",        persona:"Eres un cliente nuevo, curioso y amable." },
-  { id:"molesto", label:"Cliente molesto", desc:"Frustrado, exige soluciÃ³n rÃ¡pida",   icon:"ti-mood-angry", color:"#D85A30", bg:"#FAECE7", text:"#4A1B0C", hint:"Llevo 3 dÃ­as sin internet y nadie me soluciona nada",                persona:"Eres un cliente muy frustrado. Exiges soluciones concretas." },
-  { id:"vip",     label:"Cliente VIP",     desc:"Premium, espera trato diferenciado", icon:"ti-crown",      color:"#534AB7", bg:"#EEEDFE", text:"#26215C", hint:"Buenos dÃ­as, soy cliente hace 8 aÃ±os y necesito atenciÃ³n especial", persona:"Eres un cliente VIP. Exiges trato preferencial." },
+  { id:"molesto", label:"Cliente molesto", desc:"Frustrado, exige solución rápida",   icon:"ti-mood-angry", color:"#D85A30", bg:"#FAECE7", text:"#4A1B0C", hint:"Llevo 3 días sin internet y nadie me soluciona nada",                persona:"Eres un cliente muy frustrado. Exiges soluciones concretas." },
+  { id:"vip",     label:"Cliente VIP",     desc:"Premium, espera trato diferenciado", icon:"ti-crown",      color:"#534AB7", bg:"#EEEDFE", text:"#26215C", hint:"Buenos días, soy cliente hace 8 años y necesito atención especial", persona:"Eres un cliente VIP. Exiges trato preferencial." },
 ];
 
 const CHANNELS = [
   { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
   { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
   { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#534AB7", bg:"#EEEDFE" },
-  { id:"app",      label:"App MÃ³vil", icon:"ti-device-mobile",  color:"#D85A30", bg:"#FAECE7" },
+  { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#D85A30", bg:"#FAECE7" },
   { id:"rrss",     label:"Redes Soc.",icon:"ti-share",          color:"#EF9F27", bg:"#FEF3E0" },
 ];
 
@@ -18,11 +18,11 @@ const CSAT_LABELS = ["","Muy malo","Malo","Regular","Bueno","Excelente"];
 const CSAT_COLORS = ["","#E24B4A","#D85A30","#EF9F27","#1D9E75","#534AB7"];
 
 const SENTIMIENTOS = [
-  { id:"muy_negativo", label:"Muy frustrado", emoji:"ðŸ˜ ", color:"#E24B4A", bg:"#FDECEA", pct:10 },
-  { id:"negativo",     label:"Frustrado",     emoji:"ðŸ˜•", color:"#D85A30", bg:"#FAECE7", pct:30 },
-  { id:"neutral",      label:"Neutral",       emoji:"ðŸ˜", color:"#EF9F27", bg:"#FEF3E0", pct:50 },
-  { id:"positivo",     label:"Satisfecho",    emoji:"ðŸ™‚", color:"#1D9E75", bg:"#E1F5EE", pct:75 },
-  { id:"muy_positivo", label:"Muy satisfecho",emoji:"ðŸ˜Š", color:"#534AB7", bg:"#EEEDFE", pct:100 },
+  { id:"muy_negativo", label:"Muy frustrado", emoji:"😠", color:"#E24B4A", bg:"#FDECEA", pct:10 },
+  { id:"negativo",     label:"Frustrado",     emoji:"😕", color:"#D85A30", bg:"#FAECE7", pct:30 },
+  { id:"neutral",      label:"Neutral",       emoji:"😐", color:"#EF9F27", bg:"#FEF3E0", pct:50 },
+  { id:"positivo",     label:"Satisfecho",    emoji:"🙂", color:"#1D9E75", bg:"#E1F5EE", pct:75 },
+  { id:"muy_positivo", label:"Muy satisfecho",emoji:"😊", color:"#534AB7", bg:"#EEEDFE", pct:100 },
 ];
 
 const RIESGO_FUGA = [
@@ -35,7 +35,7 @@ const RIESGO_FUGA = [
 const CLOSE_OPTIONS = [
   { id:"resuelto",   label:"Resolver",  desc:"Caso solucionado por KUDEN",       icon:"ti-circle-check",       color:"#1D9E75", bg:"#E1F5EE", estadoCRM:"resuelto"    },
   { id:"escalado",   label:"Escalar",   desc:"Transferir a agente humano",        icon:"ti-arrows-transfer-up", color:"#534AB7", bg:"#EEEDFE", estadoCRM:"escalado"    },
-  { id:"abandonado", label:"Abandonar", desc:"Cliente desistiÃ³ o se desconectÃ³", icon:"ti-circle-x",           color:"#D85A30", bg:"#FAECE7", estadoCRM:"en progreso" },
+  { id:"abandonado", label:"Abandonar", desc:"Cliente desistió o se desconectó", icon:"ti-circle-x",           color:"#D85A30", bg:"#FAECE7", estadoCRM:"en progreso" },
 ];
 
 const estadoConfig = {
@@ -44,35 +44,35 @@ const estadoConfig = {
   "escalado":    { color:"#534AB7", bg:"#EEEDFE", label:"Escalado"    },
 };
 
-const PLANES = ["Plan BÃ¡sico 50MB","Plan Hogar 200MB","Plan Hogar 500MB","Plan VIP Fibra 1GB","Plan Empresas"];
+const PLANES = ["Plan Básico 50MB","Plan Hogar 200MB","Plan Hogar 500MB","Plan VIP Fibra 1GB","Plan Empresas"];
 
 const DEMO_CLIENTES = [
-  { id:"c1", nombre:"MarÃ­a GonzÃ¡lez",  rut:"12.345.678-9", telefono:"+56 9 8765 4321", plan:"Plan Hogar 500MB",   direccion:"Av. Providencia 1234, Santiago", canal:"web",
-    historial:[{id:"TKT-48821",fecha:"12 Abr 2026",tipo:"consulta tÃ©cnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-41093",fecha:"02 Feb 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"},{id:"TKT-38450",fecha:"19 Nov 2025",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"App MÃ³vil"}]},
-  { id:"c2", nombre:"Carlos RamÃ­rez",  rut:"9.876.543-2",  telefono:"+56 9 1234 5678", plan:"Plan VIP Fibra 1GB", direccion:"Las Condes 567, Santiago",       canal:"whatsapp",
+  { id:"c1", nombre:"María González",  rut:"12.345.678-9", telefono:"+56 9 8765 4321", plan:"Plan Hogar 500MB",   direccion:"Av. Providencia 1234, Santiago", canal:"web",
+    historial:[{id:"TKT-48821",fecha:"12 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-41093",fecha:"02 Feb 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"},{id:"TKT-38450",fecha:"19 Nov 2025",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"App Móvil"}]},
+  { id:"c2", nombre:"Carlos Ramírez",  rut:"9.876.543-2",  telefono:"+56 9 1234 5678", plan:"Plan VIP Fibra 1GB", direccion:"Las Condes 567, Santiago",       canal:"whatsapp",
     historial:[{id:"TKT-55321",fecha:"18 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-52100",fecha:"10 Mar 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"Web Chat"},{id:"TKT-48900",fecha:"05 Ene 2026",tipo:"reclamo",estado:"escalado",csat:2,canal:"Voz"}]},
-  { id:"c3", nombre:"Ana Torres",      rut:"15.432.109-8", telefono:"+56 9 5555 7777", plan:"Plan BÃ¡sico 50MB",   direccion:"Villa Alemana 890, ValparaÃ­so",  canal:"app",
-    historial:[{id:"TKT-61234",fecha:"20 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"App MÃ³vil"},{id:"TKT-59800",fecha:"01 Abr 2026",tipo:"consulta tÃ©cnica",estado:"resuelto",csat:3,canal:"Web Chat"}]},
+  { id:"c3", nombre:"Ana Torres",      rut:"15.432.109-8", telefono:"+56 9 5555 7777", plan:"Plan Básico 50MB",   direccion:"Villa Alemana 890, Valparaíso",  canal:"app",
+    historial:[{id:"TKT-61234",fecha:"20 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"App Móvil"},{id:"TKT-59800",fecha:"01 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:3,canal:"Web Chat"}]},
   { id:"c4", nombre:"Roberto Soto",    rut:"7.654.321-0",  telefono:"+56 9 9999 1111", plan:"Plan Empresas",      direccion:"Vitacura 2345, Santiago",        canal:"voz",
-    historial:[{id:"TKT-70001",fecha:"22 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"Voz"},{id:"TKT-68500",fecha:"15 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"Web Chat"},{id:"TKT-65000",fecha:"02 May 2026",tipo:"consulta tÃ©cnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-60000",fecha:"10 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:4,canal:"Voz"}]},
-  { id:"c5", nombre:"Valentina MuÃ±oz", rut:"16.789.012-3", telefono:"+56 9 7654 3210", plan:"Plan Hogar 200MB",   direccion:"Ã‘uÃ±oa 456, Santiago",            canal:"whatsapp",
-    historial:[{id:"TKT-71100",fecha:"23 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"WhatsApp"},{id:"TKT-69200",fecha:"08 Abr 2026",tipo:"consulta tÃ©cnica",estado:"resuelto",csat:4,canal:"Web Chat"}]},
-  { id:"c6", nombre:"Diego Herrera",   rut:"11.222.333-4", telefono:"+56 9 3333 4444", plan:"Plan Hogar 500MB",   direccion:"MaipÃº 789, Santiago",            canal:"app",
-    historial:[{id:"TKT-72500",fecha:"21 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"App MÃ³vil"},{id:"TKT-70300",fecha:"15 Abr 2026",tipo:"consulta comercial",estado:"resuelto",csat:4,canal:"WhatsApp"},{id:"TKT-68000",fecha:"01 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"}]},
+    historial:[{id:"TKT-70001",fecha:"22 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"Voz"},{id:"TKT-68500",fecha:"15 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"Web Chat"},{id:"TKT-65000",fecha:"02 May 2026",tipo:"consulta técnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-60000",fecha:"10 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:4,canal:"Voz"}]},
+  { id:"c5", nombre:"Valentina Muñoz", rut:"16.789.012-3", telefono:"+56 9 7654 3210", plan:"Plan Hogar 200MB",   direccion:"Ñuñoa 456, Santiago",            canal:"whatsapp",
+    historial:[{id:"TKT-71100",fecha:"23 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"WhatsApp"},{id:"TKT-69200",fecha:"08 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:4,canal:"Web Chat"}]},
+  { id:"c6", nombre:"Diego Herrera",   rut:"11.222.333-4", telefono:"+56 9 3333 4444", plan:"Plan Hogar 500MB",   direccion:"Maipú 789, Santiago",            canal:"app",
+    historial:[{id:"TKT-72500",fecha:"21 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"App Móvil"},{id:"TKT-70300",fecha:"15 Abr 2026",tipo:"consulta comercial",estado:"resuelto",csat:4,canal:"WhatsApp"},{id:"TKT-68000",fecha:"01 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"}]},
   { id:"c7", nombre:"Camila Vega",     rut:"14.567.890-1", telefono:"+56 9 2222 8888", plan:"Plan VIP Fibra 1GB", direccion:"Providencia 321, Santiago",      canal:"web",
     historial:[{id:"TKT-73000",fecha:"24 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"Web Chat"},{id:"TKT-71500",fecha:"10 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"WhatsApp"}]},
-  { id:"c8", nombre:"AndrÃ©s Morales",  rut:"8.901.234-5",  telefono:"+56 9 6666 5555", plan:"Plan BÃ¡sico 50MB",   direccion:"La Florida 654, Santiago",       canal:"voz",
-    historial:[{id:"TKT-74000",fecha:"25 May 2026",tipo:"reclamo",estado:"escalado",csat:1,canal:"Voz"},{id:"TKT-72000",fecha:"18 May 2026",tipo:"consulta tÃ©cnica",estado:"resuelto",csat:2,canal:"Web Chat"},{id:"TKT-69000",fecha:"05 Abr 2026",tipo:"reclamo",estado:"resuelto",csat:2,canal:"Voz"}]},
+  { id:"c8", nombre:"Andrés Morales",  rut:"8.901.234-5",  telefono:"+56 9 6666 5555", plan:"Plan Básico 50MB",   direccion:"La Florida 654, Santiago",       canal:"voz",
+    historial:[{id:"TKT-74000",fecha:"25 May 2026",tipo:"reclamo",estado:"escalado",csat:1,canal:"Voz"},{id:"TKT-72000",fecha:"18 May 2026",tipo:"consulta técnica",estado:"resuelto",csat:2,canal:"Web Chat"},{id:"TKT-69000",fecha:"05 Abr 2026",tipo:"reclamo",estado:"resuelto",csat:2,canal:"Voz"}]},
 ];
 
 const buildSystem = (profile, cliente, canal) =>
   "Eres KUDEN, agente virtual de IA de ConectaChile.\n" +
   "CLIENTE: "+cliente.nombre+", RUT: "+cliente.rut+", Plan: "+cliente.plan+", Tel: "+cliente.telefono+"\n" +
   "CANAL: "+canal+" | PERFIL: "+profile.persona+"\n" +
-  "Responde en espaÃ±ol, mÃ¡ximo 3-4 oraciones, sin listas.\n" +
+  "Responde en español, máximo 3-4 oraciones, sin listas.\n" +
   "Al final agrega EXACTAMENTE:\n" +
-  "[ACCION: texto, mÃ¡x 6 palabras]\n" +
-  "[INTENCION: consulta tÃ©cnica | consulta comercial | reclamo | riesgo de fuga | solicitud de cambio | saludo]\n" +
+  "[ACCION: texto, máx 6 palabras]\n" +
+  "[INTENCION: consulta técnica | consulta comercial | reclamo | riesgo de fuga | solicitud de cambio | saludo]\n" +
   "[ESTADO: en progreso | resuelto | escalado]\n" +
   "[SENTIMIENTO: muy_negativo | negativo | neutral | positivo | muy_positivo]\n" +
   "[FUGA: sin_riesgo | bajo | medio | alto]";
@@ -87,14 +87,14 @@ const genTkt = () => "TKT-" + Math.floor(Math.random()*90000+10000);
 const fmt = (s) => String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0");
 
 const segFromPlan = (plan) => {
-  if (!plan) return { label:"BÃ¡sico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial." };
-  if (plan.includes("Empresas")||plan.includes("1GB")) return { label:"EstratÃ©gico", color:"#534AB7", bg:"#EEEDFE", score:100, desc:"Cliente de alto valor. Prioridad mÃ¡xima." };
+  if (!plan) return { label:"Básico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial." };
+  if (plan.includes("Empresas")||plan.includes("1GB")) return { label:"Estratégico", color:"#534AB7", bg:"#EEEDFE", score:100, desc:"Cliente de alto valor. Prioridad máxima." };
   if (plan.includes("500MB")||plan.includes("VIP"))    return { label:"Alto",        color:"#1D9E75", bg:"#E1F5EE", score:75,  desc:"Cliente consolidado. Buena rentabilidad." };
   if (plan.includes("200MB"))                          return { label:"Medio",       color:"#EF9F27", bg:"#FEF3E0", score:50,  desc:"Cliente en desarrollo. Potencial de upsell." };
-  return { label:"BÃ¡sico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial. Foco en retenciÃ³n." };
+  return { label:"Básico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial. Foco en retención." };
 };
 
-// â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── UI helpers ──────────────────────────────────────────────────────────────
 function Badge({ label, color, bg }) {
   return <span style={{ fontSize:10, fontWeight:500, color, background:bg, border:"0.5px solid "+color+"40", borderRadius:20, padding:"2px 8px" }}>{label}</span>;
 }
@@ -102,7 +102,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p style={{ margin:"0 0 1px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
-      <p style={{ margin:0, fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>{value||"â€”"}</p>
+      <p style={{ margin:0, fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>{value||"—"}</p>
     </div>
   );
 }
@@ -115,7 +115,7 @@ function StarRating({ msgIndex, ratings, onRate }) {
       <div style={{ display:"flex", gap:1 }}>
         {[1,2,3,4,5].map(s => (
           <button key={s} onClick={() => onRate(msgIndex,s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
-            style={{ background:"none", border:"none", padding:"1px", cursor:"pointer", fontSize:14, color:s<=(hover||cur)?CSAT_COLORS[hover||cur]:"var(--color-border-secondary)" }}>â˜…</button>
+            style={{ background:"none", border:"none", padding:"1px", cursor:"pointer", fontSize:14, color:s<=(hover||cur)?CSAT_COLORS[hover||cur]:"var(--color-border-secondary)" }}>★</button>
         ))}
       </div>
     </div>
@@ -139,7 +139,7 @@ function CloseModal({ onClose, onConfirm, csatAvg, elapsed }) {
     const cc = sel ? (CLOSE_OPTIONS.find(o=>o.id===sel)||{}).color||"#ccc" : "#ccc";
     box.innerHTML =
       "<p style='margin:0 0 4px;font-size:14px;font-weight:500;color:#111'>Cerrar caso</p>" +
-      "<p style='margin:0 0 16px;font-size:12px;color:#666'>DuraciÃ³n: "+fmt(elapsed)+" Â· CSAT: "+(csatAvg?csatAvg.toFixed(1)+" â˜…":"sin calificar")+"</p>" +
+      "<p style='margin:0 0 16px;font-size:12px;color:#666'>Duración: "+fmt(elapsed)+" · CSAT: "+(csatAvg?csatAvg.toFixed(1)+" ★":"sin calificar")+"</p>" +
       "<p style='margin:0 0 10px;font-size:10px;color:#888;text-transform:uppercase'>Motivo de cierre</p>" +
       "<div id='opts' style='display:flex;flex-direction:column;gap:8px;margin-bottom:16px'></div>" +
       "<div style='display:flex;gap:8px'>" +
@@ -172,7 +172,7 @@ function ClienteForm({ profile, onStart }) {
   const ok = nombre.trim()!==""&&rut.trim()!==""&&telefono.trim()!==""&&plan!=="";
   return (
     <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:16, display:"flex", flexDirection:"column", gap:12 }}>
-      <p style={{ margin:0, fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>Datos del cliente Â· {profile.label}</p>
+      <p style={{ margin:0, fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>Datos del cliente · {profile.label}</p>
       <div>
         <p style={{ margin:"0 0 6px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase" }}>Canal de contacto</p>
         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
@@ -188,7 +188,7 @@ function ClienteForm({ profile, onStart }) {
         </div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-        {[["Nombre *",nombre,setNombre,"Ej: MarÃ­a GonzÃ¡lez"],["RUT *",rut,setRut,"Ej: 12.345.678-9"],["TelÃ©fono *",telefono,setTelefono,"Ej: +56 9 1234 5678"],["DirecciÃ³n",direccion,setDireccion,"Ej: Av. Providencia 123"]].map(function(item) {
+        {[["Nombre *",nombre,setNombre,"Ej: María González"],["RUT *",rut,setRut,"Ej: 12.345.678-9"],["Teléfono *",telefono,setTelefono,"Ej: +56 9 1234 5678"],["Dirección",direccion,setDireccion,"Ej: Av. Providencia 123"]].map(function(item) {
           return (
             <div key={item[0]}>
               <p style={{ margin:"0 0 4px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase" }}>{item[0]}</p>
@@ -199,15 +199,15 @@ function ClienteForm({ profile, onStart }) {
         <div style={{ gridColumn:"1/-1" }}>
           <p style={{ margin:"0 0 4px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase" }}>Plan contratado *</p>
           <select value={plan} onChange={e=>{ e.stopPropagation(); setPlan(e.target.value); }} style={{ width:"100%", fontSize:12, padding:"6px 8px", boxSizing:"border-box" }}>
-            <option value="">â€” Seleccionar plan â€”</option>
+            <option value="">— Seleccionar plan —</option>
             {PLANES.map(pl => <option key={pl} value={pl}>{pl}</option>)}
           </select>
-          {plan && <p style={{ margin:"3px 0 0", fontSize:10, color:"#1D9E75" }}>âœ“ {plan}</p>}
+          {plan && <p style={{ margin:"3px 0 0", fontSize:10, color:"#1D9E75" }}>✓ {plan}</p>}
         </div>
       </div>
       <button onClick={() => ok && onStart({nombre,rut,telefono,plan,direccion,canal})}
         style={{ fontSize:13, padding:"10px", fontWeight:500, border:"none", borderRadius:"var(--border-radius-md)", cursor:ok?"pointer":"not-allowed", background:ok?"#1D9E75":"#bbb", color:ok?"#fff":"#666" }}>
-        {ok ? "Iniciar atenciÃ³n con KUDEN â†’ ("+(CHANNELS.find(c=>c.id===canal)||CHANNELS[0]).label+")" : "Completa los campos obligatorios (*)"}
+        {ok ? "Iniciar atención con KUDEN → ("+(CHANNELS.find(c=>c.id===canal)||CHANNELS[0]).label+")" : "Completa los campos obligatorios (*)"}
       </button>
     </div>
   );
@@ -245,7 +245,7 @@ function IntelPanel({ sentimiento, fuga, intencion, action, loading }) {
         </div>
       </div>
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px" }}>
-        <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>IntenciÃ³n</p>
+        <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>Intención</p>
         {intencion ? <Badge label={intencion} color="#085041" bg="#E1F5EE"/> : <p style={{ margin:0, fontSize:11, color:"var(--color-text-tertiary)", fontStyle:"italic" }}>Sin datos</p>}
       </div>
     </div>
@@ -283,12 +283,12 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
   const sEvol   = casesLog.slice().reverse().map((c,i)=>({ i:i+1, score:sScores[c.sentimientoFinal]||50, sent:c.sentimientoFinal }));
   const n0 = (cd.nombre||"El cliente").split(" ")[0];
   const rec = seg.score>=75
-    ? n0+" es un cliente "+seg.label.toLowerCase()+". Se recomienda atenciÃ³n preferencial y beneficios de fidelizaciÃ³n."
+    ? n0+" es un cliente "+seg.label.toLowerCase()+". Se recomienda atención preferencial y beneficios de fidelización."
     : fScore>=60
-    ? "âš ï¸ "+n0+" presenta riesgo de fuga elevado. Contacto proactivo recomendado."
+    ? "⚠️ "+n0+" presenta riesgo de fuga elevado. Contacto proactivo recomendado."
     : nps!==null&&nps<0
-    ? n0+" tiene historial de insatisfacciÃ³n. Priorizar FCR y seguimiento."
-    : "Perfil en desarrollo. ContinÃºa registrando interacciones para afinar la segmentaciÃ³n.";
+    ? n0+" tiene historial de insatisfacción. Priorizar FCR y seguimiento."
+    : "Perfil en desarrollo. Continúa registrando interacciones para afinar la segmentación.";
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column", gap:10 }}>
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"14px 16px", display:"flex", alignItems:"center", gap:14 }}>
@@ -297,9 +297,9 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
         </div>
         <div style={{ flex:1 }}>
           <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:500, color:"var(--color-text-primary)" }}>{cd.nombre}</p>
-          <p style={{ margin:"0 0 5px", fontSize:12, color:"var(--color-text-secondary)" }}>{cd.rut} Â· {cd.telefono}</p>
+          <p style={{ margin:"0 0 5px", fontSize:12, color:"var(--color-text-secondary)" }}>{cd.rut} · {cd.telefono}</p>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <Badge label={cd.plan||"â€”"} color="#534AB7" bg="#EEEDFE"/>
+            <Badge label={cd.plan||"—"} color="#534AB7" bg="#EEEDFE"/>
             <Badge label={"Segmento "+seg.label} color={seg.color} bg={seg.bg}/>
           </div>
         </div>
@@ -320,14 +320,14 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
             <div style={{ width:seg.score+"%", height:"100%", background:seg.color, borderRadius:6 }}/>
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:9, color:"var(--color-text-tertiary)" }}>BÃ¡sico</span>
-            <span style={{ fontSize:9, color:"var(--color-text-tertiary)" }}>EstratÃ©gico</span>
+            <span style={{ fontSize:9, color:"var(--color-text-tertiary)" }}>Básico</span>
+            <span style={{ fontSize:9, color:"var(--color-text-tertiary)" }}>Estratégico</span>
           </div>
         </div>
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-          <p style={{ margin:"0 0 8px", fontSize:11, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>NPS histÃ³rico</p>
+          <p style={{ margin:"0 0 8px", fontSize:11, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>NPS histórico</p>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:32, fontWeight:500, color:npsColor }}>{nps!==null?nps:"â€”"}</p>
+            <p style={{ margin:0, fontSize:32, fontWeight:500, color:npsColor }}>{nps!==null?nps:"—"}</p>
             <div>
               <Badge label={npsLabel} color={npsColor} bg={npsColor+"20"}/>
               <p style={{ margin:"4px 0 0", fontSize:10, color:"var(--color-text-secondary)" }}>{allCSAT.length} evaluaciones</p>
@@ -383,7 +383,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
           </div>
           {sEvol.length > 0 && (
             <div>
-              <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)" }}>Sentimiento por sesiÃ³n</p>
+              <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)" }}>Sentimiento por sesión</p>
               <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:32 }}>
                 {sEvol.map((s,i) => {
                   const sO = SENTIMIENTOS.find(x=>x.id===s.sent)||SENTIMIENTOS[2];
@@ -402,7 +402,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
       <div style={{ background:"#EEEDFE", border:"0.5px solid #CECBF6", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
           <i className="ti ti-sparkles" style={{ fontSize:14, color:"#534AB7" }} aria-hidden="true"/>
-          <p style={{ margin:0, fontSize:12, fontWeight:500, color:"#26215C" }}>RecomendaciÃ³n KUDEN IA</p>
+          <p style={{ margin:0, fontSize:12, fontWeight:500, color:"#26215C" }}>Recomendación KUDEN IA</p>
         </div>
         <p style={{ margin:0, fontSize:12, color:"#26215C", lineHeight:1.6 }}>{rec}</p>
       </div>
@@ -414,7 +414,7 @@ function MetricasTab({ casesLog }) {
   if (casesLog.length === 0) return (
     <div style={{ textAlign:"center", padding:40 }}>
       <i className="ti ti-chart-bar" style={{ fontSize:32, color:"var(--color-text-tertiary)", display:"block", marginBottom:10 }} aria-hidden="true"/>
-      <p style={{ color:"var(--color-text-secondary)", fontSize:13 }}>Cierra al menos un caso para ver las mÃ©tricas</p>
+      <p style={{ color:"var(--color-text-secondary)", fontSize:13 }}>Cierra al menos un caso para ver las métricas</p>
     </div>
   );
   const total     = casesLog.length;
@@ -422,13 +422,13 @@ function MetricasTab({ casesLog }) {
   const escalados = casesLog.filter(c=>c.motivo==="escalado").length;
   const tasa      = Math.round((resueltos/total)*100);
   const cVals     = casesLog.map(c=>parseFloat(c.csatFinal)).filter(n=>!isNaN(n));
-  const cProm     = cVals.length ? (cVals.reduce((a,b)=>a+b,0)/cVals.length).toFixed(1) : "â€”";
+  const cProm     = cVals.length ? (cVals.reduce((a,b)=>a+b,0)/cVals.length).toFixed(1) : "—";
   const durs      = casesLog.map(c=>{ const p=c.duracion.split(":").map(Number); return p[0]*60+p[1]; });
-  const dProm     = durs.length ? fmt(Math.round(durs.reduce((a,b)=>a+b,0)/durs.length)) : "â€”";
+  const dProm     = durs.length ? fmt(Math.round(durs.reduce((a,b)=>a+b,0)/durs.length)) : "—";
   const canalC={}, intC={}, sentC={}, fugaC={};
   casesLog.forEach(c=>{
     canalC[c.canal]=(canalC[c.canal]||0)+1;
-    intC[c.intencion||"â€”"]=(intC[c.intencion||"â€”"]||0)+1;
+    intC[c.intencion||"—"]=(intC[c.intencion||"—"]||0)+1;
     sentC[c.sentimientoFinal||"neutral"]=(sentC[c.sentimientoFinal||"neutral"]||0)+1;
     fugaC[c.fugaFinal||"sin_riesgo"]=(fugaC[c.fugaFinal||"sin_riesgo"]||0)+1;
   });
@@ -436,9 +436,9 @@ function MetricasTab({ casesLog }) {
   const mxI = Math.max(...Object.values(intC),1);
   const kpis = [
     {l:"Casos totales",  v:""+total,   c:"#534AB7", i:"ti-inbox"},
-    {l:"Tasa resoluciÃ³n",v:tasa+"%",   c:"#1D9E75", i:"ti-circle-check"},
-    {l:"CSAT promedio",  v:cProm+" â˜…", c:"#EF9F27", i:"ti-star"},
-    {l:"DuraciÃ³n prom.", v:dProm,       c:"#D85A30", i:"ti-clock"},
+    {l:"Tasa resolución",v:tasa+"%",   c:"#1D9E75", i:"ti-circle-check"},
+    {l:"CSAT promedio",  v:cProm+" ★", c:"#EF9F27", i:"ti-star"},
+    {l:"Duración prom.", v:dProm,       c:"#D85A30", i:"ti-clock"},
   ];
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column", gap:12 }}>
@@ -455,7 +455,7 @@ function MetricasTab({ casesLog }) {
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸ“¡ Por canal</p>
+          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>📡 Por canal</p>
           {Object.entries(canalC).map(entry => {
             const chO = CHANNELS.find(c=>c.label===entry[0])||CHANNELS[0];
             return (
@@ -475,7 +475,7 @@ function MetricasTab({ casesLog }) {
           })}
         </div>
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸŽ¯ Por intenciÃ³n</p>
+          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>🎯 Por intención</p>
           {Object.entries(intC).map(entry => (
             <div key={entry[0]} style={{ marginBottom:7 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
@@ -489,7 +489,7 @@ function MetricasTab({ casesLog }) {
           ))}
         </div>
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸ˜Š Sentimiento al cierre</p>
+          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>😊 Sentimiento al cierre</p>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {SENTIMIENTOS.filter(s=>(sentC[s.id]||0)>0).map(s => (
               <div key={s.id} style={{ background:s.bg, border:"0.5px solid "+s.color+"40", borderRadius:"var(--border-radius-md)", padding:"8px 10px", textAlign:"center", minWidth:50 }}>
@@ -501,7 +501,7 @@ function MetricasTab({ casesLog }) {
           </div>
         </div>
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸš¨ Riesgo de fuga</p>
+          <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>🚨 Riesgo de fuga</p>
           {RIESGO_FUGA.map(f => {
             const cnt = fugaC[f.id]||0;
             const pct = Math.round((cnt/total)*100);
@@ -523,13 +523,13 @@ function MetricasTab({ casesLog }) {
         </div>
       </div>
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-        <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>âš¡ ResoluciÃ³n autÃ³noma KUDEN</p>
+        <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>⚡ Resolución autónoma KUDEN</p>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ flex:1 }}>
             <div style={{ background:"var(--color-background-secondary)", borderRadius:6, height:10, overflow:"hidden", marginBottom:6 }}>
               <div style={{ width:tasa+"%", height:"100%", background:"#1D9E75", borderRadius:6 }}/>
             </div>
-            <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>âœ“ {resueltos} resueltos Â· {escalados} escalados Â· {total-resueltos-escalados} abandonados</span>
+            <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>✓ {resueltos} resueltos · {escalados} escalados · {total-resueltos-escalados} abandonados</span>
           </div>
           <div style={{ textAlign:"center", flexShrink:0 }}>
             <p style={{ margin:0, fontSize:28, fontWeight:500, color:"#1D9E75" }}>{tasa}%</p>
@@ -541,7 +541,7 @@ function MetricasTab({ casesLog }) {
   );
 }
 
-// â”€â”€ App principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── App principal ────────────────────────────────────────────────────────────
 export default function App() {
   const [profile,        setProfile]        = useState(null);
   const [cliente,        setCliente]        = useState(null);
@@ -607,12 +607,12 @@ export default function App() {
     setInput(""); setLoading(true); loadingRef.current=true; setAction("Procesando solicitud...");
     try {
       const chLabel = (CHANNELS.find(c=>c.id===ch)||CHANNELS[0]).label;
-      const res = await fetch(${import.meta.env.VITE_API_URL || ""}/api/chat, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/chat`, {
         method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system:buildSystem(prof,cli,chLabel), messages:newHistory }),
+        body: JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:1000, system:buildSystem(prof,cli,chLabel), messages:newHistory }),
       });
       const data = await res.json();
-      const raw  = (data.content&&data.content[0]&&data.content[0].text)||"Lo siento, ocurriÃ³ un error.";
+      const raw  = (data.content&&data.content[0]&&data.content[0].text)||"Lo siento, ocurrió un error.";
       const parsed = parseFull(raw);
       historyRef.current = newHistory.concat([{ role:"assistant", content:parsed.clean }]);
       setMessages(prev => prev.concat([{ role:"assistant", text:parsed.clean }]));
@@ -621,7 +621,7 @@ export default function App() {
       if (parsed.sentimiento) setSentimiento(parsed.sentimiento);
       if (parsed.fuga)        setFuga(parsed.fuga);
       setCrm(prev => prev ? Object.assign({}, prev, { intencion:parsed.intencion||prev.intencion, estado:parsed.estado||prev.estado, turnos:prev.turnos+1 }) : prev);
-    } catch(e) { setMessages(prev => prev.concat([{ role:"assistant", text:"Error de conexiÃ³n." }])); }
+    } catch(e) { setMessages(prev => prev.concat([{ role:"assistant", text:"Error de conexión." }])); }
     setLoading(false); loadingRef.current=false;
     inputRef.current && inputRef.current.focus();
   }, []);
@@ -633,7 +633,7 @@ export default function App() {
     if (!profile) setProfile(usedProf);
     startRef.current = Date.now();
     const chLabel = (CHANNELS.find(c=>c.id===ch)||CHANNELS[0]).label;
-    setCrm({ ticketId:genTkt(), nombre:form.nombre, rut:form.rut, telefono:form.telefono, plan:form.plan, direccion:form.direccion, canal:chLabel, intencion:"â€”", estado:"en progreso", turnos:0 });
+    setCrm({ ticketId:genTkt(), nombre:form.nombre, rut:form.rut, telefono:form.telefono, plan:form.plan, direccion:form.direccion, canal:chLabel, intencion:"—", estado:"en progreso", turnos:0 });
     setChatReady(true);
     setSentimiento("neutral"); setFuga("sin_riesgo");
     setMessages([]); setActionHistory([]); setRatings({});
@@ -679,12 +679,11 @@ export default function App() {
   const generarResumen = async (caseData, msgs) => {
     setLoadingResumen(true);
     const conv = msgs.map(m => (m.role==="user"?"Cliente":"KUDEN")+": "+m.text).join("\n");
+    const prompt = "Genera un resumen ejecutivo de este caso en 4 líneas: problema, acciones, resultado, recomendación.\n\nCliente: "+caseData.nombre+" | Plan: "+caseData.plan+" | Canal: "+caseData.canal+" | Cierre: "+caseData.motivoLabel+"\n\n"+conv;
     try {
-      const res = await ffetch(${import.meta.env.VITE_API_URL || ""}/api/chat, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/chat`, {
         method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:300,
-          messages:[{ role:"user", content:"Genera un resumen ejecutivo de este caso en 4 lÃ­neas: problema, acciones, resultado, recomendaciÃ³n.\n\nCliente: "+caseData.nombre+" | Plan: "+caseData.plan+" | Canal: "+caseData.canal+" | Cierre: "+caseData.motivoLabel+"\n\n"+conv }]
-        }),
+        body: JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:300, messages:[{ role:"user", content:prompt }] }),
       });
       const data = await res.json();
       setResumen((data.content&&data.content[0]&&data.content[0].text)||"No se pudo generar el resumen.");
@@ -698,7 +697,7 @@ export default function App() {
     const newCase = Object.assign({}, crm, {
       perfil:profile&&profile.label, duracion:fmt(elapsed),
       csatFinal:csatAvg?csatAvg.toFixed(1):"Sin calificar",
-      csatLabel:csatAvg?CSAT_LABELS[Math.round(csatAvg)]:"â€”",
+      csatLabel:csatAvg?CSAT_LABELS[Math.round(csatAvg)]:"—",
       cerradoEn:new Date().toLocaleTimeString("es-CL"),
       totalMensajes:messages.length, motivo,
       motivoLabel:opt.label, motivoColor:opt.color, motivoBg:opt.bg, motivoIcon:opt.icon,
@@ -728,11 +727,11 @@ export default function App() {
   const activeHistory = demoCliente ? demoCliente.historial : [];
 
   const TABS = [
-    { id:"chat",      label:"ðŸ’¬ Chat" },
-    { id:"crm",       label:"ðŸ“‹ CRM",      badge:crm?"LIVE":null, bc:"#1D9E75" },
-    { id:"historial", label:"ðŸ—‚ Historial" },
-    { id:"metricas",  label:"ðŸ“Š MÃ©tricas", badge:casesLog.length||null, bc:"#534AB7" },
-    { id:"perfil",    label:"ðŸ‘¤ Perfil" },
+    { id:"chat",      label:"💬 Chat" },
+    { id:"crm",       label:"📋 CRM",      badge:crm?"LIVE":null, bc:"#1D9E75" },
+    { id:"historial", label:"🗂 Historial" },
+    { id:"metricas",  label:"📊 Métricas", badge:casesLog.length||null, bc:"#534AB7" },
+    { id:"perfil",    label:"👤 Perfil" },
   ];
 
   return (
@@ -753,7 +752,7 @@ export default function App() {
           />
           <button onClick={buscarPorRut} disabled={rutBuscando||!rutBusqueda.trim()}
             style={{ padding:"7px 16px", fontSize:12, fontWeight:500, cursor:rutBusqueda.trim()?"pointer":"not-allowed", background:"#1D9E75", color:"#fff", border:"none", borderRadius:"var(--border-radius-md)", opacity:rutBusqueda.trim()?1:0.5 }}>
-            {rutBuscando ? "Buscando..." : "ðŸ” Buscar"}
+            {rutBuscando ? "Buscando..." : "🔍 Buscar"}
           </button>
         </div>
         {rutResultado==="no_encontrado" && (
@@ -771,12 +770,12 @@ export default function App() {
               <p style={{ margin:"0 0 2px", fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>{demoCliente.nombre}</p>
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>{demoCliente.rut}</span>
-                <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>Â·</span>
+                <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>{demoCliente.telefono}</span>
-                <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>Â·</span>
+                <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
                 <Badge label={demoCliente.plan} color={segFromPlan(demoCliente.plan).color} bg={segFromPlan(demoCliente.plan).bg}/>
               </div>
-              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{demoCliente.historial.length} casos en historial Â· {demoCliente.direccion}</p>
+              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{demoCliente.historial.length} casos en historial · {demoCliente.direccion}</p>
             </div>
             <div style={{ textAlign:"right", flexShrink:0 }}>
               <i className="ti ti-circle-check" style={{ fontSize:20, color:"#1D9E75" }} aria-hidden="true"/>
@@ -790,7 +789,7 @@ export default function App() {
             {DEMO_CLIENTES.map(dc => (
               <button key={dc.id} onClick={() => { setRutBusqueda(dc.rut); setRutResultado(null); }}
                 style={{ fontSize:10, padding:"3px 8px", cursor:"pointer", borderRadius:20, background:"var(--color-background-secondary)", border:"0.5px solid var(--color-border-tertiary)", color:"var(--color-text-secondary)" }}>
-                {dc.rut} <span style={{ color:"var(--color-text-tertiary)" }}>Â· {dc.nombre.split(" ")[0]}</span>
+                {dc.rut} <span style={{ color:"var(--color-text-tertiary)" }}>· {dc.nombre.split(" ")[0]}</span>
               </button>
             ))}
           </div>
@@ -813,7 +812,7 @@ export default function App() {
 
       <div style={{ display:"flex", gap:12 }}>
 
-        {/* â”€â”€ CHAT â”€â”€ */}
+        {/* ── CHAT ── */}
         {tab==="chat" && (
           <div style={{ flex:1, display:"flex", flexDirection:"column", gap:10 }}>
             {!profile && !chatReady && (
@@ -840,9 +839,9 @@ export default function App() {
                     <span style={{ color:"#fff", fontWeight:500, fontSize:12 }}>K</span>
                   </div>
                   <div style={{ flex:1 }}>
-                    <p style={{ margin:0, fontWeight:500, fontSize:13, color:"var(--color-text-primary)" }}>KUDEN Â· ConectaChile</p>
+                    <p style={{ margin:0, fontWeight:500, fontSize:13, color:"var(--color-text-primary)" }}>KUDEN · ConectaChile</p>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <p style={{ margin:0, fontSize:10, color:"#1D9E75" }}>â— {cliente&&cliente.nombre?cliente.nombre.split(" ")[0]:"cliente"}</p>
+                      <p style={{ margin:0, fontSize:10, color:"#1D9E75" }}>● {cliente&&cliente.nombre?cliente.nombre.split(" ")[0]:"cliente"}</p>
                       <div style={{ display:"flex", alignItems:"center", gap:3, background:activeCh.bg, borderRadius:20, padding:"1px 7px" }}>
                         <i className={"ti "+activeCh.icon} style={{ fontSize:10, color:activeCh.color }} aria-hidden="true"/>
                         <span style={{ fontSize:10, color:activeCh.color, fontWeight:500 }}>{activeCh.label}</span>
@@ -850,7 +849,7 @@ export default function App() {
                       <span style={{ fontSize:14 }}>{sentObj.emoji}</span>
                     </div>
                   </div>
-                  {!closedCase && <span style={{ fontSize:11, color:"var(--color-text-secondary)", fontVariantNumeric:"tabular-nums" }}>â± {fmt(elapsed)}</span>}
+                  {!closedCase && <span style={{ fontSize:11, color:"var(--color-text-secondary)", fontVariantNumeric:"tabular-nums" }}>⏱ {fmt(elapsed)}</span>}
                   {ec && <Badge label={ec.label} color={ec.color} bg={ec.bg}/>}
                 </div>
                 <div style={{ overflowY:"auto", padding:12, display:"flex", flexDirection:"column", gap:9, maxHeight:300 }}>
@@ -886,7 +885,7 @@ export default function App() {
                   <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={handleKey}
                     placeholder={closedCase?"Caso cerrado":"Escribe por "+activeCh.label+"..."}
                     style={{ flex:1, fontSize:12 }} disabled={loading||!!closedCase}/>
-                  {!closedCase && <button onClick={() => setShowModal(true)} style={{ padding:"0 10px", fontSize:11, cursor:"pointer", background:"#FAECE7", color:"#4A1B0C", border:"0.5px solid #F5C4B3", borderRadius:"var(--border-radius-md)", whiteSpace:"nowrap" }}>Cerrar caso â–¾</button>}
+                  {!closedCase && <button onClick={() => setShowModal(true)} style={{ padding:"0 10px", fontSize:11, cursor:"pointer", background:"#FAECE7", color:"#4A1B0C", border:"0.5px solid #F5C4B3", borderRadius:"var(--border-radius-md)", whiteSpace:"nowrap" }}>Cerrar caso ▾</button>}
                   <button onClick={() => sendMessage()} disabled={loading||!input.trim()||!!closedCase} style={{ padding:"0 12px", cursor:"pointer" }}>
                     <i className="ti ti-send" style={{ fontSize:14 }} aria-hidden="true"/>
                   </button>
@@ -896,7 +895,7 @@ export default function App() {
           </div>
         )}
 
-        {/* â”€â”€ CRM â”€â”€ */}
+        {/* ── CRM ── */}
         {tab==="crm" && (
           <div style={{ flex:1, display:"flex", flexDirection:"column", gap:10 }}>
             {!crm ? (
@@ -910,32 +909,32 @@ export default function App() {
                   <div style={{ background:closedCase.motivoBg||"#E1F5EE", border:"0.5px solid "+(closedCase.motivoColor||"#9FE1CB"), borderRadius:"var(--border-radius-lg)", padding:"12px 14px", display:"flex", alignItems:"center", gap:10 }}>
                     <i className={"ti "+(closedCase.motivoIcon||"ti-circle-check")} style={{ fontSize:20, color:closedCase.motivoColor||"#1D9E75" }} aria-hidden="true"/>
                     <div>
-                      <p style={{ margin:0, fontWeight:500, fontSize:13, color:"var(--color-text-primary)" }}>Caso {closedCase.motivoLabel} Â· {closedCase.cerradoEn}</p>
-                      <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>DuraciÃ³n: {closedCase.duracion} Â· {closedCase.totalMensajes} mensajes Â· CSAT: {closedCase.csatFinal} â˜…</p>
+                      <p style={{ margin:0, fontWeight:500, fontSize:13, color:"var(--color-text-primary)" }}>Caso {closedCase.motivoLabel} · {closedCase.cerradoEn}</p>
+                      <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>Duración: {closedCase.duracion} · {closedCase.totalMensajes} mensajes · CSAT: {closedCase.csatFinal} ★</p>
                     </div>
                   </div>
                 )}
                 <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                    <p style={{ margin:0, fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸ‘¤ Datos del cliente</p>
+                    <p style={{ margin:0, fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>👤 Datos del cliente</p>
                     {ec && <Badge label={ec.label} color={ec.color} bg={ec.bg}/>}
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9 }}>
                     <Field label="Nombre"    value={crm.nombre}/>
                     <Field label="RUT"       value={crm.rut}/>
-                    <Field label="TelÃ©fono"  value={crm.telefono}/>
+                    <Field label="Teléfono"  value={crm.telefono}/>
                     <Field label="Canal"     value={crm.canal}/>
                     <Field label="Plan"      value={crm.plan}/>
-                    <Field label="DirecciÃ³n" value={crm.direccion||"No informada"}/>
+                    <Field label="Dirección" value={crm.direccion||"No informada"}/>
                   </div>
                 </div>
                 <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-                  <p style={{ margin:"0 0 9px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸŽ« Caso Â· {crm.ticketId}</p>
+                  <p style={{ margin:"0 0 9px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>🎫 Caso · {crm.ticketId}</p>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9 }}>
-                    <Field label="IntenciÃ³n" value={crm.intencion}/>
+                    <Field label="Intención" value={crm.intencion}/>
                     <Field label="Turnos"    value={crm.turnos}/>
-                    <Field label="DuraciÃ³n"  value={closedCase?closedCase.duracion:fmt(elapsed)}/>
-                    <Field label="CSAT"      value={csatAvg?csatAvg.toFixed(1)+" â˜…":"Sin calificar"}/>
+                    <Field label="Duración"  value={closedCase?closedCase.duracion:fmt(elapsed)}/>
+                    <Field label="CSAT"      value={csatAvg?csatAvg.toFixed(1)+" ★":"Sin calificar"}/>
                     {closedCase && <Field label="Motivo cierre" value={closedCase.motivoLabel}/>}
                   </div>
                 </div>
@@ -958,9 +957,9 @@ export default function App() {
                   }
                 </div>
                 <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-                  <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>âš¡ Log KUDEN</p>
+                  <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>⚡ Log KUDEN</p>
                   {actionHistory.length===0
-                    ? <p style={{ margin:0, fontSize:11, color:"var(--color-text-tertiary)", fontStyle:"italic" }}>Sin acciones aÃºn</p>
+                    ? <p style={{ margin:0, fontSize:11, color:"var(--color-text-tertiary)", fontStyle:"italic" }}>Sin acciones aún</p>
                     : <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                         {actionHistory.map((a,i) => (
                           <div key={i} style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
@@ -971,14 +970,14 @@ export default function App() {
                       </div>
                   }
                 </div>
-                {!closedCase && <button onClick={() => setShowModal(true)} style={{ fontSize:12, padding:9, cursor:"pointer", background:"#FAECE7", color:"#4A1B0C", border:"0.5px solid #F5C4B3", borderRadius:"var(--border-radius-lg)", fontWeight:500 }}>Cerrar caso â–¾</button>}
-                {closedCase  && <button onClick={() => selectProfile(profile)} style={{ fontSize:12, padding:9, cursor:"pointer", borderRadius:"var(--border-radius-lg)" }}>Nueva conversaciÃ³n â†º</button>}
+                {!closedCase && <button onClick={() => setShowModal(true)} style={{ fontSize:12, padding:9, cursor:"pointer", background:"#FAECE7", color:"#4A1B0C", border:"0.5px solid #F5C4B3", borderRadius:"var(--border-radius-lg)", fontWeight:500 }}>Cerrar caso ▾</button>}
+                {closedCase  && <button onClick={() => selectProfile(profile)} style={{ fontSize:12, padding:9, cursor:"pointer", borderRadius:"var(--border-radius-lg)" }}>Nueva conversación ↺</button>}
               </div>
             )}
           </div>
         )}
 
-        {/* â”€â”€ HISTORIAL â”€â”€ */}
+        {/* ── HISTORIAL ── */}
         {tab==="historial" && (
           <div style={{ flex:1, display:"flex", flexDirection:"column", gap:10 }}>
             {cliente && p && (
@@ -988,13 +987,13 @@ export default function App() {
                 </div>
                 <div>
                   <p style={{ margin:0, fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>{cliente.nombre}</p>
-                  <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{cliente.plan} Â· {cliente.rut}</p>
+                  <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{cliente.plan} · {cliente.rut}</p>
                 </div>
               </div>
             )}
             <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
-              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>ðŸ—‚ Casos en sesiÃ³n</p>
-              {casesLog.length===0 && <p style={{ fontSize:12, color:"var(--color-text-tertiary)", fontStyle:"italic", marginBottom:10 }}>Sin casos cerrados aÃºn</p>}
+              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:500, color:"var(--color-text-primary)" }}>🗂 Casos en sesión</p>
+              {casesLog.length===0 && <p style={{ fontSize:12, color:"var(--color-text-tertiary)", fontStyle:"italic", marginBottom:10 }}>Sin casos cerrados aún</p>}
               {casesLog.map((h,idx) => {
                 const ec2  = estadoConfig[h.estado]||estadoConfig["en progreso"];
                 const hCh  = CHANNELS.find(c=>c.label===h.canal)||CHANNELS[0];
@@ -1013,10 +1012,10 @@ export default function App() {
                         </div>
                         <span style={{ fontSize:11 }}>{hS.emoji}</span>
                       </div>
-                      <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{h.nombre} Â· {h.intencion} Â· {h.cerradoEn}</p>
+                      <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{h.nombre} · {h.intencion} · {h.cerradoEn}</p>
                     </div>
                     <div style={{ textAlign:"right", flexShrink:0 }}>
-                      <p style={{ margin:0, fontSize:13, color:!isNaN(csatN)?CSAT_COLORS[Math.round(csatN)]:"#ccc", fontWeight:500 }}>{!isNaN(csatN)?"â˜…".repeat(Math.round(csatN)):"â€”"}</p>
+                      <p style={{ margin:0, fontSize:13, color:!isNaN(csatN)?CSAT_COLORS[Math.round(csatN)]:"#ccc", fontWeight:500 }}>{!isNaN(csatN)?"★".repeat(Math.round(csatN)):"—"}</p>
                       <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)" }}>{h.csatLabel}</p>
                     </div>
                   </div>
@@ -1039,10 +1038,10 @@ export default function App() {
                               <span style={{ fontSize:9, color:hCh.color, fontWeight:500 }}>{h.canal}</span>
                             </div>
                           </div>
-                          <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{h.tipo} Â· {h.fecha}</p>
+                          <p style={{ margin:0, fontSize:11, color:"var(--color-text-secondary)" }}>{h.tipo} · {h.fecha}</p>
                         </div>
                         <div style={{ textAlign:"right" }}>
-                          <p style={{ margin:0, fontSize:13, color:CSAT_COLORS[h.csat], fontWeight:500 }}>{"â˜…".repeat(h.csat)}</p>
+                          <p style={{ margin:0, fontSize:13, color:CSAT_COLORS[h.csat], fontWeight:500 }}>{"★".repeat(h.csat)}</p>
                           <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)" }}>{CSAT_LABELS[h.csat]}</p>
                         </div>
                       </div>
@@ -1054,24 +1053,24 @@ export default function App() {
           </div>
         )}
 
-        {/* â”€â”€ MÃ‰TRICAS â”€â”€ */}
+        {/* ── MÉTRICAS ── */}
         {tab==="metricas" && <MetricasTab casesLog={casesLog}/>}
 
-        {/* â”€â”€ PERFIL â”€â”€ */}
+        {/* ── PERFIL ── */}
         {tab==="perfil" && <PerfilTab cliente={cliente} casesLog={casesLog} fakeHistory={activeHistory}/>}
 
-        {/* â”€â”€ SIDE PANEL â”€â”€ */}
+        {/* ── SIDE PANEL ── */}
         {tab==="chat" && chatReady && (
           <div style={{ width:168, display:"flex", flexDirection:"column", gap:9, flexShrink:0 }}>
             <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px", textAlign:"center" }}>
               <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>CSAT promedio</p>
-              <p style={{ margin:"0 0 2px", fontSize:24, fontWeight:500, color:csatAvg>=4?"#1D9E75":csatAvg>=3?"#EF9F27":csatAvg>=1?"#E24B4A":"var(--color-text-tertiary)" }}>{csatAvg?csatAvg.toFixed(1):"â€”"}</p>
+              <p style={{ margin:"0 0 2px", fontSize:24, fontWeight:500, color:csatAvg>=4?"#1D9E75":csatAvg>=3?"#EF9F27":csatAvg>=1?"#E24B4A":"var(--color-text-tertiary)" }}>{csatAvg?csatAvg.toFixed(1):"—"}</p>
               <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)" }}>{csatArr.length} calificaciones</p>
             </div>
             <IntelPanel sentimiento={sentimiento} fuga={fuga} intencion={intencion} action={action} loading={loading}/>
             <div style={{ background:"#E1F5EE", border:"0.5px solid #9FE1CB", borderRadius:"var(--border-radius-lg)", padding:"8px 12px", textAlign:"center", marginTop:"auto" }}>
               <p style={{ margin:"0 0 1px", fontSize:11, fontWeight:500, color:"#085041" }}>KUDEN IA</p>
-              <p style={{ margin:0, fontSize:10, color:"#0F6E56" }}>Simulador Â· Demo</p>
+              <p style={{ margin:0, fontSize:10, color:"#0F6E56" }}>Simulador · Demo</p>
             </div>
           </div>
         )}
