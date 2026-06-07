@@ -2,7 +2,7 @@ import KudenSimulator from "./simulator/KudenSimulator.jsx";
 export default function App() {
   return (
     <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 1rem", fontFamily:'"Plus Jakarta Sans", system-ui, sans-serif' }}>
-      <header style={{ position:"sticky", top:0, zIndex:50, background:"rgba(255,255,255,0.85)", backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0", borderBottom:"0.5px solid #E1EDF3", marginBottom:8 }}>
+      <header style={{ position:"sticky", top:0, zIndex:50, background:"#fff", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0", borderBottom:"0.5px solid #E1EDF3", marginBottom:8 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:34, height:34, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #D2E5ED", overflow:"hidden" }}>
             <img src="/kuden-logo.png" alt="KUDEN" style={{ width:26, height:26, objectFit:"contain" }}/>
