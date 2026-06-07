@@ -1,17 +1,52 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
+// ====================================================================
+//  TEMA KUDEN  ·  Cambia aqui los colores de marca y se aplican a todo.
+//  Paleta oficial extraida del sitio kuden (kuden_37.html).
+// ====================================================================
+const THEME = {
+  navy:        "#0E2A3A",  // texto principal / titulos
+  ink:         "#13313F",  // texto
+  slate:       "#4E6B79",  // texto secundario
+  slateSoft:   "#6E8794",  // texto terciario
+  celeste:     "#1FA1C4",  // acento principal de marca
+  celesteBright:"#3FC8E6",
+  celesteDeep: "#137E9C",
+  celesteSoft: "#DCF2F9",  // fondo suave
+  celesteTint: "#EEF8FC",  // fondo muy suave
+  blue:        "#3E6AA8",
+  line:        "#E1EDF3",
+  line2:       "#D2E5ED",
+  // degradados firma de KUDEN
+  gradBtn:     "linear-gradient(135deg,#3FC8E6,#137E9C)",
+  gradBrand:   "linear-gradient(120deg,#1FA1C4,#3E6AA8)",
+};
+const KUDEN_LOGO = "/kuden-logo.png";
+
+// Carga las tipografias oficiales de KUDEN una sola vez.
+if (typeof document !== "undefined" && !document.getElementById("kuden-fonts")) {
+  const l = document.createElement("link");
+  l.id = "kuden-fonts";
+  l.rel = "stylesheet";
+  l.href = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap";
+  document.head.appendChild(l);
+}
+const FONT_DISPLAY = '"Bricolage Grotesque", sans-serif';
+const FONT_BODY    = '"Plus Jakarta Sans", system-ui, sans-serif';
+const FONT_MONO    = '"JetBrains Mono", ui-monospace, monospace';
+
 const PROFILES = [
-  { id:"nuevo",   label:"Cliente nuevo",   desc:"Primera vez, curioso y amable",      icon:"ti-user-plus",  color:"#1D9E75", bg:"#E1F5EE", text:"#085041", hint:"Hola, acabo de contratar el servicio y tengo algunas dudas",        persona:"Eres un cliente nuevo, curioso y amable." },
+  { id:"nuevo",   label:"Cliente nuevo",   desc:"Primera vez, curioso y amable",      icon:"ti-user-plus",  color:"#1FA1C4", bg:"#DCF2F9", text:"#0E2A3A", hint:"Hola, acabo de contratar el servicio y tengo algunas dudas",        persona:"Eres un cliente nuevo, curioso y amable." },
   { id:"molesto", label:"Cliente molesto", desc:"Frustrado, exige solución rápida",   icon:"ti-mood-angry", color:"#D85A30", bg:"#FAECE7", text:"#4A1B0C", hint:"Llevo 3 días sin internet y nadie me soluciona nada",                persona:"Eres un cliente muy frustrado. Exiges soluciones concretas." },
-  { id:"vip",     label:"Cliente VIP",     desc:"Premium, espera trato diferenciado", icon:"ti-crown",      color:"#534AB7", bg:"#EEEDFE", text:"#26215C", hint:"Buenos días, soy cliente hace 8 años y necesito atención especial", persona:"Eres un cliente VIP. Exiges trato preferencial." },
+  { id:"vip",     label:"Cliente VIP",     desc:"Premium, espera trato diferenciado", icon:"ti-crown",      color:"#3E6AA8", bg:"#E7EFF9", text:"#1B2A4A", hint:"Buenos días, soy cliente hace 8 años y necesito atención especial", persona:"Eres un cliente VIP. Exiges trato preferencial." },
 ];
 
 const CHANNELS = [
-  { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
+  { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1FA1C4", bg:"#DCF2F9" },
   { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
-  { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#534AB7", bg:"#EEEDFE" },
-  { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#D85A30", bg:"#FAECE7" },
-  { id:"rrss",     label:"Redes Soc.",icon:"ti-share",          color:"#EF9F27", bg:"#FEF3E0" },
+  { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#3E6AA8", bg:"#E7EFF9" },
+  { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#137E9C", bg:"#D4EEF6" },
+  { id:"rrss",     label:"Redes Soc.",icon:"ti-share",          color:"#0E5F77", bg:"#D0E8F0" },
 ];
 
 const CSAT_LABELS = ["","Muy malo","Malo","Regular","Bueno","Excelente"];
@@ -26,7 +61,7 @@ const SENTIMIENTOS = [
 ];
 
 const RIESGO_FUGA = [
-  { id:"sin_riesgo", label:"Sin riesgo",   color:"#1D9E75", bg:"#E1F5EE", icon:"ti-shield-check"   },
+  { id:"sin_riesgo", label:"Sin riesgo",   color:"#1FA1C4", bg:"#DCF2F9", icon:"ti-shield-check"   },
   { id:"bajo",       label:"Riesgo bajo",  color:"#EF9F27", bg:"#FEF3E0", icon:"ti-alert-triangle" },
   { id:"medio",      label:"Riesgo medio", color:"#D85A30", bg:"#FAECE7", icon:"ti-alert-triangle" },
   { id:"alto",       label:"Riesgo alto",  color:"#E24B4A", bg:"#FDECEA", icon:"ti-flame"          },
@@ -202,11 +237,11 @@ function ClienteForm({ profile, onStart }) {
             <option value="">— Seleccionar plan —</option>
             {PLANES.map(pl => <option key={pl} value={pl}>{pl}</option>)}
           </select>
-          {plan && <p style={{ margin:"3px 0 0", fontSize:10, color:"#1D9E75" }}>✓ {plan}</p>}
+          {plan && <p style={{ margin:"3px 0 0", fontSize:10, color:THEME.celesteDeep }}>✓ {plan}</p>}
         </div>
       </div>
       <button onClick={() => ok && onStart({nombre,rut,telefono,plan,direccion,canal})}
-        style={{ fontSize:13, padding:"10px", fontWeight:500, border:"none", borderRadius:"var(--border-radius-md)", cursor:ok?"pointer":"not-allowed", background:ok?"#1D9E75":"#bbb", color:ok?"#fff":"#666" }}>
+        style={{ fontSize:13, padding:"10px", fontWeight:500, border:"none", borderRadius:"var(--border-radius-md)", cursor:ok?"pointer":"not-allowed", background:ok?THEME.gradBtn:"#bbb", color:ok?"#fff":"#666" }}>
         {ok ? "Iniciar atención con KUDEN → ("+(CHANNELS.find(c=>c.id===canal)||CHANNELS[0]).label+")" : "Completa los campos obligatorios (*)"}
       </button>
     </div>
@@ -230,7 +265,7 @@ function IntelPanel({ sentimiento, fuga, intencion, action, loading }) {
           </div>
         </div>
       </div>
-      <div style={{ background:fugaObj.bg, border:"0.5px solid "+fugaObj.color+"40", borderRadius:"var(--border-radius-lg)", padding:"10px 12px" }}>
+      <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px" }}>
         <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>Riesgo fuga</p>
         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
           <i className={"ti "+fugaObj.icon} style={{ fontSize:16, color:fugaObj.color }} aria-hidden="true"/>
@@ -240,13 +275,13 @@ function IntelPanel({ sentimiento, fuga, intencion, action, loading }) {
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px" }}>
         <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>Capacidad activa</p>
         <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:loading?"#EF9F27":"#1D9E75", flexShrink:0 }}/>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:loading?"#EF9F27":THEME.celeste, flexShrink:0 }}/>
           <p style={{ margin:0, fontSize:11, fontWeight:500, color:"var(--color-text-primary)", lineHeight:1.3 }}>{action}</p>
         </div>
       </div>
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px" }}>
         <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>Intención</p>
-        {intencion ? <Badge label={intencion} color="#085041" bg="#E1F5EE"/> : <p style={{ margin:0, fontSize:11, color:"var(--color-text-tertiary)", fontStyle:"italic" }}>Sin datos</p>}
+        {intencion ? <Badge label={intencion} color={THEME.celesteDeep} bg={THEME.celesteSoft}/> : <p style={{ margin:0, fontSize:11, color:"var(--color-text-tertiary)", fontStyle:"italic" }}>Sin datos</p>}
       </div>
     </div>
   );
@@ -299,7 +334,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
           <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:500, color:"var(--color-text-primary)" }}>{cd.nombre}</p>
           <p style={{ margin:"0 0 5px", fontSize:12, color:"var(--color-text-secondary)" }}>{cd.rut} · {cd.telefono}</p>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <Badge label={cd.plan||"—"} color="#534AB7" bg="#EEEDFE"/>
+            <Badge label={cd.plan||"—"} color={THEME.blue} bg="#E7EFF9"/>
             <Badge label={"Segmento "+seg.label} color={seg.color} bg={seg.bg}/>
           </div>
         </div>
@@ -327,7 +362,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
           <p style={{ margin:"0 0 8px", fontSize:11, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>NPS histórico</p>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:32, fontWeight:500, color:npsColor }}>{nps!==null?nps:"—"}</p>
+            <p style={{ margin:0, fontSize:32, fontWeight:800, fontFamily:FONT_DISPLAY, color:npsColor }}>{nps!==null?nps:"—"}</p>
             <div>
               <Badge label={npsLabel} color={npsColor} bg={npsColor+"20"}/>
               <p style={{ margin:"4px 0 0", fontSize:10, color:"var(--color-text-secondary)" }}>{allCSAT.length} evaluaciones</p>
@@ -372,7 +407,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
         <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
           <p style={{ margin:"0 0 8px", fontSize:11, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>Score riesgo de fuga</p>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:32, fontWeight:500, color:fColor }}>{fScore}</p>
+            <p style={{ margin:0, fontSize:32, fontWeight:800, fontFamily:FONT_DISPLAY, color:fColor }}>{fScore}</p>
             <div>
               <Badge label={fLabel} color={fColor} bg={fColor+"20"}/>
               <p style={{ margin:"4px 0 0", fontSize:10, color:"var(--color-text-secondary)" }}>Promedio acumulado</p>
@@ -399,12 +434,12 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
           )}
         </div>
       </div>
-      <div style={{ background:"#EEEDFE", border:"0.5px solid #CECBF6", borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
+      <div style={{ background:THEME.celesteTint, border:"0.5px solid "+THEME.line2, borderRadius:"var(--border-radius-lg)", padding:"12px 14px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-          <i className="ti ti-sparkles" style={{ fontSize:14, color:"#534AB7" }} aria-hidden="true"/>
-          <p style={{ margin:0, fontSize:12, fontWeight:500, color:"#26215C" }}>Recomendación KUDEN IA</p>
+          <i className="ti ti-sparkles" style={{ fontSize:14, color:THEME.celeste }} aria-hidden="true"/>
+          <p style={{ margin:0, fontSize:12, fontWeight:500, color:THEME.navy }}>Recomendación KUDEN IA</p>
         </div>
-        <p style={{ margin:0, fontSize:12, color:"#26215C", lineHeight:1.6 }}>{rec}</p>
+        <p style={{ margin:0, fontSize:12, color:THEME.ink, lineHeight:1.6 }}>{rec}</p>
       </div>
     </div>
   );
@@ -435,8 +470,8 @@ function MetricasTab({ casesLog }) {
   const mxC = Math.max(...Object.values(canalC),1);
   const mxI = Math.max(...Object.values(intC),1);
   const kpis = [
-    {l:"Casos totales",  v:""+total,   c:"#534AB7", i:"ti-inbox"},
-    {l:"Tasa resolución",v:tasa+"%",   c:"#1D9E75", i:"ti-circle-check"},
+    {l:"Casos totales",  v:""+total,   c:THEME.blue, i:"ti-inbox"},
+    {l:"Tasa resolución",v:tasa+"%",   c:THEME.celeste, i:"ti-circle-check"},
     {l:"CSAT promedio",  v:cProm+" ★", c:"#EF9F27", i:"ti-star"},
     {l:"Duración prom.", v:dProm,       c:"#D85A30", i:"ti-clock"},
   ];
@@ -449,7 +484,7 @@ function MetricasTab({ casesLog }) {
               <i className={"ti "+k.i} style={{ fontSize:14, color:k.c }} aria-hidden="true"/>
               <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.04em" }}>{k.l}</p>
             </div>
-            <p style={{ margin:0, fontSize:22, fontWeight:500, color:k.c }}>{k.v}</p>
+            <p style={{ margin:0, fontSize:22, fontWeight:800, fontFamily:FONT_DISPLAY, color:k.c }}>{k.v}</p>
           </div>
         ))}
       </div>
@@ -480,10 +515,10 @@ function MetricasTab({ casesLog }) {
             <div key={entry[0]} style={{ marginBottom:7 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
                 <span style={{ fontSize:11, color:"var(--color-text-primary)" }}>{entry[0]}</span>
-                <span style={{ fontSize:11, fontWeight:500, color:"#534AB7" }}>{entry[1]}</span>
+                <span style={{ fontSize:11, fontWeight:500, color:THEME.celesteDeep }}>{entry[1]}</span>
               </div>
               <div style={{ background:"var(--color-background-secondary)", borderRadius:4, height:5, overflow:"hidden" }}>
-                <div style={{ width:((entry[1]/mxI)*100)+"%", height:"100%", background:"#534AB7", borderRadius:4 }}/>
+                <div style={{ width:((entry[1]/mxI)*100)+"%", height:"100%", background:THEME.celesteDeep, borderRadius:4 }}/>
               </div>
             </div>
           ))}
@@ -527,12 +562,12 @@ function MetricasTab({ casesLog }) {
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ flex:1 }}>
             <div style={{ background:"var(--color-background-secondary)", borderRadius:6, height:10, overflow:"hidden", marginBottom:6 }}>
-              <div style={{ width:tasa+"%", height:"100%", background:"#1D9E75", borderRadius:6 }}/>
+              <div style={{ width:tasa+"%", height:"100%", background:THEME.celeste, borderRadius:6 }}/>
             </div>
             <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>✓ {resueltos} resueltos · {escalados} escalados · {total-resueltos-escalados} abandonados</span>
           </div>
           <div style={{ textAlign:"center", flexShrink:0 }}>
-            <p style={{ margin:0, fontSize:28, fontWeight:500, color:"#1D9E75" }}>{tasa}%</p>
+            <p style={{ margin:0, fontSize:28, fontWeight:800, fontFamily:FONT_DISPLAY, color:THEME.celeste }}>{tasa}%</p>
             <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)" }}>tasa FCR</p>
           </div>
         </div>
@@ -728,14 +763,14 @@ export default function App() {
 
   const TABS = [
     { id:"chat",      label:"💬 Chat" },
-    { id:"crm",       label:"📋 CRM",      badge:crm?"LIVE":null, bc:"#1D9E75" },
+    { id:"crm",       label:"📋 CRM",      badge:crm?"LIVE":null, bc:THEME.celeste },
     { id:"historial", label:"🗂 Historial" },
     { id:"metricas",  label:"📊 Métricas", badge:casesLog.length||null, bc:"#534AB7" },
     { id:"perfil",    label:"👤 Perfil" },
   ];
 
   return (
-    <div style={{ padding:"0.75rem 0", fontFamily:"var(--font-sans)" }}>
+    <div style={{ padding:"0.75rem 0", fontFamily:FONT_BODY, color:THEME.ink }}>
       {showModal && <CloseModal onClose={() => setShowModal(false)} onConfirm={confirmClose} csatAvg={csatAvg} elapsed={elapsed}/>}
 
       {/* Buscador por RUT */}
@@ -748,10 +783,10 @@ export default function App() {
             placeholder="Ej: 12.345.678-9"
             maxLength={12}
             style={{ flex:1, fontSize:13, padding:"7px 10px", borderRadius:"var(--border-radius-md)",
-              border: rutResultado==="no_encontrado"?"1.5px solid #E24B4A":rutResultado==="encontrado"?"1.5px solid #1D9E75":"0.5px solid var(--color-border-tertiary)" }}
+              border: rutResultado==="no_encontrado"?"1.5px solid #E24B4A":rutResultado==="encontrado"?"1.5px solid "+THEME.celeste:"0.5px solid var(--color-border-tertiary)" }}
           />
           <button onClick={buscarPorRut} disabled={rutBuscando||!rutBusqueda.trim()}
-            style={{ padding:"7px 16px", fontSize:12, fontWeight:500, cursor:rutBusqueda.trim()?"pointer":"not-allowed", background:"#1D9E75", color:"#fff", border:"none", borderRadius:"var(--border-radius-md)", opacity:rutBusqueda.trim()?1:0.5 }}>
+            style={{ padding:"7px 16px", fontSize:12, fontWeight:600, cursor:rutBusqueda.trim()?"pointer":"not-allowed", background:THEME.gradBtn, color:"#fff", border:"none", borderRadius:"100px", opacity:rutBusqueda.trim()?1:0.5 }}>
             {rutBuscando ? "Buscando..." : "🔍 Buscar"}
           </button>
         </div>
@@ -762,7 +797,7 @@ export default function App() {
           </div>
         )}
         {rutResultado==="encontrado" && demoCliente && (
-          <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, padding:"10px 12px", background:"#E1F5EE", border:"0.5px solid #9FE1CB", borderRadius:"var(--border-radius-md)" }}>
+          <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, padding:"10px 12px", background:THEME.celesteSoft, border:"0.5px solid "+THEME.line2, borderRadius:"var(--border-radius-md)" }}>
             <div style={{ width:36, height:36, borderRadius:"50%", background:segFromPlan(demoCliente.plan).bg, border:"2px solid "+segFromPlan(demoCliente.plan).color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <span style={{ fontSize:15, fontWeight:600, color:segFromPlan(demoCliente.plan).color }}>{demoCliente.nombre[0]}</span>
             </div>
@@ -775,11 +810,11 @@ export default function App() {
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
                 <Badge label={demoCliente.plan} color={segFromPlan(demoCliente.plan).color} bg={segFromPlan(demoCliente.plan).bg}/>
               </div>
-              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{demoCliente.historial.length} casos en historial · {demoCliente.direccion}</p>
+              <p style={{ margin:"3px 0 0", fontSize:10, color:THEME.celesteDeep }}>{demoCliente.historial.length} casos en historial · {demoCliente.direccion}</p>
             </div>
             <div style={{ textAlign:"right", flexShrink:0 }}>
-              <i className="ti ti-circle-check" style={{ fontSize:20, color:"#1D9E75" }} aria-hidden="true"/>
-              <p style={{ margin:"2px 0 0", fontSize:10, color:"#085041", fontWeight:500 }}>Cargado</p>
+              <i className="ti ti-circle-check" style={{ fontSize:20, color:THEME.celeste }} aria-hidden="true"/>
+              <p style={{ margin:"2px 0 0", fontSize:10, color:THEME.celesteDeep, fontWeight:500 }}>Cargado</p>
             </div>
           </div>
         )}
@@ -801,8 +836,8 @@ export default function App() {
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             style={{ padding:"6px 12px", fontSize:12, fontWeight:tab===t.id?500:400, cursor:"pointer", background:"none", border:"none",
-              borderBottom:tab===t.id?"2px solid #1D9E75":"2px solid transparent",
-              color:tab===t.id?"#1D9E75":"var(--color-text-secondary)",
+              borderBottom:tab===t.id?"2px solid "+THEME.celeste:"2px solid transparent",
+              color:tab===t.id?THEME.celesteDeep:"var(--color-text-secondary)",
               display:"flex", alignItems:"center", gap:4 }}>
             {t.label}
             {t.badge && <span style={{ background:t.bc, color:"#fff", borderRadius:10, fontSize:9, padding:"1px 5px" }}>{t.badge}</span>}
@@ -835,13 +870,13 @@ export default function App() {
                   ))}
                 </div>
                 <div style={{ padding:"9px 14px", borderBottom:"0.5px solid var(--color-border-tertiary)", display:"flex", alignItems:"center", gap:8 }}>
-                  <div style={{ width:30, height:30, borderRadius:"50%", background:p.color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <span style={{ color:"#fff", fontWeight:500, fontSize:12 }}>K</span>
+                  <div style={{ width:32, height:32, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:"1px solid "+THEME.line2, overflow:"hidden" }}>
+                    <img src={KUDEN_LOGO} alt="KUDEN" style={{ width:24, height:24, objectFit:"contain" }}/>
                   </div>
                   <div style={{ flex:1 }}>
-                    <p style={{ margin:0, fontWeight:500, fontSize:13, color:"var(--color-text-primary)" }}>KUDEN · ConectaChile</p>
+                    <p style={{ margin:0, fontWeight:700, fontSize:13, color:THEME.navy, fontFamily:FONT_DISPLAY }}>KUDEN · ConectaChile</p>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <p style={{ margin:0, fontSize:10, color:"#1D9E75" }}>● {cliente&&cliente.nombre?cliente.nombre.split(" ")[0]:"cliente"}</p>
+                      <p style={{ margin:0, fontSize:10, color:THEME.celeste }}>● {cliente&&cliente.nombre?cliente.nombre.split(" ")[0]:"cliente"}</p>
                       <div style={{ display:"flex", alignItems:"center", gap:3, background:activeCh.bg, borderRadius:20, padding:"1px 7px" }}>
                         <i className={"ti "+activeCh.icon} style={{ fontSize:10, color:activeCh.color }} aria-hidden="true"/>
                         <span style={{ fontSize:10, color:activeCh.color, fontWeight:500 }}>{activeCh.label}</span>
@@ -857,8 +892,8 @@ export default function App() {
                     <div key={i}>
                       <div style={{ display:"flex", justifyContent:m.role==="assistant"?"flex-start":"flex-end" }}>
                         {m.role==="assistant" && (
-                          <div style={{ width:22, height:22, borderRadius:"50%", background:p.color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:5, alignSelf:"flex-end" }}>
-                            <span style={{ color:"#fff", fontSize:9, fontWeight:500 }}>K</span>
+                          <div style={{ width:22, height:22, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:5, alignSelf:"flex-end", border:"1px solid "+THEME.line2, overflow:"hidden" }}>
+                            <img src={KUDEN_LOGO} alt="KUDEN" style={{ width:17, height:17, objectFit:"contain" }}/>
                           </div>
                         )}
                         <div style={{ maxWidth:"75%", padding:"8px 11px", fontSize:13, lineHeight:1.5,
@@ -871,8 +906,8 @@ export default function App() {
                   ))}
                   {loading && (
                     <div style={{ display:"flex", alignItems:"flex-end", gap:5 }}>
-                      <div style={{ width:22, height:22, borderRadius:"50%", background:p.color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <span style={{ color:"#fff", fontSize:9 }}>K</span>
+                      <div style={{ width:22, height:22, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:"1px solid "+THEME.line2, overflow:"hidden" }}>
+                        <img src={KUDEN_LOGO} alt="KUDEN" style={{ width:17, height:17, objectFit:"contain" }}/>
                       </div>
                       <div style={{ background:"var(--color-background-secondary)", borderRadius:"12px 12px 12px 3px", padding:"8px 12px" }}>
                         <span style={{ color:"var(--color-text-secondary)", fontSize:12 }}>escribiendo...</span>
@@ -1064,14 +1099,10 @@ export default function App() {
           <div style={{ width:168, display:"flex", flexDirection:"column", gap:9, flexShrink:0 }}>
             <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"10px 12px", textAlign:"center" }}>
               <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase", letterSpacing:"0.05em" }}>CSAT promedio</p>
-              <p style={{ margin:"0 0 2px", fontSize:24, fontWeight:500, color:csatAvg>=4?"#1D9E75":csatAvg>=3?"#EF9F27":csatAvg>=1?"#E24B4A":"var(--color-text-tertiary)" }}>{csatAvg?csatAvg.toFixed(1):"—"}</p>
+              <p style={{ margin:"0 0 2px", fontSize:24, fontWeight:800, fontFamily:FONT_DISPLAY, color:csatAvg>=4?THEME.celeste:csatAvg>=3?"#EF9F27":csatAvg>=1?"#E24B4A":"var(--color-text-tertiary)" }}>{csatAvg?csatAvg.toFixed(1):"—"}</p>
               <p style={{ margin:0, fontSize:10, color:"var(--color-text-secondary)" }}>{csatArr.length} calificaciones</p>
             </div>
             <IntelPanel sentimiento={sentimiento} fuga={fuga} intencion={intencion} action={action} loading={loading}/>
-            <div style={{ background:"#E1F5EE", border:"0.5px solid #9FE1CB", borderRadius:"var(--border-radius-lg)", padding:"8px 12px", textAlign:"center", marginTop:"auto" }}>
-              <p style={{ margin:"0 0 1px", fontSize:11, fontWeight:500, color:"#085041" }}>KUDEN IA</p>
-              <p style={{ margin:0, fontSize:10, color:"#0F6E56" }}>Simulador · Demo</p>
-            </div>
           </div>
         )}
       </div>
