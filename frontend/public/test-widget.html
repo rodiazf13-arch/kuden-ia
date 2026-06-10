@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Tienda - Prueba del Widget KUDEN IA</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      color: white;
+      padding: 100px 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 3rem;
+    }
+
+    p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .content {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hero">
+    <h1>Bienvenido a Mi Tienda</h1>
+    <p>Página estática de prueba para verificar que el widget se incrusta correctamente.</p>
+  </div>
+
+  <div class="content">
+    <h2>¿Cómo probar esto?</h2>
+    <p>Si estás viendo esta página, el código HTML no tiene frameworks, es una página normal de cualquier cliente.</p>
+    <p>Mira la esquina inferior derecha. Debería haber aparecido el botón del <strong>Web Chat de KUDEN IA</strong> con
+      los colores que configuraste en tu base de datos (por defecto, azul #2563eb).</p>
+    <p>Si escribes algo ahí, se enviará directo a tu CRM y la IA te responderá mágicamente.</p>
+  </div>
+
+  <!-- AQUI SE INYECTA EL WIDGET DE KUDEN IA -->
+  <!-- ID Inyectado Automáticamente -->
+  <script src="/kuden-widget.js" data-tenant="acfe12ae-9aa9-4c93-9662-848060ffbba6"></script>
+
+</body>
+
+</html>

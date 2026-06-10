@@ -1,10 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-
-const PROFILES = [
-  { id:"nuevo",   label:"Cliente nuevo",   desc:"Primera vez, curioso y amable",      icon:"ti-user-plus",  color:"#1D9E75", bg:"#E1F5EE", text:"#085041", hint:"Hola, acabo de contratar el servicio y tengo algunas dudas",        persona:"Eres un cliente nuevo, curioso y amable." },
-  { id:"molesto", label:"Cliente molesto", desc:"Frustrado, exige solución rápida",   icon:"ti-mood-angry", color:"#D85A30", bg:"#FAECE7", text:"#4A1B0C", hint:"Llevo 3 días sin internet y nadie me soluciona nada",                persona:"Eres un cliente muy frustrado. Exiges soluciones concretas." },
-  { id:"vip",     label:"Cliente VIP",     desc:"Premium, espera trato diferenciado", icon:"ti-crown",      color:"#534AB7", bg:"#EEEDFE", text:"#26215C", hint:"Buenos días, soy cliente hace 8 años y necesito atención especial", persona:"Eres un cliente VIP. Exiges trato preferencial." },
-];
+import { supabase } from "../lib/supabaseClient";
 
 const CHANNELS = [
   { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
@@ -46,36 +41,40 @@ const estadoConfig = {
 
 const PLANES = ["Plan Básico 50MB","Plan Hogar 200MB","Plan Hogar 500MB","Plan VIP Fibra 1GB","Plan Empresas"];
 
-const DEMO_CLIENTES = [
-  { id:"c1", nombre:"María González",  rut:"12.345.678-9", telefono:"+56 9 8765 4321", plan:"Plan Hogar 500MB",   direccion:"Av. Providencia 1234, Santiago", canal:"web",
-    historial:[{id:"TKT-48821",fecha:"12 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-41093",fecha:"02 Feb 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"},{id:"TKT-38450",fecha:"19 Nov 2025",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"App Móvil"}]},
-  { id:"c2", nombre:"Carlos Ramírez",  rut:"9.876.543-2",  telefono:"+56 9 1234 5678", plan:"Plan VIP Fibra 1GB", direccion:"Las Condes 567, Santiago",       canal:"whatsapp",
-    historial:[{id:"TKT-55321",fecha:"18 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-52100",fecha:"10 Mar 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"Web Chat"},{id:"TKT-48900",fecha:"05 Ene 2026",tipo:"reclamo",estado:"escalado",csat:2,canal:"Voz"}]},
-  { id:"c3", nombre:"Ana Torres",      rut:"15.432.109-8", telefono:"+56 9 5555 7777", plan:"Plan Básico 50MB",   direccion:"Villa Alemana 890, Valparaíso",  canal:"app",
-    historial:[{id:"TKT-61234",fecha:"20 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"App Móvil"},{id:"TKT-59800",fecha:"01 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:3,canal:"Web Chat"}]},
-  { id:"c4", nombre:"Roberto Soto",    rut:"7.654.321-0",  telefono:"+56 9 9999 1111", plan:"Plan Empresas",      direccion:"Vitacura 2345, Santiago",        canal:"voz",
-    historial:[{id:"TKT-70001",fecha:"22 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"Voz"},{id:"TKT-68500",fecha:"15 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:4,canal:"Web Chat"},{id:"TKT-65000",fecha:"02 May 2026",tipo:"consulta técnica",estado:"resuelto",csat:5,canal:"WhatsApp"},{id:"TKT-60000",fecha:"10 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:4,canal:"Voz"}]},
-  { id:"c5", nombre:"Valentina Muñoz", rut:"16.789.012-3", telefono:"+56 9 7654 3210", plan:"Plan Hogar 200MB",   direccion:"Ñuñoa 456, Santiago",            canal:"whatsapp",
-    historial:[{id:"TKT-71100",fecha:"23 May 2026",tipo:"reclamo",estado:"en progreso",csat:2,canal:"WhatsApp"},{id:"TKT-69200",fecha:"08 Abr 2026",tipo:"consulta técnica",estado:"resuelto",csat:4,canal:"Web Chat"}]},
-  { id:"c6", nombre:"Diego Herrera",   rut:"11.222.333-4", telefono:"+56 9 3333 4444", plan:"Plan Hogar 500MB",   direccion:"Maipú 789, Santiago",            canal:"app",
-    historial:[{id:"TKT-72500",fecha:"21 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"App Móvil"},{id:"TKT-70300",fecha:"15 Abr 2026",tipo:"consulta comercial",estado:"resuelto",csat:4,canal:"WhatsApp"},{id:"TKT-68000",fecha:"01 Mar 2026",tipo:"reclamo",estado:"resuelto",csat:3,canal:"Web Chat"}]},
-  { id:"c7", nombre:"Camila Vega",     rut:"14.567.890-1", telefono:"+56 9 2222 8888", plan:"Plan VIP Fibra 1GB", direccion:"Providencia 321, Santiago",      canal:"web",
-    historial:[{id:"TKT-73000",fecha:"24 May 2026",tipo:"consulta comercial",estado:"resuelto",csat:5,canal:"Web Chat"},{id:"TKT-71500",fecha:"10 May 2026",tipo:"solicitud de cambio",estado:"resuelto",csat:5,canal:"WhatsApp"}]},
-  { id:"c8", nombre:"Andrés Morales",  rut:"8.901.234-5",  telefono:"+56 9 6666 5555", plan:"Plan Básico 50MB",   direccion:"La Florida 654, Santiago",       canal:"voz",
-    historial:[{id:"TKT-74000",fecha:"25 May 2026",tipo:"reclamo",estado:"escalado",csat:1,canal:"Voz"},{id:"TKT-72000",fecha:"18 May 2026",tipo:"consulta técnica",estado:"resuelto",csat:2,canal:"Web Chat"},{id:"TKT-69000",fecha:"05 Abr 2026",tipo:"reclamo",estado:"resuelto",csat:2,canal:"Voz"}]},
-];
 
-const buildSystem = (profile, cliente, canal) =>
-  "Eres KUDEN, agente virtual de IA de ConectaChile.\n" +
-  "CLIENTE: "+cliente.nombre+", RUT: "+cliente.rut+", Plan: "+cliente.plan+", Tel: "+cliente.telefono+"\n" +
-  "CANAL: "+canal+" | PERFIL: "+profile.persona+"\n" +
-  "Responde en español, máximo 3-4 oraciones, sin listas.\n" +
-  "Al final agrega EXACTAMENTE:\n" +
-  "[ACCION: texto, máx 6 palabras]\n" +
-  "[INTENCION: consulta técnica | consulta comercial | reclamo | riesgo de fuga | solicitud de cambio | saludo]\n" +
-  "[ESTADO: en progreso | resuelto | escalado]\n" +
-  "[SENTIMIENTO: muy_negativo | negativo | neutral | positivo | muy_positivo]\n" +
-  "[FUGA: sin_riesgo | bajo | medio | alto]";
+
+const buildSystem = (masterConfig, profile, dbProfiles, cliente, canal) => {
+  const agentName = masterConfig?.agent_name || "KUDEN";
+  const companyName = masterConfig?.company_name || "ConectaChile";
+  const basePrompt = masterConfig?.base_prompt || "Eres el asistente virtual. Atiende amablemente.";
+  const allowed = masterConfig?.allowed_profiles || [];
+  
+  const activeProfiles = dbProfiles.filter(p => allowed.includes(p.id));
+  const profilesList = activeProfiles.map(p => `- [Perfil: ${p.label}]: ${p.persona_prompt}`).join("\n");
+  
+  let prompt = `Eres ${agentName}, agente maestro de IA de ${companyName}.\n`;
+  prompt += `INSTRUCCIONES DEL AGENTE MAESTRO:\n${basePrompt}\n\n`;
+  
+  if (profile && profile.id !== 'master') {
+    prompt += `ATENCIÓN: Para esta respuesta específica, debes adoptar la siguiente personalidad/perfil:\n`;
+    prompt += `[Perfil Activo: ${profile.label}]: ${profile.persona_prompt || profile.persona || "Cliente estándar"}\n\n`;
+  } else if (activeProfiles.length > 0) {
+    prompt += `PERFILES DISPONIBLES (Adapta tu tono y personalidad al perfil que mejor encaje según lo que pida el cliente):\n${profilesList}\n\n`;
+  }
+  
+  prompt += `CLIENTE: ${cliente.nombre}, RUT: ${cliente.rut}, Plan: ${cliente.plan}, Tel: ${cliente.telefono}\n`;
+  prompt += `CANAL: ${canal}\n\n`;
+  
+  prompt += `Responde en español, máximo 3-4 oraciones, sin listas.\n`;
+  prompt += `Al final agrega EXACTAMENTE:\n`;
+  prompt += `[ACCION: texto, máx 6 palabras]\n`;
+  prompt += `[INTENCION: consulta técnica | consulta comercial | reclamo | riesgo de fuga | solicitud de cambio | saludo]\n`;
+  prompt += `[ESTADO: en progreso | resuelto | escalado]\n`;
+  prompt += `[SENTIMIENTO: muy_negativo | negativo | neutral | positivo | muy_positivo]\n`;
+  prompt += `[FUGA: sin_riesgo | bajo | medio | alto]`;
+  
+  return prompt;
+};
 
 const parseFull = (text) => {
   const get = (k) => { const m = text.match(new RegExp("\\["+k+":\\s*(.+?)\\]","i")); return m ? m[1].trim() : null; };
@@ -162,7 +161,7 @@ function CloseModal({ onClose, onConfirm, csatAvg, elapsed }) {
   return null;
 }
 
-function ClienteForm({ profile, onStart }) {
+function ClienteForm({ profile, dbProfiles, setProfile, onStart }) {
   const [nombre,    setNombre]    = useState("");
   const [rut,       setRut]       = useState("");
   const [telefono,  setTelefono]  = useState("");
@@ -172,7 +171,19 @@ function ClienteForm({ profile, onStart }) {
   const ok = nombre.trim()!==""&&rut.trim()!==""&&telefono.trim()!==""&&plan!=="";
   return (
     <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:16, display:"flex", flexDirection:"column", gap:12 }}>
-      <p style={{ margin:0, fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>Datos del cliente · {profile.label}</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p style={{ margin:0, fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>Datos del cliente</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>Perfil IA:</span>
+          <select value={profile?.id || "master"} onChange={e => {
+            if (e.target.value === 'master') setProfile({ id: 'master', label: '🤖 Agente Maestro (Automático)', hint_text: 'Hola' });
+            else setProfile((dbProfiles||[]).find(p => p.id === e.target.value));
+          }} style={{ fontSize: 12, padding: "4px 8px", borderRadius: 4, background: "var(--color-background-secondary)", color: "var(--color-text-primary)", border: "1px solid var(--color-border-tertiary)" }}>
+            <option value="master">🤖 Agente Maestro (Automático)</option>
+            {(dbProfiles||[]).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+        </div>
+      </div>
       <div>
         <p style={{ margin:"0 0 6px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase" }}>Canal de contacto</p>
         <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
@@ -188,7 +199,7 @@ function ClienteForm({ profile, onStart }) {
         </div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-        {[["Nombre *",nombre,setNombre,"Ej: María González"],["RUT *",rut,setRut,"Ej: 12.345.678-9"],["Teléfono *",telefono,setTelefono,"Ej: +56 9 1234 5678"],["Dirección",direccion,setDireccion,"Ej: Av. Providencia 123"]].map(function(item) {
+        {[["Nombre *",nombre,setNombre,"Ej: María González"],["RUT *",rut,setRut,"Ej: 12345678-9"],["Teléfono *",telefono,setTelefono,"Ej: +56912345678"],["Dirección",direccion,setDireccion,"Ej: Av. Providencia 123"]].map(function(item) {
           return (
             <div key={item[0]}>
               <p style={{ margin:"0 0 4px", fontSize:10, color:"var(--color-text-secondary)", textTransform:"uppercase" }}>{item[0]}</p>
@@ -281,7 +292,7 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
   const fLabel  = fScore>=70?"Alto riesgo":fScore>=40?"Riesgo medio":fScore>=15?"Riesgo bajo":"Sin riesgo";
   const sScores = { muy_negativo:0, negativo:25, neutral:50, positivo:75, muy_positivo:100 };
   const sEvol   = casesLog.slice().reverse().map((c,i)=>({ i:i+1, score:sScores[c.sentimientoFinal]||50, sent:c.sentimientoFinal }));
-  const n0 = (cd.nombre||"El cliente").split(" ")[0];
+  const n0 = (cd.cliente_nombre||cd.nombre||"El cliente").split(" ")[0];
   const rec = seg.score>=75
     ? n0+" es un cliente "+seg.label.toLowerCase()+". Se recomienda atención preferencial y beneficios de fidelización."
     : fScore>=60
@@ -293,10 +304,10 @@ function PerfilTab({ cliente, casesLog, fakeHistory }) {
     <div style={{ flex:1, display:"flex", flexDirection:"column", gap:10 }}>
       <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:"14px 16px", display:"flex", alignItems:"center", gap:14 }}>
         <div style={{ width:48, height:48, borderRadius:"50%", background:seg.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:"2px solid "+seg.color }}>
-          <span style={{ fontSize:20, fontWeight:600, color:seg.color }}>{(cd.nombre||"?")[0].toUpperCase()}</span>
+          <span style={{ fontSize:20, fontWeight:600, color:seg.color }}>{(cd.cliente_nombre||cd.nombre||"?")[0].toUpperCase()}</span>
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:500, color:"var(--color-text-primary)" }}>{cd.nombre}</p>
+          <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:500, color:"var(--color-text-primary)" }}>{cd.cliente_nombre||cd.nombre}</p>
           <p style={{ margin:"0 0 5px", fontSize:12, color:"var(--color-text-secondary)" }}>{cd.rut} · {cd.telefono}</p>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             <Badge label={cd.plan||"—"} color="#534AB7" bg="#EEEDFE"/>
@@ -542,8 +553,10 @@ function MetricasTab({ casesLog }) {
 }
 
 // ── App principal ────────────────────────────────────────────────────────────
-export default function App() {
-  const [profile,        setProfile]        = useState(null);
+export default function KudenSimulator({ tenantId }) {
+  const [profile,        setProfile]        = useState({ id: 'master', label: '🤖 Agente Maestro (Automático)', hint_text: 'Hola' });
+  const [dbProfiles,     setDbProfiles]     = useState([]);
+  const [masterConfig,   setMasterConfig]   = useState(null);
   const [cliente,        setCliente]        = useState(null);
   const [canal,          setCanal]          = useState("web");
   const [messages,       setMessages]       = useState([]);
@@ -568,6 +581,7 @@ export default function App() {
   const [rutBusqueda,    setRutBusqueda]    = useState("");
   const [rutResultado,   setRutResultado]   = useState(null);
   const [rutBuscando,    setRutBuscando]    = useState(false);
+  const [dbContacts,     setDbContacts]     = useState([]);
 
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
@@ -579,12 +593,32 @@ export default function App() {
   const canalRef   = useRef("web");
   const closedRef  = useRef(false);
   const loadingRef = useRef(false);
+  const crmRef     = useRef(null);   // permite leer ticketId desde doSend (useCallback)
 
   profileRef.current = profile;
   clienteRef.current = cliente;
   canalRef.current   = canal;
   closedRef.current  = !!closedCase;
   loadingRef.current = loading;
+  crmRef.current     = crm;
+
+  useEffect(() => {
+    if (tenantId) {
+      // Cargar perfiles propios + plantillas globales de Kuden + config maestro + contactos
+      Promise.all([
+        supabase.from('ai_profiles').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: true }),
+        supabase.from('ai_profiles').select('*').eq('is_global', true).neq('tenant_id', tenantId).order('label', { ascending: true }),
+        supabase.from('contacts').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false }),
+        supabase.from('tenant_ai_config').select('*').eq('tenant_id', tenantId).single()
+      ]).then(([ownRes, globalRes, contactsRes, configRes]) => {
+        const own    = ownRes.data    || [];
+        const global = globalRes.data || [];
+        setDbProfiles([...own, ...global]);
+        setDbContacts(contactsRes.data || []);
+        if (configRes.data) setMasterConfig(configRes.data);
+      });
+    }
+  }, [tenantId]);
 
   useEffect(() => { bottomRef.current && bottomRef.current.scrollIntoView({ behavior:"smooth" }); }, [messages, loading]);
   useEffect(() => {
@@ -609,7 +643,22 @@ export default function App() {
       const chLabel = (CHANNELS.find(c=>c.id===ch)||CHANNELS[0]).label;
       const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/chat`, {
         method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:1000, system:buildSystem(prof,cli,chLabel), messages:newHistory }),
+        body: JSON.stringify({
+          model:"claude-sonnet-4-5",
+          max_tokens:1000,
+          system:buildSystem(masterConfig, prof, dbProfiles, cli, chLabel),
+          messages:newHistory,
+          contactData: {
+            tenantId:      tenantId || null,
+            clienteNombre: cli.nombre,
+            rut:           cli.rut       || null,
+            telefono:      cli.telefono  || null,
+            direccion:     cli.direccion || null,
+            plan:          cli.plan,
+            canal:         chLabel,
+            ticketId:      crmRef.current?.ticketId || null,
+          },
+        }),
       });
       const data = await res.json();
       const raw  = (data.content&&data.content[0]&&data.content[0].text)||"Lo siento, ocurrió un error.";
@@ -627,8 +676,9 @@ export default function App() {
   }, []);
 
   const launchChat = (form, prof) => {
+    const fallbackProf = { id: 'master', label: '🤖 Agente Maestro (Automático)', hint_text: 'Hola' };
     const ch = form.canal||"web";
-    const usedProf = prof || profile || PROFILES[0];
+    const usedProf = prof || fallbackProf;
     setCliente(form); setCanal(ch);
     if (!profile) setProfile(usedProf);
     startRef.current = Date.now();
@@ -640,15 +690,15 @@ export default function App() {
     setClosedCase(null); setResumen(null); setElapsed(0);
     historyRef.current = [];
     setTab("chat");
-    doSend(usedProf.hint, usedProf, form, ch);
+    doSend(usedProf.hint_text || usedProf.hint || "Hola", usedProf, form, ch);
   };
 
   const startChat = (form) => launchChat(form, profile);
 
   const selectDemoCliente = (dc) => {
     setDemoCliente(dc);
-    const form = { nombre:dc.nombre, rut:dc.rut, telefono:dc.telefono, plan:dc.plan, direccion:dc.direccion, canal:dc.canal };
-    launchChat(form, profile||PROFILES[0]);
+    const form = { nombre:dc.cliente_nombre, rut:dc.rut, telefono:dc.telefono, plan:dc.plan, direccion:dc.direccion, canal:dc.canal || "web" };
+    launchChat(form, profile);
   };
 
   const formatRut = (val) => {
@@ -663,8 +713,8 @@ export default function App() {
     if (!rut) return;
     setRutBuscando(true); setRutResultado(null);
     setTimeout(() => {
-      const norm = (s) => s.replace(/[\.\-]/g,"").toLowerCase();
-      const found = DEMO_CLIENTES.find(c => norm(c.rut) === norm(rut));
+      const norm = (s) => (s||"").replace(/[\.\-]/g,"").toLowerCase();
+      const found = dbContacts.find(c => norm(c.rut) === norm(rut));
       setRutBuscando(false);
       if (found) { setRutResultado("encontrado"); selectDemoCliente(found); }
       else setRutResultado("no_encontrado");
@@ -679,11 +729,33 @@ export default function App() {
   const generarResumen = async (caseData, msgs) => {
     setLoadingResumen(true);
     const conv = msgs.map(m => (m.role==="user"?"Cliente":"KUDEN")+": "+m.text).join("\n");
-    const prompt = "Genera un resumen ejecutivo de este caso en 4 líneas: problema, acciones, resultado, recomendación.\n\nCliente: "+caseData.nombre+" | Plan: "+caseData.plan+" | Canal: "+caseData.canal+" | Cierre: "+caseData.motivoLabel+"\n\n"+conv;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/chat`, {
+      // Usa /api/summarize para persistir resumen_ejecutivo + todos los metadatos en Supabase
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/summarize`, {
         method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ model:"claude-sonnet-4-5", max_tokens:300, messages:[{ role:"user", content:prompt }] }),
+        body: JSON.stringify({
+          // Datos del contacto
+          tenantId:         tenantId || null,
+          clienteNombre:    caseData.nombre,
+          rut:              caseData.rut       || null,
+          telefono:         caseData.telefono  || null,
+          direccion:        caseData.direccion || null,
+          plan:             caseData.plan,
+          canal:            caseData.canal,
+          // Metadatos del caso
+          motivoLabel:      caseData.motivoLabel,
+          ticketId:         caseData.ticketId        || null,
+          perfilCliente:    caseData.perfil           || null,
+          duracion:         caseData.duracion         || null,
+          csatFinal:        caseData.csatFinal        || null,
+          sentimientoFinal: caseData.sentimientoFinal || null,
+          fugaFinal:        caseData.fugaFinal        || null,
+          intencion:        caseData.intencion        || null,
+          estado:           caseData.estado           || null,
+          totalMensajes:    caseData.totalMensajes     || null,
+          // Transcripción para el resumen IA
+          conversacion:     conv,
+        }),
       });
       const data = await res.json();
       setResumen((data.content&&data.content[0]&&data.content[0].text)||"No se pudo generar el resumen.");
@@ -764,10 +836,10 @@ export default function App() {
         {rutResultado==="encontrado" && demoCliente && (
           <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:8, padding:"10px 12px", background:"#E1F5EE", border:"0.5px solid #9FE1CB", borderRadius:"var(--border-radius-md)" }}>
             <div style={{ width:36, height:36, borderRadius:"50%", background:segFromPlan(demoCliente.plan).bg, border:"2px solid "+segFromPlan(demoCliente.plan).color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <span style={{ fontSize:15, fontWeight:600, color:segFromPlan(demoCliente.plan).color }}>{demoCliente.nombre[0]}</span>
+              <span style={{ fontSize:15, fontWeight:600, color:segFromPlan(demoCliente.plan).color }}>{(demoCliente.cliente_nombre||"?")[0]}</span>
             </div>
             <div style={{ flex:1 }}>
-              <p style={{ margin:"0 0 2px", fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>{demoCliente.nombre}</p>
+              <p style={{ margin:"0 0 2px", fontSize:13, fontWeight:500, color:"var(--color-text-primary)" }}>{demoCliente.cliente_nombre}</p>
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>{demoCliente.rut}</span>
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
@@ -775,7 +847,7 @@ export default function App() {
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
                 <Badge label={demoCliente.plan} color={segFromPlan(demoCliente.plan).color} bg={segFromPlan(demoCliente.plan).bg}/>
               </div>
-              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{demoCliente.historial.length} casos en historial · {demoCliente.direccion}</p>
+              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{(demoCliente.historial?.length || 0)} casos en historial · {demoCliente.direccion}</p>
             </div>
             <div style={{ textAlign:"right", flexShrink:0 }}>
               <i className="ti ti-circle-check" style={{ fontSize:20, color:"#1D9E75" }} aria-hidden="true"/>
@@ -785,11 +857,11 @@ export default function App() {
         )}
         <div style={{ marginTop:8 }}>
           <p style={{ margin:"0 0 5px", fontSize:10, color:"var(--color-text-tertiary)" }}>RUTs de prueba disponibles:</p>
-          <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-            {DEMO_CLIENTES.map(dc => (
+          <div style={{ display:"flex", gap:5, flexWrap:"wrap", maxHeight:"150px", overflowY:"auto" }}>
+            {dbContacts.map(dc => (
               <button key={dc.id} onClick={() => { setRutBusqueda(dc.rut); setRutResultado(null); }}
                 style={{ fontSize:10, padding:"3px 8px", cursor:"pointer", borderRadius:20, background:"var(--color-background-secondary)", border:"0.5px solid var(--color-border-tertiary)", color:"var(--color-text-secondary)" }}>
-                {dc.rut} <span style={{ color:"var(--color-text-tertiary)" }}>· {dc.nombre.split(" ")[0]}</span>
+                {dc.rut || "Sin RUT"} <span style={{ color:"var(--color-text-tertiary)" }}>· {(dc.cliente_nombre||"").split(" ")[0]}</span>
               </button>
             ))}
           </div>
@@ -818,10 +890,10 @@ export default function App() {
             {!profile && !chatReady && (
               <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:32, textAlign:"center" }}>
                 <i className="ti ti-users" style={{ fontSize:28, color:"var(--color-text-tertiary)", display:"block", marginBottom:8 }} aria-hidden="true"/>
-                <p style={{ color:"var(--color-text-secondary)", fontSize:12 }}>Busca un RUT, selecciona un cliente demo o elige un perfil para comenzar</p>
+                <p style={{ color:"var(--color-text-secondary)", fontSize:12 }}>Busca un RUT o selecciona un cliente demo para comenzar</p>
               </div>
             )}
-            {profile && !chatReady && <ClienteForm profile={profile} onStart={startChat}/>}
+            {profile && !chatReady && <ClienteForm profile={profile} dbProfiles={dbProfiles} setProfile={setProfile} onStart={startChat}/>}
             {chatReady && p && (
               <div style={{ display:"flex", flexDirection:"column", background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", overflow:"hidden" }}>
                 <div style={{ display:"flex", borderBottom:"0.5px solid var(--color-border-tertiary)", background:"var(--color-background-secondary)", padding:"0 12px" }}>
