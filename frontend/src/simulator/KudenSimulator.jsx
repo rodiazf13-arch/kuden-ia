@@ -21,6 +21,7 @@ const THEME = {
 const FONT_DISPLAY = '"Bricolage Grotesque", sans-serif';
 const FONT_BODY    = '"Plus Jakarta Sans", system-ui, sans-serif';
 const FONT_MONO    = '"JetBrains Mono", ui-monospace, monospace';
+const KUDEN_LOGO   = "/kuden-logo.png";
 
 const CHANNELS = [
   { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1FA1C4", bg:"#DCF2F9" },
