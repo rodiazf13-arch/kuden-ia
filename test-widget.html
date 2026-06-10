@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sitio de Prueba - Kuden IA</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      color: #333;
+    }
+    header {
+      background-color: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Mi Tienda Ficticia</h1>
+    <p>Página de prueba para probar el Web Widget de Kuden IA</p>
+  </header>
+
+  <div class="container">
+    <h2>¡Bienvenido a la página!</h2>
+    <p>Esta es una simulación de cómo se vería la página web de uno de tus clientes.</p>
+    <p>El botón del chat debería aparecer flotando en la esquina inferior derecha. Al abrirlo, el cliente podrá ver el diseño y el color que configuraste en tu panel de Kuden, además de iniciar una conversación que viajará directamente al CRM.</p>
+    <p>Intenta enviar un mensaje de prueba. ¡Aparecerá instantáneamente en la pestaña CRM de Kuden IA asignado a la campaña correspondiente!</p>
+  </div>
+
+<!-- Kuden IA Widget -->
+<script>
+  window.KudenWidgetInit = {
+    tenantId: "acfe12ae-9aa9-4c93-9662-848060ffbba6",
+    widgetId: "28484ee3-03eb-481e-98e8-38d557d2471b",
+    apiUrl: "http://localhost:3001"
+  };
+</script>
+<script src="http://localhost:3002/kuden-widget.js" defer></script>
+<!-- End Kuden IA Widget -->
+
+</body>
+</html>
