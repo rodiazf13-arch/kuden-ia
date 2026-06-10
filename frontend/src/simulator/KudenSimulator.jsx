@@ -868,11 +868,7 @@ export default function KudenSimulator({ tenantId }) {
                 <span style={{ fontSize:10, color:"var(--color-text-secondary)" }}>·</span>
                 <Badge label={demoCliente.plan} color={segFromPlan(demoCliente.plan).color} bg={segFromPlan(demoCliente.plan).bg}/>
               </div>
-<<<<<<< HEAD
-              <p style={{ margin:"3px 0 0", fontSize:10, color:THEME.celesteDeep }}>{demoCliente.historial.length} casos en historial · {demoCliente.direccion}</p>
-=======
-              <p style={{ margin:"3px 0 0", fontSize:10, color:"#0F6E56" }}>{(demoCliente.historial?.length || 0)} casos en historial · {demoCliente.direccion}</p>
->>>>>>> kuden-actualizacion
+              <p style={{ margin:"3px 0 0", fontSize:10, color:THEME.celesteDeep }}>{(demoCliente.historial?.length || 0)} casos en historial · {demoCliente.direccion}</p>
             </div>
             <div style={{ textAlign:"right", flexShrink:0 }}>
               <i className="ti ti-circle-check" style={{ fontSize:20, color:THEME.celeste }} aria-hidden="true"/>
