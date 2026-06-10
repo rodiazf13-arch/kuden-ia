@@ -12,6 +12,7 @@ import CampaignsManager from "./admin/CampaignsManager.jsx";
 import WidgetSettings from "./admin/WidgetSettings.jsx";
 import GlobalKeysManager from './admin/GlobalKeysManager.jsx';
 import BillingDashboard from './admin/BillingDashboard.jsx';
+import UserProfile from './admin/UserProfile.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
@@ -24,7 +25,7 @@ export default function App() {
   const [tenantColor, setTenantColor] = useState(null);
   const [userRole,   setUserRole]   = useState(null);
   const [loading,    setLoading]    = useState(true);
-  const [currentTab, setCurrentTab] = useState('simulator');
+  const [currentTab, setCurrentTab] = useState('crm');
   const [accessDeniedMsg, setAccessDeniedMsg] = useState(null);
 
   const isSuperAdmin = tenantName === MASTER_TENANT_NAME;
@@ -134,6 +135,9 @@ export default function App() {
 
       case 'widget':
         return <WidgetSettings tenantId={tenantId} isDark={isDark} />;
+
+      case 'profile':
+        return <UserProfile isDark={isDark} userEmail={session?.user?.email} />;
 
       case 'tenants':
         if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;

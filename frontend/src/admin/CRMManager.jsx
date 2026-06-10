@@ -558,10 +558,11 @@ function ConvRow({ conv, isSelected, onClick, c }) {
 }
 
 // ── Panel de Reportería ───────────────────────────────────────────────────────
-function ReportPanel({ tenantId, c }) {
+function ReportPanel({ tenantId, c, campaigns }) {
   const [stats,   setStats]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [period,  setPeriod]  = useState('month');
+  const [periodCampaign, setPeriodCampaign] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -572,7 +573,9 @@ function ReportPanel({ tenantId, c }) {
       else if (period === 'week') { from = new Date(Date.now() - 7*86400000).toISOString(); }
       else { from = new Date(Date.now() - 30*86400000).toISOString(); }
       try {
-        const res  = await fetch(`${API_URL}/api/crm/stats?tenantId=${tenantId}&from=${from}`);
+        let url = `${API_URL}/api/crm/stats?tenantId=${tenantId}&from=${from}`;
+        if (periodCampaign) url += `&campaignId=${periodCampaign}`;
+        const res  = await fetch(url);
         const data = await res.json();
         setStats(data);
       } catch (e) { console.error(e); }
@@ -650,6 +653,13 @@ function ReportPanel({ tenantId, c }) {
             {l}
           </button>
         ))}
+        {campaigns && campaigns.length > 0 && (
+          <select value={periodCampaign} onChange={e => setPeriodCampaign(e.target.value)}
+            style={{ marginLeft: 'auto', padding: '5px 14px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+            <option value="">Todas las campañas</option>
+            {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+          </select>
+        )}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
         {kpis.map(k => (
@@ -683,7 +693,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [filterCampaign,setFilterCampaign]= useState('');
   const [search,        setSearch]        = useState('');
   const [loading,       setLoading]       = useState(true);
-  const [tab,           setTab]           = useState('inbox'); // 'inbox' | 'reports'
+  const [tab,           setTab]           = useState('reports'); // 'inbox' | 'reports'
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
   const c = {
@@ -766,7 +776,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       </div>
 
       {tab === 'reports' ? (
-        <ReportPanel tenantId={tenantId} c={c} />
+        <ReportPanel tenantId={tenantId} c={c} campaigns={campaigns} />
       ) : (
         <>
           {/* Panel de alertas */}

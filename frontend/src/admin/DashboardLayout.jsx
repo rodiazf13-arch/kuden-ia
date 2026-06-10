@@ -36,22 +36,39 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   const btnHoverBg   = isDark ? "#222222" : "#f3f4f6";
   const btnHoverText = isDark ? "#ffffff" : "#111827";
 
-  const allTabs = [
-    { id: 'simulator',  label: 'Simulador IA',  icon: 'ti-message-chatbot'    },
-    { id: 'crm',        label: 'CRM',            icon: 'ti-messages',    badge: alertCount > 0 ? alertCount : null, badgeColor: '#EF9F27' },
-    { id: 'campaigns',  label: 'Campañas',       icon: 'ti-speakerphone'       },
-    { id: 'contacts',   label: 'Contactos',      icon: 'ti-address-book'       },
-    { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot'              },
-    { id: 'widget',     label: 'Widget Web',     icon: 'ti-world'              },
-    { id: 'users',      label: 'Usuarios',       icon: 'ti-user-plus'          },
-    { id: 'ai_config',  label: 'Config. IA',    icon: 'ti-settings-automation' },
-    { id: 'tenants',    label: 'Empresas',       icon: 'ti-building',  superAdminOnly: true },
-    { id: 'global_keys',label: 'Llaves API',     icon: 'ti-key',       superAdminOnly: true },
-    { id: 'billing',    label: 'Tarificador',    icon: 'ti-receipt',   superAdminOnly: true },
+  const tabGroups = [
+    {
+      title: 'Demos & Integración',
+      items: [
+        { id: 'simulator',  label: 'Simulador IA',  icon: 'ti-message-chatbot' },
+        { id: 'widget',     label: 'Widget Web',    icon: 'ti-world' }
+      ]
+    },
+    {
+      title: 'Operaciones CRM',
+      items: [
+        { id: 'crm',        label: 'CRM',           icon: 'ti-messages', badge: alertCount > 0 ? alertCount : null, badgeColor: '#EF9F27' },
+        { id: 'campaigns',  label: 'Campañas',      icon: 'ti-speakerphone' },
+        { id: 'contacts',   label: 'Contactos',     icon: 'ti-address-book' }
+      ]
+    },
+    {
+      title: 'Motor IA',
+      items: [
+        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' },
+        { id: 'ai_config',  label: 'Config. IA',    icon: 'ti-settings-automation' }
+      ]
+    },
+    {
+      title: 'Administración',
+      items: [
+        { id: 'users',      label: 'Usuarios',      icon: 'ti-user-plus' },
+        { id: 'tenants',    label: 'Empresas',      icon: 'ti-building', superAdminOnly: true },
+        { id: 'global_keys',label: 'Llaves API',    icon: 'ti-key',      superAdminOnly: true },
+        { id: 'billing',    label: 'Tarificador',   icon: 'ti-receipt',  superAdminOnly: true }
+      ]
+    }
   ];
-
-  // Filtrar pestañas según privilegios
-  const tabs = allTabs.filter(t => !t.superAdminOnly || isSuperAdmin);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: bgMain, color: textMain, fontFamily: "sans-serif", transition: "background-color 0.3s, color 0.3s" }}>
@@ -89,30 +106,41 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         )}
 
         {/* Navegación */}
-        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: "4px" }}>
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              style={{
-                display: "flex", alignItems: "center", gap: "10px",
-                padding: "11px 14px", borderRadius: "8px", border: "none", cursor: "pointer",
-                backgroundColor: currentTab === t.id ? (tenantColor || "#2563eb") : "transparent",
-                color: currentTab === t.id ? "#ffffff" : textSec,
-                fontWeight: currentTab === t.id ? "600" : "400",
-                fontSize: "14px", transition: "all 0.15s", textAlign: "left", width: "100%"
-              }}
-              onMouseEnter={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = btnHoverBg; e.currentTarget.style.color = btnHoverText; } }}
-              onMouseLeave={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = textSec; } }}
-            >
-              <i className={`ti ${t.icon}`} style={{ fontSize: "18px", flexShrink: 0 }}></i>
-              {t.label}
-              {t.superAdminOnly && (
-                <span style={{ marginLeft: "auto", fontSize: "9px", background: "#f59e0b20", color: "#f59e0b", border: "1px solid #f59e0b40", borderRadius: "4px", padding: "1px 5px", fontWeight: "600" }}>MASTER</span>
-              )}
-              {t.badge > 0 && (
-                <span style={{ marginLeft: "auto", fontSize: "10px", fontWeight: "700", background: t.badgeColor || '#E24B4A', color: "#fff", borderRadius: 20, padding: "1px 7px", minWidth: 20, textAlign: "center" }}>{t.badge}</span>
-              )}
-            </button>
-          ))}
+        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto" }}>
+          {tabGroups.map((group, idx) => {
+            const groupItems = group.items.filter(t => !t.superAdminOnly || isSuperAdmin);
+            if (groupItems.length === 0) return null;
+            return (
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <p style={{ margin: "0 0 4px 10px", fontSize: "11px", fontWeight: "600", color: textSec, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {group.title}
+                </p>
+                {groupItems.map(t => (
+                  <button key={t.id} onClick={() => setTab(t.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "10px",
+                      padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer",
+                      backgroundColor: currentTab === t.id ? (tenantColor || "#2563eb") : "transparent",
+                      color: currentTab === t.id ? "#ffffff" : textSec,
+                      fontWeight: currentTab === t.id ? "600" : "500",
+                      fontSize: "13px", transition: "all 0.15s", textAlign: "left", width: "100%"
+                    }}
+                    onMouseEnter={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = btnHoverBg; e.currentTarget.style.color = btnHoverText; } }}
+                    onMouseLeave={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = textSec; } }}
+                  >
+                    <i className={`ti ${t.icon}`} style={{ fontSize: "16px", flexShrink: 0 }}></i>
+                    {t.label}
+                    {t.superAdminOnly && (
+                      <span style={{ marginLeft: "auto", fontSize: "9px", background: "#f59e0b20", color: "#f59e0b", border: "1px solid #f59e0b40", borderRadius: "4px", padding: "1px 5px", fontWeight: "600" }}>MASTER</span>
+                    )}
+                    {t.badge > 0 && (
+                      <span style={{ marginLeft: "auto", fontSize: "10px", fontWeight: "700", background: t.badgeColor || '#E24B4A', color: "#fff", borderRadius: 20, padding: "1px 7px", minWidth: 20, textAlign: "center" }}>{t.badge}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Footer sidebar */}
@@ -136,6 +164,15 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
           <button onClick={() => setTheme(isDark ? 'light' : 'dark')}
             style={{ width: "100%", padding: "8px", borderRadius: "8px", border: `1px solid ${borderCol}`, backgroundColor: "transparent", color: textSec, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", marginBottom: "8px" }}>
             {isDark ? <><i className="ti ti-sun"></i> Cambiar a Modo Claro</> : <><i className="ti ti-moon"></i> Cambiar a Modo Oscuro</>}
+          </button>
+
+          {/* Mi Perfil */}
+          <button onClick={() => setTab('profile')}
+            style={{ width: "100%", padding: "8px", borderRadius: "8px", border: `1px solid ${currentTab === 'profile' ? '#2563eb' : borderCol}`, backgroundColor: currentTab === 'profile' ? '#2563eb15' : "transparent", color: currentTab === 'profile' ? '#60a5fa' : textSec, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", marginBottom: "8px" }}
+            onMouseEnter={(e) => { if (currentTab !== 'profile') { e.target.style.backgroundColor = btnHoverBg; e.target.style.color = btnHoverText; } }}
+            onMouseLeave={(e) => { if (currentTab !== 'profile') { e.target.style.backgroundColor = "transparent"; e.target.style.color = textSec; } }}
+          >
+            <i className="ti ti-user"></i> Mi Perfil
           </button>
 
           {/* Logout */}
