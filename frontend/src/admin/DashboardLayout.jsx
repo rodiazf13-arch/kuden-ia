@@ -71,18 +71,18 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: bgMain, color: textMain, fontFamily: "sans-serif", transition: "background-color 0.3s, color 0.3s" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: bgMain, color: textMain, transition: "background-color 0.3s, color 0.3s" }}>
 
       {/* ── Sidebar ── */}
-      <div style={{ width: "260px", borderRight: `1px solid ${borderCol}`, backgroundColor: bgSidebar, display: "flex", flexDirection: "column", flexShrink: 0, transition: "background-color 0.3s" }}>
+      <aside style={{ width: "260px", backgroundColor: bgSidebar, borderRight: `1px solid ${borderCol}`, display: "flex", flexDirection: "column", transition: "background-color 0.3s, border-color 0.3s", backdropFilter: "blur(10px)" }}>
 
         {/* Logo */}
         <div style={{ padding: "20px", borderBottom: `1px solid ${borderCol}`, display: "flex", alignItems: "center", gap: "12px" }}>
           {tenantLogo ? (
             <img src={tenantLogo} alt="Logo Empresa" style={{ width: 36, height: 36, borderRadius: "8px", objectFit: "contain", flexShrink: 0, background: isDark ? '#fff' : 'transparent' }} />
           ) : (
-            <div style={{ width: 36, height: 36, borderRadius: "10px", background: `linear-gradient(135deg,${tenantColor || '#2563eb'},#7c3aed)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 15px ${tenantColor ? tenantColor+'40' : 'rgba(37,99,235,0.4)'}`, flexShrink: 0 }}>
-              <span style={{ color: "#fff", fontWeight: 800, fontSize: 18, fontFamily: "sans-serif" }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
+            <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: tenantColor, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px ${tenantColor}40` }}>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: 18 }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
             </div>
           )}
           <div>

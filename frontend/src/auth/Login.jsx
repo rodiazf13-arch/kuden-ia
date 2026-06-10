@@ -25,7 +25,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", fontFamily: "sans-serif", padding: "1rem" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", padding: "1rem" }}>
       <div style={{ width: "100%", maxWidth: "400px", backgroundColor: "#111", border: "1px solid #222", borderRadius: "12px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)", padding: "32px" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
           <div style={{ width: "48px", height: "48px", backgroundColor: "#2563eb", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 15px rgba(37,99,235,0.4)", marginBottom: "16px" }}>

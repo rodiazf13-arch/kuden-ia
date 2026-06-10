@@ -18,9 +18,9 @@ const THEME = {
   gradBrand:   "linear-gradient(120deg,#1FA1C4,#3E6AA8)",
 };
 
-const FONT_DISPLAY = '"Bricolage Grotesque", sans-serif';
-const FONT_BODY    = '"Plus Jakarta Sans", system-ui, sans-serif';
-const FONT_MONO    = '"JetBrains Mono", ui-monospace, monospace';
+const FONT_DISPLAY = 'var(--font-display)';
+const FONT_BODY    = 'var(--font-body)';
+const FONT_MONO    = 'monospace';
 const KUDEN_LOGO   = "/kuden-logo.png";
 
 const CHANNELS = [
@@ -156,7 +156,7 @@ function CloseModal({ onClose, onConfirm, csatAvg, elapsed }) {
     const portal = el.current;
     portal.innerHTML = "";
     const box = document.createElement("div");
-    Object.assign(box.style, { background:"white", borderRadius:"12px", padding:"24px", width:"340px", boxShadow:"0 16px 48px rgba(0,0,0,0.32)", fontFamily:"sans-serif" });
+    Object.assign(box.style, { background:"white", borderRadius:"16px", padding:"24px", width:"340px", boxShadow:"var(--shadow-lg)" });
     const cc = sel ? (CLOSE_OPTIONS.find(o=>o.id===sel)||{}).color||"#ccc" : "#ccc";
     box.innerHTML =
       "<p style='margin:0 0 4px;font-size:14px;font-weight:500;color:#111'>Cerrar caso</p>" +

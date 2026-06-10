@@ -78,7 +78,7 @@ export default function App() {
   const handleLogout = async () => { await supabase.auth.signOut(); };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff" }}>
       Cargando Kuden IA...
     </div>
   );
@@ -87,7 +87,7 @@ export default function App() {
 
   if (accessDeniedMsg) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", fontFamily: "sans-serif", padding: 20, textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", padding: 20, textAlign: "center" }}>
         <i className="ti ti-ban" style={{ fontSize: 64, color: "#E24B4A", marginBottom: 20 }}></i>
         <h1 style={{ fontSize: 24, marginBottom: 10 }}>Acceso Suspendido</h1>
         <p style={{ color: "#aaa", marginBottom: 30, maxWidth: 400 }}>{accessDeniedMsg}</p>
