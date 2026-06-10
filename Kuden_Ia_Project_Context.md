@@ -59,7 +59,7 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 
 ### FASE 2: Multicanalidad Oficial y Campañas
 1.  ✅ **Estructura de Campañas y Tipificación:** Subdividir clientes en campañas y aplicar perfiles de IA distintos. Completado.
-2.  **Meta Tech Provider (Edge Functions):** Proceso oficial de Meta para WhatsApp/Instagram. Arquitectura *Serverless* para recibir cientos de mensajes por segundo sin saturar Node.
+2.  ✅ **Meta Tech Provider (Webhook Serverless & Supabase Queue):** Proceso oficial de Meta para WhatsApp/Instagram. Arquitectura *Serverless* implementada en Vercel (`frontend/api/webhook/whatsapp.js`) para recibir y responder a cientos de mensajes por segundo con código 200 OK de inmediato, encolándolos en Supabase (`whatsapp_webhooks_queue`). Un Worker asíncrono en Railway los procesa sin saturar el hilo principal de Node. (Falta vinculación final con Facebook App).
 3.  **Voz y VICIdial:** Transcripción y análisis de llamadas de voz mediante un microservicio de baja latencia.
 
 ### FASE 3: Ecosistema IA, RAG y Vista 360
