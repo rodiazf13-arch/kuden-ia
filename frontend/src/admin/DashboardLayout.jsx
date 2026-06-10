@@ -183,7 +183,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
             Cerrar Sesión
           </button>
         </div>
-      </div>
+      </aside>
 
       {/* ── Contenido principal ── */}
       <div style={{ flex: 1, backgroundColor: bgMain, overflowY: "auto", transition: "background-color 0.3s" }}>
