@@ -53,6 +53,7 @@ const ALLOWED_ORIGINS = [
   "http://186.104.166.95:5173",
   "https://kuden-ia.vercel.app",
   "https://kuden-ia-dev.vercel.app",
+  "https://app.kuden.cl",
 ];
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/widget/')) {
@@ -103,7 +104,7 @@ async function insertAuditLog(severity, source, message, metadata = {}, tenantId
     if (tenantId) payload.tenant_id = tenantId;
     const { error } = await supabase.from('audit_logs').insert([payload]);
     if (error) console.error("[AuditLog Error]", error.message);
-    
+
     // Preparación para futura integración Zabbix/Sentry
     if (severity === 'critical' || severity === 'error') {
       // TODO: Enviar a Zabbix/Sentry si está configurado en un futuro
@@ -173,7 +174,7 @@ async function upsertContact({ tenantId, clienteNombre, rut, telefono, direccion
       .eq("tenant_id", tenantId)
       .eq("cliente_nombre", clienteNombre);
     if (error) throw error;
-    
+
     if (data && data.length > 0) {
       const match = data.find(c => (!normRut || c.rut === normRut) && (!normPhone || c.telefono === normPhone));
       existing = match || data[0];
@@ -227,21 +228,21 @@ async function upsertContact({ tenantId, clienteNombre, rut, telefono, direccion
 
 // ─── Helper: parsear estado/sentimiento/fuga de la respuesta de Claude ────────
 function parseClaudeMetadata(text) {
-  const get = (k) => { 
-    const m = text?.match(new RegExp(`(?:\\[${k}:|\\b${k}:)\\s*([^\\]\\n\\|]+)`, "i")); 
-    return m ? m[1].trim() : null; 
+  const get = (k) => {
+    const m = text?.match(new RegExp(`(?:\\[${k}:|\\b${k}:)\\s*([^\\]\\n\\|]+)`, "i"));
+    return m ? m[1].trim() : null;
   };
   return {
-    estado:      get("ESTADO"),
+    estado: get("ESTADO"),
     sentimiento: get("SENTIMIENTO"),
-    fuga:        get("FUGA"),
-    intencion:   get("INTENCION"),
-    accion:      get("ACCION"),
-    nombre:      get("NOMBRE"),
-    rut:         get("RUT"),
-    telefono:    get("TELEFONO"),
-    direccion:   get("DIRECCION"),
-    campana:     get("CAMPAÑA"),
+    fuga: get("FUGA"),
+    intencion: get("INTENCION"),
+    accion: get("ACCION"),
+    nombre: get("NOMBRE"),
+    rut: get("RUT"),
+    telefono: get("TELEFONO"),
+    direccion: get("DIRECCION"),
+    campana: get("CAMPAÑA"),
   };
 }
 
@@ -268,16 +269,16 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
   const now = new Date().toISOString();
   const updatePayload = {
     history,
-    updated_at:           now,
-    last_message_at:      now,
+    updated_at: now,
+    last_message_at: now,
     last_message_preview: lastPreview ? lastPreview.slice(0, 120) : null,
   };
   // Solo cambiar a waiting_human si la IA estaba activa (no sobreescribir takeover humano)
   if (needsHuman && existing?.is_ai_active !== false) {
-    updatePayload.status       = "waiting_human";
+    updatePayload.status = "waiting_human";
     updatePayload.is_ai_active = false;
   } else if (isResolved && existing?.is_ai_active !== false) {
-    updatePayload.status       = "closed";
+    updatePayload.status = "closed";
     updatePayload.is_ai_active = false;
     updatePayload.motivo_label = parsedMeta?.accion || "Resuelto por IA";
   }
@@ -299,18 +300,18 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
   const { data: created, error: insertErr } = await supabase
     .from("conversations")
     .insert({
-      tenant_id:            tenantId,
-      contact_id:           contactId,
-      system_prompt:        systemPrompt || null,
+      tenant_id: tenantId,
+      contact_id: contactId,
+      system_prompt: systemPrompt || null,
       history,
-      ticket_id:            ticketId    || null,
-      canal:                canal       || null,
-      last_message_at:      now,
+      ticket_id: ticketId || null,
+      canal: canal || null,
+      last_message_at: now,
       last_message_preview: lastPreview ? lastPreview.slice(0, 120) : null,
-      status:               isResolved ? "closed" : (needsHuman ? "waiting_human" : "active"),
-      is_ai_active:         (needsHuman || isResolved) ? false : true,
-      motivo_label:         isResolved ? (parsedMeta?.accion || "Resuelto por IA") : null,
-      campaign_id:          (parsedMeta?.campana && parsedMeta.campana.length > 5) ? parsedMeta.campana : null,
+      status: isResolved ? "closed" : (needsHuman ? "waiting_human" : "active"),
+      is_ai_active: (needsHuman || isResolved) ? false : true,
+      motivo_label: isResolved ? (parsedMeta?.accion || "Resuelto por IA") : null,
+      campaign_id: (parsedMeta?.campana && parsedMeta.campana.length > 5) ? parsedMeta.campana : null,
     })
     .select("id")
     .single();
@@ -323,11 +324,11 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
 async function insertConvMessage({ conversationId, tenantId, senderType, senderName, content, metadata }) {
   const { error } = await supabase.from("conversation_messages").insert({
     conversation_id: conversationId,
-    tenant_id:       tenantId,
-    sender_type:     senderType,
-    sender_name:     senderName || null,
+    tenant_id: tenantId,
+    sender_type: senderType,
+    sender_name: senderName || null,
     content,
-    metadata:        metadata || {},
+    metadata: metadata || {},
   });
   if (error) console.error("[insertConvMessage]", error.message);
 }
@@ -381,12 +382,12 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // 1. Llama a LLM
-    const { text: finalPromptResponse } = await callLLM(supabase, { 
+    const { text: finalPromptResponse } = await callLLM(supabase, {
       provider: 'anthropic',
       model: 'claude-sonnet-4-6',
-      system: finalSystemPrompt, 
-      messages, 
-      max_tokens 
+      system: finalSystemPrompt,
+      messages,
+      max_tokens
     });
 
     // 2. Persiste en Supabase solo si se envían datos del contacto y el tenantId
@@ -395,12 +396,12 @@ app.post("/api/chat", async (req, res) => {
         const {
           tenantId,
           clienteNombre,
-          rut       = null,
-          telefono  = null,
+          rut = null,
+          telefono = null,
           direccion = null,
-          plan      = "",
-          canal     = "",
-          ticketId  = null,
+          plan = "",
+          canal = "",
+          ticketId = null,
         } = contactData;
 
         const assistantMessage = finalPromptResponse;
@@ -502,11 +503,11 @@ app.post("/api/summarize", async (req, res) => {
         const contactId = await upsertContact({
           tenantId,
           clienteNombre,
-          rut:       rut       || null,
-          telefono:  telefono  || null,
+          rut: rut || null,
+          telefono: telefono || null,
           direccion: direccion || null,
-          plan:      plan      || "",
-          canal:     canal     || "",
+          plan: plan || "",
+          canal: canal || "",
         });
 
         // Busca la conversación activa (sin resumen = sesión recién cerrada)
@@ -529,18 +530,18 @@ app.post("/api/summarize", async (req, res) => {
           const { error: updateErr } = await supabase
             .from("conversations")
             .update({
-              resumen_ejecutivo:  resumenEjecutivo,
-              motivo_label:       motivoLabel       || null,
-              ticket_id:          ticketId          || null,
-              perfil_cliente:     perfilCliente     || null,
-              duracion:           duracion          || null,
-              csat_final:         csatNum,
-              sentimiento_final:  sentimientoFinal  || null,
-              fuga_final:         fugaFinal         || null,
-              intencion:          intencion         || null,
-              estado:             estado            || null,
-              total_mensajes:     totalMensajes     || null,
-              updated_at:         new Date().toISOString(),
+              resumen_ejecutivo: resumenEjecutivo,
+              motivo_label: motivoLabel || null,
+              ticket_id: ticketId || null,
+              perfil_cliente: perfilCliente || null,
+              duracion: duracion || null,
+              csat_final: csatNum,
+              sentimiento_final: sentimientoFinal || null,
+              fuga_final: fugaFinal || null,
+              intencion: intencion || null,
+              estado: estado || null,
+              total_mensajes: totalMensajes || null,
+              updated_at: new Date().toISOString(),
             })
             .eq("id", conv.id);
           if (updateErr) throw updateErr;
@@ -572,7 +573,7 @@ app.post("/api/contacts/:id/summarize", async (req, res) => {
       .eq("contact_id", id)
       .not("resumen_ejecutivo", "is", null)
       .order("last_message_at", { ascending: false });
-    
+
     if (errConvs) throw errConvs;
 
     if (!convs || convs.length === 0) {
@@ -581,7 +582,7 @@ app.post("/api/contacts/:id/summarize", async (req, res) => {
 
     let historyText = `Cliente: ${contact.cliente_nombre}\nPlan/Producto: ${contact.plan || 'No definido'}\n\nHistorial de interacciones:\n`;
     convs.forEach((c, i) => {
-      historyText += `--- Interacción ${i+1} (${c.canal}) ---\nFecha: ${c.last_message_at || c.updated_at}\nCierre: ${c.motivo_label}\nCSAT: ${c.csat_final || 'N/A'}\nResumen:\n${c.resumen_ejecutivo}\n\n`;
+      historyText += `--- Interacción ${i + 1} (${c.canal}) ---\nFecha: ${c.last_message_at || c.updated_at}\nCierre: ${c.motivo_label}\nCSAT: ${c.csat_final || 'N/A'}\nResumen:\n${c.resumen_ejecutivo}\n\n`;
     });
 
     const prompt = `Actúas como un analista experto de CRM. Lee el historial de interacciones de este cliente y genera un "Resumen Ejecutivo Global del Perfil del Cliente" (máximo 4 a 5 líneas). 
@@ -591,11 +592,11 @@ No saludes ni te despidas, ve directo al reporte.
 HISTORIAL:
 ${historyText}`;
 
-    const { text: globalSummary } = await callLLM(supabase, { 
+    const { text: globalSummary } = await callLLM(supabase, {
       provider: 'anthropic',
       model: 'claude-haiku-4-5-20251001',
-      messages: [{ role: "user", content: prompt }], 
-      max_tokens: 400 
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 400
     });
 
     await supabase.from("contacts").update({ global_summary: globalSummary }).eq("id", id);
@@ -708,7 +709,7 @@ app.put("/api/admin/users/:userId", async (req, res) => {
         .from('tenant_users')
         .update(updates)
         .eq('user_id', userId);
-      
+
       if (tenantErr) throw tenantErr;
     }
 
@@ -747,8 +748,8 @@ app.get("/api/crm/conversations", async (req, res) => {
       if (status === "open") query = query.neq("status", "closed");
       else query = query.eq("status", status);
     }
-    if (canal && canal !== "all")    query = query.eq("canal", canal);
-    if (campaignId)                  query = query.eq("campaign_id", campaignId);
+    if (canal && canal !== "all") query = query.eq("canal", canal);
+    if (campaignId) query = query.eq("campaign_id", campaignId);
     if (search) {
       query = query.or(
         `ticket_id.ilike.%${search}%,contacts.cliente_nombre.ilike.%${search}%`
@@ -959,11 +960,11 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
     const { data: msg, error: msgErr } = await supabase
       .from("conversation_messages")
       .insert({
-        conversation_id:  id,
-        tenant_id:        tenantId,
-        sender_type:      "human_agent",
-        sender_name:      displayName || "Ejecutivo",
-        sender_user_id:   userId || null,
+        conversation_id: id,
+        tenant_id: tenantId,
+        sender_type: "human_agent",
+        sender_name: displayName || "Ejecutivo",
+        sender_user_id: userId || null,
         content,
         is_internal_note: isInternalNote,
       })
@@ -973,7 +974,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
     // Actualizar preview en la conversación (solo si no es nota interna)
     if (!isInternalNote) {
       await supabase.from("conversations").update({
-        last_message_at:      now,
+        last_message_at: now,
         last_message_preview: `[Ejecutivo] ${content.slice(0, 100)}`,
       }).eq("id", id);
     }
@@ -1000,7 +1001,7 @@ app.post("/api/crm/conversations/:id/suggest", async (req, res) => {
       .eq("sender_type", "customer")
       .order("created_at", { ascending: false })
       .limit(1);
-    
+
     const lastMessage = msgs && msgs.length > 0 ? msgs[0].content : "";
     if (!lastMessage) return res.json({ suggestion: "No hay mensajes del cliente para responder." });
 
@@ -1122,10 +1123,10 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
     if (isPending) newStatus = "pending_followup";
 
     const updatePayload = {
-      status:             newStatus,
-      is_ai_active:       false,
+      status: newStatus,
+      is_ai_active: false,
     };
-    
+
     if (isPending) {
       updatePayload.follow_up_at = followUpAt;
       updatePayload.follow_up_note = followUpNote;
@@ -1135,11 +1136,11 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
       updatePayload.closed_by = userId || null;
       updatePayload.csat_requested_at = force ? null : now;
     }
-    
+
     if (motivoLabel) updatePayload.motivo_label = motivoLabel;
 
     await supabase.from("conversations").update(updatePayload).eq("id", id);
-    
+
     let sysContent = "";
     if (isPending) {
       sysContent = `${displayName || "El ejecutivo"} dejó la conversación pendiente para seguimiento.${followUpNote ? ` Nota: ${followUpNote}` : ''}`;
@@ -1172,8 +1173,8 @@ app.get("/api/crm/stats", async (req, res) => {
       .select("status, canal, sentimiento_final, fuga_final, csat_final, intencion, closed_at, assigned_to, campaign_id")
       .eq("tenant_id", tenantId);
     if (campaignId) query = query.eq("campaign_id", campaignId);
-    if (from)       query = query.gte("last_message_at", from);
-    if (to)         query = query.lte("last_message_at", to);
+    if (from) query = query.gte("last_message_at", from);
+    if (to) query = query.lte("last_message_at", to);
 
     const { data, error } = await query;
     if (error) throw error;
@@ -1188,8 +1189,8 @@ app.get("/api/crm/stats", async (req, res) => {
     let hadHuman = 0;
 
     data.forEach(c => {
-      byStatus[c.status]             = (byStatus[c.status] || 0) + 1;
-      byCanal[c.canal || "—"]        = (byCanal[c.canal || "—"] || 0) + 1;
+      byStatus[c.status] = (byStatus[c.status] || 0) + 1;
+      byCanal[c.canal || "—"] = (byCanal[c.canal || "—"] || 0) + 1;
       bySentimiento[c.sentimiento_final || "neutral"] = (bySentimiento[c.sentimiento_final || "neutral"] || 0) + 1;
       byFuga[c.fuga_final || "sin_riesgo"] = (byFuga[c.fuga_final || "sin_riesgo"] || 0) + 1;
       if (c.csat_final) csatValues.push(parseFloat(c.csat_final));
@@ -1277,16 +1278,16 @@ app.delete("/api/web_widgets/:id", async (req, res) => {
 app.get("/api/widget/config", async (req, res) => {
   const { tenantId, widgetId } = req.query;
   if (!tenantId && !widgetId) return res.status(400).json({ error: "tenantId o widgetId requerido" });
-  
+
   try {
     let widget = null;
-    
+
     // Priorizar widgetId si existe
     if (widgetId && widgetId !== "null" && widgetId !== "undefined") {
       const { data: wData } = await supabase.from("web_widgets").select("*").eq("id", widgetId).maybeSingle();
       if (wData) widget = wData;
     }
-    
+
     // Fallback: primer widget activo del tenant
     if (!widget && tenantId) {
       const { data: wData } = await supabase.from("web_widgets").select("*").eq("tenant_id", tenantId).eq("is_active", true).limit(1).maybeSingle();
@@ -1307,7 +1308,7 @@ app.get("/api/widget/config", async (req, res) => {
     // Fallback absoluto a tenant_ai_config antigua
     const { data: config } = await supabase.from("tenant_ai_config").select("*").eq("tenant_id", tenantId).maybeSingle();
     const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
-    
+
     return res.json({
       name: tenant?.name || "Asistente",
       color: config?.widget_color || "#2563eb",
@@ -1344,7 +1345,7 @@ app.post("/api/widget/chat", async (req, res) => {
       // Crear nueva conversación (Cliente anónimo por ahora)
       // Generar ticket ID simple
       const ticketId = "WID-" + Math.floor(100000 + Math.random() * 900000);
-      
+
       let { data: contact } = await supabase.from("contacts").select("id").eq("tenant_id", tenantId).eq("telefono", "WEB-CONTACT").maybeSingle();
       if (!contact) {
         const { data: newContact } = await supabase.from("contacts").insert([{ tenant_id: tenantId, telefono: "WEB-CONTACT", cliente_nombre: "Usuario Web Anónimo", canal: "webchat" }]).select("id").single();
@@ -1374,7 +1375,7 @@ app.post("/api/widget/chat", async (req, res) => {
       if (errIns) throw errIns;
       if (!newConvs || newConvs.length === 0) throw new Error("No se pudo crear la conversación");
       convId = newConvs[0].id;
-      
+
       // Inyectar el mensaje de bienvenida del widget (System) si está configurado en el historial inicial de memoria
       if (widgetConfig && widgetConfig.welcome_message) {
         history.push({ role: "system", content: widgetConfig.welcome_message, type: "system_greeting" });
@@ -1388,7 +1389,7 @@ app.post("/api/widget/chat", async (req, res) => {
         .eq("id", convId)
         .maybeSingle();
       if (errSel) throw errSel;
-      
+
       existingConv = existing;
 
       if (!existing) {
@@ -1492,7 +1493,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     try {
       const claudeMessages = history.filter(m => m.role !== "system").map(m => ({ role: m.role, content: m.content }));
       const systemGreeting = history.find(m => m.role === "system")?.content;
-      
+
       const { text, usage } = await callLLM(supabase, {
         provider: llmProvider,
         model: llmModel,
@@ -1543,7 +1544,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     // 5. Actualizar la conversación
     const needsHuman = metadata.estado === "esperando_humano" || metadata.fuga === "alto";
     const isFinished = metadata.estado === "finalizada";
-    
+
     let updateFields = {
       history,
       status: isFinished ? "pending_csat" : (needsHuman ? "waiting_human" : "active"),
@@ -1561,10 +1562,10 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
 
     await supabase.from("conversations").update(updateFields).eq("id", convId);
 
-    return res.json({ 
-      conversationId: convId, 
+    return res.json({
+      conversationId: convId,
       ai_response: cleanText,
-      needsCsat: isFinished 
+      needsCsat: isFinished
     });
   } catch (e) {
     console.error("[POST /api/widget/chat]", e.message);
@@ -1641,14 +1642,14 @@ app.post("/api/profiles/:profileId/documents", upload.single('file'), async (req
   try {
     const source = type === 'web' ? url : file.buffer;
     const name = type === 'web' ? url : file.originalname;
-    
+
     // Validar propiedad del perfil
     const { data: profile, error: profErr } = await supabase
       .from('ai_profiles')
       .select('tenant_id')
       .eq('id', profileId)
       .single();
-      
+
     if (profErr || profile.tenant_id !== tenantId) {
       return res.status(403).json({ error: "No tienes permiso para modificar este perfil." });
     }
@@ -1673,7 +1674,7 @@ app.post("/api/profiles/:profileId/documents", upload.single('file'), async (req
 app.get("/api/profiles/:profileId/documents", async (req, res) => {
   const { profileId } = req.params;
   const { tenantId } = req.query;
-  
+
   if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
 
   try {
