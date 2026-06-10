@@ -51,6 +51,8 @@ const ALLOWED_ORIGINS = [
   "http://186.104.166.95:3001",
   "http://186.104.166.95:3002",
   "http://186.104.166.95:5173",
+  "https://kuden-ia.vercel.app",
+  "https://kuden-ia-dev.vercel.app",
 ];
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/widget/')) {
