@@ -87,6 +87,15 @@ export default function SystemHealthDashboard({ isDark }) {
     return () => clearInterval(t);
   }, [fetchLogs]);
 
+  const resolveLog = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/audit-logs/${id}/resolve`, { method: 'PUT' });
+      if (res.ok) fetchLogs();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Agrupar logs por hora para el gráfico
   const chartData = (() => {
     const buckets = {};
@@ -227,26 +236,38 @@ export default function SystemHealthDashboard({ isDark }) {
                 logs.map(log => {
                   const sev = SEV_CONFIG[log.severity] || SEV_CONFIG.info;
                   const isOpen = expanded === log.id;
+                  const isResolved = log.metadata?.resolved === true;
                   return (
                     <React.Fragment key={log.id}>
-                      <tr style={{ borderBottom: `1px solid ${border}`, background: (log.severity === 'critical' || log.severity === 'error') ? (isDark ? 'rgba(226,75,74,0.04)' : 'rgba(226,75,74,0.02)') : 'transparent', transition: 'background 0.1s' }}
+                      <tr style={{ borderBottom: `1px solid ${border}`, opacity: isResolved ? 0.6 : 1, background: (!isResolved && (log.severity === 'critical' || log.severity === 'error')) ? (isDark ? 'rgba(226,75,74,0.04)' : 'rgba(226,75,74,0.02)') : 'transparent', transition: 'background 0.1s' }}
                         onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
-                        onMouseLeave={e => e.currentTarget.style.background = (log.severity === 'critical' || log.severity === 'error') ? (isDark ? 'rgba(226,75,74,0.04)' : 'rgba(226,75,74,0.02)') : 'transparent'}
+                        onMouseLeave={e => e.currentTarget.style.background = (!isResolved && (log.severity === 'critical' || log.severity === 'error')) ? (isDark ? 'rgba(226,75,74,0.04)' : 'rgba(226,75,74,0.02)') : 'transparent'}
                       >
                         <td style={{ padding: '9px 14px', color: textSec, whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 11 }}>
                           {new Date(log.created_at).toLocaleString('es-CL', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' })}
                         </td>
                         <td style={{ padding: '9px 14px' }}><SevBadge severity={log.severity} /></td>
                         <td style={{ padding: '9px 14px', color: textSec, fontFamily: 'monospace', fontSize: 11, whiteSpace: 'nowrap' }}>{log.source}</td>
-                        <td style={{ padding: '9px 14px', color: textMain, maxWidth: 350, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.message}</td>
+                        <td style={{ padding: '9px 14px', color: textMain, maxWidth: 350, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: isResolved ? 'line-through' : 'none' }}>
+                          {isResolved && <span style={{ color: '#1D9E75', fontWeight: 'bold', marginRight: 6 }}>[✓ Resuelto]</span>}
+                          {log.message}
+                        </td>
                         <td style={{ padding: '9px 14px', color: textSec, fontFamily: 'monospace', fontSize: 10 }}>{log.tenant_id ? log.tenant_id.slice(0,8) + '…' : '—'}</td>
                         <td style={{ padding: '9px 14px' }}>
-                          {log.metadata && Object.keys(log.metadata).length > 0 && (
-                            <button onClick={() => setExpanded(isOpen ? null : log.id)}
-                              style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: `1px solid ${border}`, background: 'transparent', color: textSec, cursor: 'pointer' }}>
-                              {isOpen ? 'Cerrar' : 'Ver más'}
-                            </button>
-                          )}
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            {log.metadata && Object.keys(log.metadata).length > 0 && (
+                              <button onClick={() => setExpanded(isOpen ? null : log.id)}
+                                style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: `1px solid ${border}`, background: 'transparent', color: textSec, cursor: 'pointer' }}>
+                                {isOpen ? 'Cerrar' : 'Ver más'}
+                              </button>
+                            )}
+                            {!isResolved && (log.severity === 'critical' || log.severity === 'error') && (
+                              <button onClick={() => resolveLog(log.id)}
+                                style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: `1px solid #1D9E75`, background: '#1D9E7515', color: '#1D9E75', cursor: 'pointer', fontWeight: 'bold' }}>
+                                Resolver
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                       {isOpen && (

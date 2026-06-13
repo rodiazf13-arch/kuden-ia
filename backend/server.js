@@ -107,7 +107,7 @@ app.get("/api/admin/audit-logs", async (req, res) => {
 
   try {
     // 1. Obtener stats globales (últimos 1000) para que los KPIs no cambien al filtrar la tabla
-    let statsQuery = supabase.from('audit_logs').select('severity, source').order('created_at', { ascending: false }).limit(1000);
+    let statsQuery = supabase.from('audit_logs').select('severity, source, metadata').order('created_at', { ascending: false }).limit(1000);
     if (tenantId) statsQuery = statsQuery.eq('tenant_id', tenantId);
     if (from)     statsQuery = statsQuery.gte('created_at', from);
     if (to)       statsQuery = statsQuery.lte('created_at', to);
@@ -115,6 +115,7 @@ app.get("/api/admin/audit-logs", async (req, res) => {
     const { data: statsData } = await statsQuery;
     
     const bySeverity = (statsData || []).reduce((acc, l) => {
+      if (l.metadata?.resolved) return acc; // No contar los resueltos en los KPIs de alerta
       acc[l.severity] = (acc[l.severity] || 0) + 1;
       return acc;
     }, {});
@@ -158,6 +159,24 @@ app.get("/api/admin/audit-logs", async (req, res) => {
   } catch (e) {
     console.error("[GET /api/admin/audit-logs]", e.message);
     return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── PUT /api/admin/audit-logs/:id/resolve ────────────────────────────────────
+app.put("/api/admin/audit-logs/:id/resolve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: log, error: fetchErr } = await supabase.from('audit_logs').select('metadata').eq('id', id).single();
+    if (fetchErr) throw fetchErr;
+
+    const newMetadata = { ...(log.metadata || {}), resolved: true, resolved_at: new Date().toISOString() };
+    const { error: updateErr } = await supabase.from('audit_logs').update({ metadata: newMetadata }).eq('id', id);
+    if (updateErr) throw updateErr;
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error("[PUT /api/admin/audit-logs/:id/resolve]", e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
