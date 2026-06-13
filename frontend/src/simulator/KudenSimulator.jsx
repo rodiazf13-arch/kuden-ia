@@ -957,8 +957,8 @@ export default function KudenSimulator({ tenantId }) {
                         )}
                         <div style={{ maxWidth:"75%", padding:"8px 11px", fontSize:13, lineHeight:1.5,
                           borderRadius:m.role==="assistant"?"12px 12px 12px 3px":"12px 12px 3px 12px",
-                          background:m.role==="assistant"?"var(--color-background-secondary)":p.color,
-                          color:m.role==="assistant"?"var(--color-text-primary)":"#fff" }}>{m.text}</div>
+                          background:m.role==="assistant"?"var(--color-background-secondary)":"var(--color-background-tertiary, #e5e7eb)",
+                          color:m.role==="assistant"?"var(--color-text-primary)":"var(--color-text-primary)" }}>{m.text}</div>
                       </div>
                       {m.role==="assistant" && <div style={{ paddingLeft:27 }}><StarRating msgIndex={i} ratings={ratings} onRate={handleRate}/></div>}
                     </div>

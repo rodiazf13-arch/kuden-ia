@@ -41,11 +41,14 @@ La plataforma interna de Kuden ya cuenta con un motor potente listo para operar 
 *   **Bandeja de Ejecutivos (`CRMManager`):** Interfaz para humanos con *Takeover* (Toma de control del bot), paneles de sentimiento en tiempo real e indicadores de riesgo de fuga.
 *   **Web Chat Automático:** Script embebible (`kuden-widget.js`) con interfaz resiliente, que maneja estados de sesión y cierra activando la encuesta CSAT automáticamente.
 *   **Multi-Tenancy Genuino:** Gestión de clientes respaldada por PostgreSQL/Supabase, blindada con Row Level Security (RLS) para aislamiento de datos.
-*   **Módulo de Reportería Avanzada:** Panel de gráficos integrados (Recharts) en el CRM para visualizar rápidamente el Sentimiento y Riesgo de Fuga de las conversaciones.
+*   **Módulo de Reportería Avanzada:** Panel de gráficos integrados (Recharts) en el CRM para visualizar rápidamente el Sentimiento y Riesgo de Fuga de las conversaciones, incluyendo **filtros dinámicos por Campaña**.
 *   **Gestor Multi-LLM y Tarificador:** Abstracción en backend que permite usar los modelos más modernos (Claude 4.6, GPT-5, Gemini 3.5 Flash, Llama 4). Panel de facturación (`BillingDashboard.jsx`) con multiplicador de margen de ganancia de IA (`llm_markup_multiplier`) por tenant.
 *   **Arquitectura White-Label Dinámica:** Capacidad de inyectar colores corporativos y logos personalizados por empresa desde el gestor multi-tenant (`TenantsManager.jsx`), asegurando una estética premium con Glassmorphism compatible en modo claro y oscuro.
 *   **Soporte Multi-Industria:** Las plantillas de Tenant se adaptan dinámicamente insertando custom fields específicos para inmobiliarias, salud, cobranzas o soporte.
 *   **Base del Sistema RAG y Agent Assist ("Botón Mágico"):** Motor de embeddings (`ragService.js`) conectado a Supabase `pgvector`, permitiendo a los ejecutivos pedir a la IA sugerencias de respuesta en tiempo real basadas en documentos almacenados.
+*   **Rediseño Visual (Premium SaaS UI/UX):** Implementación de tipografías modernas (Outfit/Inter), glassmorphism, sombras suaves y micro-interacciones globales para una experiencia de usuario de alto nivel, controlada por un CSS centralizado.
+*   **Gestión de Usuario ("Mi Perfil"):** Componente de autogestión de seguridad integrado con la API de Supabase Auth para cambios de contraseña en tiempo real.
+*   **Enrutamiento Inteligente y Sidebar:** Menú lateral categorizado por áreas de negocio (Operaciones, Motor IA, Admin) y aterrizaje directo post-login en el Dashboard de Reportes para decisiones de negocio inmediatas.
 
 ---
 
@@ -66,6 +69,14 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 1.  **Vista 360° Omnicanal:** Unificar la línea de tiempo de un contacto (Web + WhatsApp + Voz) para que el ejecutivo humano y la IA tengan todo el contexto histórico.
 2.  ✅ **Gestor Multi-LLM y Tarificador:** Conectar OpenAI, Gemini, Claude, Llama para optimizar costos y tener un panel de márgenes de ganancia. Completado.
 3.  ✅ **Sistema RAG (Retrieval-Augmented Generation) Básico:** Motor de embeddings y vectorización completado. *Próximo paso:* Construir la interfaz (UI) para que los clientes puedan subir y gestionar sus propios documentos (PDFs, Web Scraping) fácilmente.
+
+### FASE 4: Atribución de Marketing y Automatización Social
+1.  **Atribución de Conversiones "Kuden Ads" (Offline Conversions):** Integrar la API de Conversiones de Meta (CAPI) y Google Ads para registrar como eventos offline las conversiones exitosas del chat (leads calificados, citas, ventas). Esto permite conectar el gasto publicitario con resultados reales en el CRM y optimizar el rendimiento del ad spend.
+2.  **Instagram Comments-to-DM (AI Comments):** Automatización de respuestas inteligentes en comentarios públicos de posts de Instagram, redirigiendo de forma inmediata al usuario a Direct Messages (DM) con un flujo de calificación personalizado operado por la IA.
+3.  **Módulo de Agendamiento Inteligente e Integración de Calendarios (Enfoque Híbrido):**
+    *   **Frontend UI (SaaS Premium):** Interfaz nativa en el panel del CRM (botones limpios como `[Conectar Google Calendar]`, `[Conectar Outlook]`) para que el cliente final no maneje configuraciones técnicas.
+    *   **Backend (n8n as a Router):** Delegar a flujos de trabajo dedicados en n8n el manejo de flujos de OAuth, almacenamiento de tokens, y ruteo de eventos de calendarios para mantener el core de Kuden limpio y desacoplado.
+    *   **Agregadores de Agenda (Cal.com / Calendly API):** Incorporar conectores estándar para delegar la compleja lógica de zonas horarias, cálculo de disponibilidad y agendamiento a APIs robustas especializadas.
 
 ---
 
