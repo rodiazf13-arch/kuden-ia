@@ -106,13 +106,37 @@ app.get("/api/admin/audit-logs", async (req, res) => {
   const { severity, source, tenantId, limit = 100, from, to, search } = req.query;
 
   try {
+    // 1. Obtener stats globales (últimos 1000) para que los KPIs no cambien al filtrar la tabla
+    let statsQuery = supabase.from('audit_logs').select('severity, source').order('created_at', { ascending: false }).limit(1000);
+    if (tenantId) statsQuery = statsQuery.eq('tenant_id', tenantId);
+    if (from)     statsQuery = statsQuery.gte('created_at', from);
+    if (to)       statsQuery = statsQuery.lte('created_at', to);
+    
+    const { data: statsData } = await statsQuery;
+    
+    const bySeverity = (statsData || []).reduce((acc, l) => {
+      acc[l.severity] = (acc[l.severity] || 0) + 1;
+      return acc;
+    }, {});
+    const bySource = (statsData || []).reduce((acc, l) => {
+      acc[l.source] = (acc[l.source] || 0) + 1;
+      return acc;
+    }, {});
+
+    // 2. Obtener los logs filtrados para la tabla
     let query = supabase
       .from('audit_logs')
       .select('id, severity, source, message, metadata, tenant_id, created_at')
       .order('created_at', { ascending: false })
       .limit(Number(limit));
 
-    if (severity && severity !== 'all') query = query.eq('severity', severity);
+    if (severity && severity !== 'all') {
+      if (severity === 'critical_error') {
+        query = query.in('severity', ['critical', 'error']);
+      } else {
+        query = query.eq('severity', severity);
+      }
+    }
     if (source && source !== 'all')   query = query.eq('source', source);
     if (tenantId)                     query = query.eq('tenant_id', tenantId);
     if (from)                         query = query.gte('created_at', from);
@@ -122,21 +146,10 @@ app.get("/api/admin/audit-logs", async (req, res) => {
     const { data, error } = await query;
     if (error) throw error;
 
-    // Calcular stats agregadas
-    const logs = data || [];
-    const bySeverity = logs.reduce((acc, l) => {
-      acc[l.severity] = (acc[l.severity] || 0) + 1;
-      return acc;
-    }, {});
-    const bySource = logs.reduce((acc, l) => {
-      acc[l.source] = (acc[l.source] || 0) + 1;
-      return acc;
-    }, {});
-
     return res.json({
-      logs,
+      logs: data || [],
       stats: {
-        total: logs.length,
+        total: (statsData || []).length,
         bySeverity,
         bySource,
         criticalCount: (bySeverity['critical'] || 0) + (bySeverity['error'] || 0),

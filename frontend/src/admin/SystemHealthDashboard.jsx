@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const SEV_CONFIG = {
   critical: { label: 'Crítico',    color: '#E24B4A', bg: '#FDECEA', icon: 'ti-alert-octagon'   },
   error:    { label: 'Error',      color: '#D85A30', bg: '#FAECE7', icon: 'ti-circle-x'         },
+  critical_error: { label: 'Errores', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-alert-octagon' },
   warning:  { label: 'Advertencia',color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle'   },
   info:     { label: 'Info',       color: '#2563eb', bg: '#EFF6FF', icon: 'ti-info-circle'       },
   debug:    { label: 'Debug',      color: '#6b7280', bg: '#f3f4f6', icon: 'ti-bug'               },
@@ -103,7 +104,7 @@ export default function SystemHealthDashboard({ isDark }) {
 
   const kpis = [
     { icon: 'ti-list',          label: 'Total Eventos',   value: stats?.total || 0,          color: '#2563eb', id: 'all'      },
-    { icon: 'ti-alert-octagon', label: 'Errores Críticos',value: criticalCount,               color: '#E24B4A', id: 'critical' },
+    { icon: 'ti-alert-octagon', label: 'Errores Críticos',value: criticalCount,               color: '#E24B4A', id: 'critical_error' },
     { icon: 'ti-alert-triangle',label: 'Advertencias',    value: stats?.bySeverity?.warning || 0, color: '#EF9F27', id: 'warning' },
     { icon: 'ti-info-circle',   label: 'Informativos',    value: stats?.bySeverity?.info || 0,    color: '#1D9E75', id: 'info'    },
   ];
@@ -188,7 +189,7 @@ export default function SystemHealthDashboard({ isDark }) {
             type="datetime-local" value={from} onChange={e => setFrom(e.target.value)}
             style={{ fontSize: 11, padding: '7px 8px', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', border: `1px solid ${border}`, borderRadius: 8, color: textMain }}
           />
-          {['all','critical','error','warning','info','debug'].map(s => (
+          {['all','critical_error','warning','info','debug'].map(s => (
             <button key={s} onClick={() => setSeverity(s)}
               style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') + '80' : border}`, background: severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') + '15' : 'transparent', color: severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') : textSec, transition: 'all 0.15s' }}>
               {s === 'all' ? 'Todos' : SEV_CONFIG[s]?.label || s}

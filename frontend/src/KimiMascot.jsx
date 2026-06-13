@@ -80,7 +80,7 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
           transform={`rotate(-30, ${center}, ${center})`}
         />
         {/* Electrón 1 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o1} linear infinite`, transformBox: 'fill-box' }}>
+        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o1} linear infinite`, transformBox: 'view-box' }}>
           <circle
             cx={center + r1} cy={center}
             r={s * 0.055}
@@ -98,7 +98,7 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
           transform={`rotate(60, ${center}, ${center})`}
         />
         {/* Electrón 2 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o2} linear infinite reverse`, transformBox: 'fill-box' }}>
+        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o2} linear infinite reverse`, transformBox: 'view-box' }}>
           <circle
             cx={center + r2} cy={center}
             r={s * 0.04}
@@ -116,7 +116,7 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
           transform={`rotate(90, ${center}, ${center})`}
         />
         {/* Electrón 3 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o3} linear infinite`, transformBox: 'fill-box' }}>
+        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o3} linear infinite`, transformBox: 'view-box' }}>
           <circle
             cx={center + r3} cy={center}
             r={s * 0.035}
