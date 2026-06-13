@@ -13,6 +13,7 @@ import WidgetSettings from "./admin/WidgetSettings.jsx";
 import GlobalKeysManager from './admin/GlobalKeysManager.jsx';
 import BillingDashboard from './admin/BillingDashboard.jsx';
 import UserProfile from './admin/UserProfile.jsx';
+import SystemHealthDashboard from './admin/SystemHealthDashboard.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
@@ -157,6 +158,10 @@ export default function App() {
             isSuperAdmin={isSuperAdmin}
           />
         );
+
+      case 'monitoring':
+        if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
+        return <SystemHealthDashboard isDark={isDark} />;
 
       default:
         return null;

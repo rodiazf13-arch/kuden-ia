@@ -3,12 +3,15 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function DashboardLayout({ userEmail, tenantName, tenantId, tenantLogo, tenantColor, isSuperAdmin, userRole, currentTab, setTab, handleLogout, children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('kuden_theme') || 'dark';
+    return localStorage.getItem('kuden_theme') || 'light'; // Light mode por defecto
   });
   const [alertCount, setAlertCount] = useState(0);
 
   useEffect(() => {
     localStorage.setItem('kuden_theme', theme);
+    // Aplicar data-theme al documento para que las variables CSS de dark mode funcionen
+    document.documentElement.setAttribute('data-theme', theme);
+    return () => {};
   }, [theme]);
 
   // Poll alert count every 5s for the CRM badge
@@ -28,13 +31,19 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
   const isDark = theme === 'dark';
 
-  const bgMain    = isDark ? "#0a0a0a" : "#f3f4f6";
-  const bgSidebar = isDark ? "#111111" : "#ffffff";
-  const borderCol = isDark ? "#222222" : "#e5e7eb";
-  const textMain  = isDark ? "#ffffff" : "#111827";
-  const textSec   = isDark ? "#aaaaaa" : "#6b7280";
-  const btnHoverBg   = isDark ? "#222222" : "#f3f4f6";
-  const btnHoverText = isDark ? "#ffffff" : "#111827";
+  // Colors adaptados al tema — con soporte glassmorphism
+  const brandColor   = tenantColor || '#2563eb';
+  const textMain     = isDark ? '#f9fafb' : '#111827';
+  const textSec      = isDark ? '#9ca3af' : '#6b7280';
+  const borderCol    = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+
+  const sidebarBg    = isDark
+    ? 'linear-gradient(180deg, rgba(16,16,30,0.95) 0%, rgba(10,10,18,0.98) 100%)'
+    : 'linear-gradient(180deg, rgba(248,250,255,0.95) 0%, rgba(255,255,255,0.98) 100%)';
+
+  const mainBg       = isDark
+    ? 'radial-gradient(ellipse at top-left, #0f0f23 0%, #0a0a0a 70%)'
+    : 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 40%, #fafafa 100%)';
 
   const tabGroups = [
     {
@@ -63,131 +72,166 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Administración',
       items: [
         { id: 'users',      label: 'Usuarios',      icon: 'ti-user-plus' },
-        { id: 'tenants',    label: 'Empresas',      icon: 'ti-building', superAdminOnly: true },
-        { id: 'global_keys',label: 'Llaves API',    icon: 'ti-key',      superAdminOnly: true },
-        { id: 'billing',    label: 'Tarificador',   icon: 'ti-receipt',  superAdminOnly: true }
+        { id: 'tenants',    label: 'Empresas',      icon: 'ti-building',   superAdminOnly: true },
+        { id: 'global_keys',label: 'Llaves API',    icon: 'ti-key',        superAdminOnly: true },
+        { id: 'billing',    label: 'Tarificador',   icon: 'ti-receipt',    superAdminOnly: true },
+        { id: 'monitoring', label: 'Health Monitor',icon: 'ti-activity',   superAdminOnly: true },
       ]
     }
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: bgMain, color: textMain, transition: "background-color 0.3s, color 0.3s" }}>
-
+    <div
+      data-theme={theme}
+      style={{ display: 'flex', minHeight: '100vh', background: mainBg, color: textMain, transition: 'background 0.4s, color 0.3s' }}
+    >
       {/* ── Sidebar ── */}
-      <aside style={{ width: "260px", backgroundColor: bgSidebar, borderRight: `1px solid ${borderCol}`, display: "flex", flexDirection: "column", transition: "background-color 0.3s, border-color 0.3s", backdropFilter: "blur(10px)" }}>
+      <aside style={{
+        width: '250px',
+        background: sidebarBg,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRight: `1px solid ${borderCol}`,
+        boxShadow: isDark ? '4px 0 24px rgba(0,0,0,0.3)' : '4px 0 24px rgba(0,0,0,0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'background 0.4s, border-color 0.3s',
+        position: 'relative',
+        zIndex: 10,
+      }}>
 
         {/* Logo */}
-        <div style={{ padding: "20px", borderBottom: `1px solid ${borderCol}`, display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ padding: '20px 16px', borderBottom: `1px solid ${borderCol}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
           {tenantLogo ? (
-            <img src={tenantLogo} alt="Logo Empresa" style={{ width: 36, height: 36, borderRadius: "8px", objectFit: "contain", flexShrink: 0, background: isDark ? '#fff' : 'transparent' }} />
+            <img src={tenantLogo} alt="Logo Empresa" style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'contain', flexShrink: 0, background: isDark ? 'rgba(255,255,255,0.1)' : 'transparent', padding: 2 }} />
           ) : (
-            <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: tenantColor, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 12px ${tenantColor}40` }}>
-              <span style={{ color: "#fff", fontWeight: 800, fontSize: 18 }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+              background: `linear-gradient(135deg, ${brandColor}, ${brandColor}bb)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 4px 12px ${brandColor}40`,
+            }}>
+              <span style={{ color: '#fff', fontWeight: 800, fontSize: 17 }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
             </div>
           )}
-          <div>
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px", color: tenantColor || "#60a5fa", letterSpacing: "-0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>
-              {tenantName && !isSuperAdmin ? tenantName : "KUDEN IA"}
+          <div style={{ overflow: 'hidden' }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: brandColor, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 155 }}>
+              {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
             </p>
-            <p style={{ margin: 0, fontSize: "11px", color: textSec }}>
-              {isSuperAdmin ? "⚡ Super Admin" : "Panel de Control"}
+            <p style={{ margin: 0, fontSize: '11px', color: textSec }}>
+              {isSuperAdmin ? '⚡ Super Admin' : 'Panel de Control'}
             </p>
           </div>
         </div>
 
-        {/* Empresa actual */}
+        {/* Empresa actual pill */}
         {tenantName && (
-          <div style={{ padding: "12px 20px", borderBottom: `1px solid ${borderCol}`, display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: isSuperAdmin ? "#f59e0b" : "#1D9E75", flexShrink: 0 }}></div>
-            <p style={{ margin: 0, fontSize: "12px", color: textSec, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ padding: '10px 16px', borderBottom: `1px solid ${borderCol}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: isSuperAdmin ? '#f59e0b' : '#1D9E75', flexShrink: 0, boxShadow: isSuperAdmin ? '0 0 6px #f59e0b80' : '0 0 6px #1D9E7580' }} />
+            <p style={{ margin: 0, fontSize: '11px', color: textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {tenantName}
             </p>
           </div>
         )}
 
         {/* Navegación */}
-        <nav style={{ flex: 1, padding: "16px 10px", display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto" }}>
+        <nav style={{ flex: 1, padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
           {tabGroups.map((group, idx) => {
             const groupItems = group.items.filter(t => !t.superAdminOnly || isSuperAdmin);
             if (groupItems.length === 0) return null;
             return (
-              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <p style={{ margin: "0 0 4px 10px", fontSize: "11px", fontWeight: "600", color: textSec, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <p style={{ margin: '0 0 4px 10px', fontSize: '10px', fontWeight: '700', color: textSec, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                   {group.title}
                 </p>
-                {groupItems.map(t => (
-                  <button key={t.id} onClick={() => setTab(t.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: "10px",
-                      padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer",
-                      backgroundColor: currentTab === t.id ? (tenantColor || "#2563eb") : "transparent",
-                      color: currentTab === t.id ? "#ffffff" : textSec,
-                      fontWeight: currentTab === t.id ? "600" : "500",
-                      fontSize: "13px", transition: "all 0.15s", textAlign: "left", width: "100%"
-                    }}
-                    onMouseEnter={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = btnHoverBg; e.currentTarget.style.color = btnHoverText; } }}
-                    onMouseLeave={(e) => { if (currentTab !== t.id) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = textSec; } }}
-                  >
-                    <i className={`ti ${t.icon}`} style={{ fontSize: "16px", flexShrink: 0 }}></i>
-                    {t.label}
-                    {t.superAdminOnly && (
-                      <span style={{ marginLeft: "auto", fontSize: "9px", background: "#f59e0b20", color: "#f59e0b", border: "1px solid #f59e0b40", borderRadius: "4px", padding: "1px 5px", fontWeight: "600" }}>MASTER</span>
-                    )}
-                    {t.badge > 0 && (
-                      <span style={{ marginLeft: "auto", fontSize: "10px", fontWeight: "700", background: t.badgeColor || '#E24B4A', color: "#fff", borderRadius: 20, padding: "1px 7px", minWidth: 20, textAlign: "center" }}>{t.badge}</span>
-                    )}
-                  </button>
-                ))}
+                {groupItems.map(t => {
+                  const isActive = currentTab === t.id;
+                  return (
+                    <button key={t.id} onClick={() => setTab(t.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '9px',
+                        padding: '9px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                        background: isActive
+                          ? `linear-gradient(135deg, ${brandColor}22, ${brandColor}11)`
+                          : 'transparent',
+                        color: isActive ? brandColor : textSec,
+                        fontWeight: isActive ? '600' : '500',
+                        fontSize: '13px', transition: 'all 0.15s', textAlign: 'left', width: '100%',
+                        borderLeft: isActive ? `3px solid ${brandColor}` : '3px solid transparent',
+                        boxShadow: isActive ? `inset 0 0 0 1px ${brandColor}20` : 'none',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
+                          e.currentTarget.style.color = textMain;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = textSec;
+                        }
+                      }}
+                    >
+                      <i className={`ti ${t.icon}`} style={{ fontSize: '15px', flexShrink: 0 }} />
+                      {t.label}
+                      {t.superAdminOnly && (
+                        <span style={{ marginLeft: 'auto', fontSize: '9px', background: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b30', borderRadius: '4px', padding: '1px 5px', fontWeight: '700' }}>MASTER</span>
+                      )}
+                      {t.badge > 0 && (
+                        <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '700', background: t.badgeColor || '#E24B4A', color: '#fff', borderRadius: 20, padding: '1px 7px', minWidth: 20, textAlign: 'center', animation: 'badge-pop 0.3s ease-out' }}>{t.badge}</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             );
           })}
         </nav>
 
         {/* Footer sidebar */}
-        <div style={{ padding: "16px", borderTop: `1px solid ${borderCol}` }}>
+        <div style={{ padding: '14px', borderTop: `1px solid ${borderCol}` }}>
           {/* Rol badge */}
-          <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "11px", padding: "3px 8px", borderRadius: "20px",
-              background: isSuperAdmin ? "#f59e0b20" : userRole === "admin" ? "#2563eb20" : "#1D9E7520",
-              color:      isSuperAdmin ? "#f59e0b"   : userRole === "admin" ? "#60a5fa"   : "#1D9E75",
-              border: `1px solid ${isSuperAdmin ? "#f59e0b40" : userRole === "admin" ? "#2563eb40" : "#1D9E7540"}`,
-              fontWeight: "600", textTransform: "uppercase" }}>
-              {isSuperAdmin ? "Super Admin" : userRole === "admin" ? "Admin" : "Agente"}
+          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              fontSize: '10px', padding: '3px 9px', borderRadius: '20px',
+              background: isSuperAdmin ? '#f59e0b15' : userRole === 'admin' ? '#2563eb15' : '#1D9E7515',
+              color:      isSuperAdmin ? '#f59e0b'   : userRole === 'admin' ? '#2563eb'   : '#1D9E75',
+              border: `1px solid ${isSuperAdmin ? '#f59e0b30' : userRole === 'admin' ? '#2563eb30' : '#1D9E7530'}`,
+              fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
+            }}>
+              {isSuperAdmin ? '⚡ Super Admin' : userRole === 'admin' ? 'Admin' : 'Agente'}
             </span>
           </div>
 
-          {/* Correo */}
-          <p style={{ margin: "0 0 4px", fontSize: "11px", color: textSec }}>Conectado como</p>
-          <p style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: "500", wordBreak: "break-all", color: textMain }}>{userEmail}</p>
+          <p style={{ margin: '0 0 2px', fontSize: '10px', color: textSec }}>Conectado como</p>
+          <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '500', wordBreak: 'break-all', color: textMain }}>{userEmail}</p>
 
           {/* Theme toggle */}
           <button onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            style={{ width: "100%", padding: "8px", borderRadius: "8px", border: `1px solid ${borderCol}`, backgroundColor: "transparent", color: textSec, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", marginBottom: "8px" }}>
-            {isDark ? <><i className="ti ti-sun"></i> Cambiar a Modo Claro</> : <><i className="ti ti-moon"></i> Cambiar a Modo Oscuro</>}
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', marginBottom: '6px' }}>
+            {isDark ? <><i className="ti ti-sun" /> Modo Claro</> : <><i className="ti ti-moon" /> Modo Oscuro</>}
           </button>
 
           {/* Mi Perfil */}
           <button onClick={() => setTab('profile')}
-            style={{ width: "100%", padding: "8px", borderRadius: "8px", border: `1px solid ${currentTab === 'profile' ? '#2563eb' : borderCol}`, backgroundColor: currentTab === 'profile' ? '#2563eb15' : "transparent", color: currentTab === 'profile' ? '#60a5fa' : textSec, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", marginBottom: "8px" }}
-            onMouseEnter={(e) => { if (currentTab !== 'profile') { e.target.style.backgroundColor = btnHoverBg; e.target.style.color = btnHoverText; } }}
-            onMouseLeave={(e) => { if (currentTab !== 'profile') { e.target.style.backgroundColor = "transparent"; e.target.style.color = textSec; } }}
-          >
-            <i className="ti ti-user"></i> Mi Perfil
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${currentTab === 'profile' ? brandColor + '40' : borderCol}`, background: currentTab === 'profile' ? brandColor + '10' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: currentTab === 'profile' ? brandColor : textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', marginBottom: '6px' }}>
+            <i className="ti ti-user" /> Mi Perfil
           </button>
 
           {/* Logout */}
           <button onClick={handleLogout}
-            style={{ width: "100%", padding: "8px", borderRadius: "8px", border: `1px solid ${borderCol}`, backgroundColor: "transparent", color: textSec, cursor: "pointer", transition: "all 0.2s", fontSize: "13px" }}
-            onMouseEnter={(e) => { e.target.style.backgroundColor = "#ef444420"; e.target.style.color = "#f87171"; e.target.style.borderColor = "#ef444440"; }}
-            onMouseLeave={(e) => { e.target.style.backgroundColor = "transparent"; e.target.style.color = textSec; e.target.style.borderColor = borderCol; }}>
-            Cerrar Sesión
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: 'transparent', color: textSec, cursor: 'pointer', transition: 'all 0.2s', fontSize: '12px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSec; e.currentTarget.style.borderColor = borderCol; }}>
+            <i className="ti ti-logout" style={{ marginRight: 5 }} />Cerrar Sesión
           </button>
         </div>
       </aside>
 
       {/* ── Contenido principal ── */}
-      <div style={{ flex: 1, backgroundColor: bgMain, overflowY: "auto", transition: "background-color 0.3s" }}>
-        <div style={{ padding: "32px", maxWidth: "1100px" }}>
+      <div style={{ flex: 1, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
+        <div style={{ padding: '28px 32px', maxWidth: '1140px', animation: 'fadeSlideIn 0.25s ease-out' }}>
           {typeof children === 'function' ? children(isDark) : children}
         </div>
       </div>

@@ -85,6 +85,7 @@ app.get("/api/admin/global-settings", async (req, res) => {
   }
 });
 
+
 app.put("/api/admin/global-settings/:key", async (req, res) => {
   try {
     const { value } = req.body;
@@ -97,6 +98,57 @@ app.put("/api/admin/global-settings/:key", async (req, res) => {
     return res.status(500).json({ error: e.message });
   }
 });
+
+// ─── GET /api/admin/audit-logs ────────────────────────────────────────────────
+// Panel de Monitoring — Lectura de logs de auditoría del sistema.
+// Query: severity?, source?, tenantId?, limit?, from?, to?, search?
+app.get("/api/admin/audit-logs", async (req, res) => {
+  const { severity, source, tenantId, limit = 100, from, to, search } = req.query;
+
+  try {
+    let query = supabase
+      .from('audit_logs')
+      .select('id, severity, source, message, metadata, tenant_id, created_at')
+      .order('created_at', { ascending: false })
+      .limit(Number(limit));
+
+    if (severity && severity !== 'all') query = query.eq('severity', severity);
+    if (source && source !== 'all')   query = query.eq('source', source);
+    if (tenantId)                     query = query.eq('tenant_id', tenantId);
+    if (from)                         query = query.gte('created_at', from);
+    if (to)                           query = query.lte('created_at', to);
+    if (search)                       query = query.ilike('message', `%${search}%`);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    // Calcular stats agregadas
+    const logs = data || [];
+    const bySeverity = logs.reduce((acc, l) => {
+      acc[l.severity] = (acc[l.severity] || 0) + 1;
+      return acc;
+    }, {});
+    const bySource = logs.reduce((acc, l) => {
+      acc[l.source] = (acc[l.source] || 0) + 1;
+      return acc;
+    }, {});
+
+    return res.json({
+      logs,
+      stats: {
+        total: logs.length,
+        bySeverity,
+        bySource,
+        criticalCount: (bySeverity['critical'] || 0) + (bySeverity['error'] || 0),
+      }
+    });
+  } catch (e) {
+    console.error("[GET /api/admin/audit-logs]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+
 
 // ─── Helper: Observability (Audit Logs) ───────────────────────────────────────
 async function insertAuditLog(severity, source, message, metadata = {}, tenantId = null) {

@@ -31,6 +31,13 @@ Eliminamos la fricción burocrática para que los equipos humanos se concentren 
 *   **Omnicanalidad con Contexto Único:** Transición fluida. Si un lead entra por Instagram Direct, la IA lo califica y gatilla una llamada de voz sabiendo todo el contexto previo.
 *   **Seguridad Legal:** Meta Tech Provider oficial, garantizando estabilidad sin bloqueos y cumpliendo con leyes de protección de datos (ej. Ley 19.628 Chile).
 
+### Nuestra Identidad Visual y Mascota (Kimi)
+Kuden cuenta con una identidad corporativa que equilibra tecnología y calidez. El centro de esta identidad es **Kimi**.
+*   **Origen:** Kimi es el diminutivo cariñoso de *Kimun* (conocimiento/saber en Mapudungún). Mientras Kuden une los puntos, Kimi aporta la sabiduría.
+*   **Su Rol:** Es la guardiana del conocimiento, la mente analítica de Kuden. Los clientes internos acuden a ella para entender métricas, y los clientes finales conversan con ella para resolver dudas.
+*   **Personalidad y Tono:** Es perspicaz, inteligente y analítica, pero se comunica de forma sencilla, directa y muy cercana. Traduce datos complejos en respuestas rápidas y accionables.
+*   **Estilo Visual:** Es un avatar basado en el logo de Kuden (el Nodo de Convergencia). Una criatura de energía limpia y fluida (en tonos azules y verdes eléctricos), muy expresiva y con estados de ánimo que reaccionan en tiempo real a las interacciones.
+
 ---
 
 ## 2. Bitácora de Desarrollo: Módulos Ya Construidos

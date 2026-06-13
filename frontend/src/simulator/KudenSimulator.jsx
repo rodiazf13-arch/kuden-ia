@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import KimiMascot from "../KimiMascot.jsx";
 
 const THEME = {
   navy:        "#0E2A3A",
@@ -951,8 +952,8 @@ export default function KudenSimulator({ tenantId }) {
                     <div key={i}>
                       <div style={{ display:"flex", justifyContent:m.role==="assistant"?"flex-start":"flex-end" }}>
                         {m.role==="assistant" && (
-                          <div style={{ width:22, height:22, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:5, alignSelf:"flex-end", border:"1px solid "+THEME.line2, overflow:"hidden" }}>
-                            <img src={KUDEN_LOGO} alt="KUDEN" style={{ width:17, height:17, objectFit:"contain" }}/>
+                          <div style={{ width:22, height:22, borderRadius:"50%", background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:5, alignSelf:"flex-end" }}>
+                            <KimiMascot size={22} state={loading ? "thinking" : "idle"} />
                           </div>
                         )}
                         <div style={{ maxWidth:"75%", padding:"8px 11px", fontSize:13, lineHeight:1.5,
@@ -965,8 +966,8 @@ export default function KudenSimulator({ tenantId }) {
                   ))}
                   {loading && (
                     <div style={{ display:"flex", alignItems:"flex-end", gap:5 }}>
-                      <div style={{ width:22, height:22, borderRadius:"50%", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:"1px solid "+THEME.line2, overflow:"hidden" }}>
-                        <img src={KUDEN_LOGO} alt="KUDEN" style={{ width:17, height:17, objectFit:"contain" }}/>
+                      <div style={{ width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <KimiMascot size={22} state="thinking" />
                       </div>
                       <div style={{ background:"var(--color-background-secondary)", borderRadius:"12px 12px 12px 3px", padding:"8px 12px" }}>
                         <span style={{ color:"var(--color-text-secondary)", fontSize:12 }}>escribiendo...</span>
