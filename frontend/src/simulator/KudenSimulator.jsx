@@ -667,7 +667,9 @@ export default function KudenSimulator({ tenantId }) {
       const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/chat`, {
         method:"POST", headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          model:"claude-sonnet-4-5",
+          provider: prof?.llm_provider || "anthropic",
+          model: prof?.llm_model || "claude-sonnet-4-6",
+          aiProfileId: prof?.id || null,
           max_tokens:1000,
           system:buildSystem(masterConfig, prof, dbProfiles, cli, chLabel),
           messages:newHistory,
@@ -766,6 +768,9 @@ export default function KudenSimulator({ tenantId }) {
           plan:             caseData.plan,
           canal:            caseData.canal,
           // Metadatos del caso
+          provider:         profile?.llm_provider || "anthropic",
+          model:            profile?.llm_model || "claude-sonnet-4-6",
+          aiProfileId:      profile?.id || null,
           motivoLabel:      caseData.motivoLabel,
           ticketId:         caseData.ticketId        || null,
           perfilCliente:    caseData.perfil           || null,

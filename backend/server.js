@@ -422,7 +422,7 @@ async function insertConvMessage({ conversationId, tenantId, senderType, senderN
 // Body: { system, messages, max_tokens?, contactData: { tenantId, clienteNombre, rut, telefono,
 //         direccion, plan, canal, ticketId } }
 app.post("/api/chat", async (req, res) => {
-  const { system, messages, max_tokens, contactData } = req.body;
+  const { system, messages, max_tokens, contactData, provider, model, aiProfileId } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "messages requerido y debe ser un arreglo." });
@@ -467,13 +467,24 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // 1. Llama a LLM
-    const { text: finalPromptResponse } = await callLLM(supabase, {
-      provider: 'anthropic',
-      model: 'claude-sonnet-4-6',
+    const { text: finalPromptResponse, usage } = await callLLM(supabase, {
+      provider: provider || 'anthropic',
+      model: model || 'claude-sonnet-4-6',
       system: finalSystemPrompt,
       messages,
       max_tokens
     });
+
+    if (contactData?.tenantId && usage) {
+      logLLMUsage(supabase, {
+        tenantId: contactData.tenantId,
+        campaignId: activeCampaignId,
+        aiProfileId: aiProfileId,
+        provider: provider || 'anthropic',
+        model: model || 'claude-sonnet-4-6',
+        usage
+      }).catch(err => console.error("Error logging llm usage in /api/chat:", err));
+    }
 
     // 2. Persiste en Supabase solo si se envían datos del contacto y el tenantId
     if (contactData?.clienteNombre && contactData?.tenantId) {
@@ -561,6 +572,7 @@ app.post("/api/summarize", async (req, res) => {
     plan, canal, motivoLabel, conversacion,
     ticketId, perfilCliente, duracion, csatFinal,
     sentimientoFinal, fugaFinal, intencion, estado, totalMensajes,
+    provider, model, aiProfileId
   } = req.body;
 
   if (!conversacion) {
@@ -575,12 +587,22 @@ app.post("/api/summarize", async (req, res) => {
 
   try {
     // 1. Llama a LLM para generar el resumen
-    const { text: resumenEjecutivo } = await callLLM(supabase, {
-      provider: 'anthropic',
-      model: 'claude-haiku-4-5-20251001',
+    const { text: resumenEjecutivo, usage } = await callLLM(supabase, {
+      provider: provider || 'anthropic',
+      model: model || 'claude-haiku-4-5-20251001',
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
     });
+
+    if (tenantId && usage) {
+      logLLMUsage(supabase, {
+        tenantId,
+        aiProfileId: aiProfileId || null,
+        provider: provider || 'anthropic',
+        model: model || 'claude-haiku-4-5-20251001',
+        usage
+      }).catch(err => console.error("Error logging llm usage in /api/summarize:", err));
+    }
 
     // 2. Persiste en Supabase con todos los campos de cierre
     if (tenantId && clienteNombre && resumenEjecutivo) {
