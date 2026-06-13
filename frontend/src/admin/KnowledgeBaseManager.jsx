@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function KnowledgeBaseManager({ tenantId, profileId, isDark, c }) {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ export default function KnowledgeBaseManager({ tenantId, profileId, isDark, c })
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/profiles/${profileId}/documents?tenantId=${tenantId}`);
+      const res = await fetch(`${API_URL}/api/profiles/${profileId}/documents?tenantId=${tenantId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setDocuments(data || []);
@@ -37,7 +39,7 @@ export default function KnowledgeBaseManager({ tenantId, profileId, isDark, c })
       formData.append('tenantId', tenantId);
       formData.append('type', type);
 
-      const res = await fetch(`/api/profiles/${profileId}/documents`, {
+      const res = await fetch(`${API_URL}/api/profiles/${profileId}/documents`, {
         method: 'POST',
         body: formData
       });
@@ -59,7 +61,7 @@ export default function KnowledgeBaseManager({ tenantId, profileId, isDark, c })
     setUploading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/profiles/${profileId}/documents`, {
+      const res = await fetch(`${API_URL}/api/profiles/${profileId}/documents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, type: 'web', url: webUrl })
@@ -79,7 +81,7 @@ export default function KnowledgeBaseManager({ tenantId, profileId, isDark, c })
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar este documento y olvidar su conocimiento?')) return;
     try {
-      const res = await fetch(`/api/documents/${id}?tenantId=${tenantId}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/documents/${id}?tenantId=${tenantId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Error al eliminar');
       setDocuments(prev => prev.filter(d => d.id !== id));
     } catch (e) {
