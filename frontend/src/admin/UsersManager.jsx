@@ -11,6 +11,7 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
   const [displayName, setDisplayName] = useState('');
   const [selectedTenant, setSelectedTenant] = useState(filterTenantId || '');
   const [role, setRole] = useState('agent');
+  const [copilotAccess, setCopilotAccess] = useState(false);
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -19,6 +20,7 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
   const [editRole, setEditRole] = useState('agent');
   const [editPassword, setEditPassword] = useState('');
   const [editDisplayName, setEditDisplayName] = useState('');
+  const [editCopilotAccess, setEditCopilotAccess] = useState(false);
   const [editActive, setEditActive] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -89,7 +91,8 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
           email,
           password,
           role,
-          display_name: displayName
+          display_name: displayName,
+          copilot_access: copilotAccess
         })
       });
       const data = await res.json();
@@ -107,6 +110,7 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
     setEditRole(user.role);
     setEditPassword('');
     setEditDisplayName(user.display_name || '');
+    setEditCopilotAccess(user.copilot_access || false);
     setEditActive(user.is_active !== false); // default to true if undefined
     setError(null);
   };
@@ -124,7 +128,8 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
           password: editPassword,
           role: editRole,
           is_active: editActive,
-          display_name: editDisplayName
+          display_name: editDisplayName,
+          copilot_access: editCopilotAccess
         })
       });
       const data = await res.json();
@@ -197,6 +202,13 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
               <option value="agent">Agente (Solo simulador)</option>
               <option value="admin">Administrador (Acceso total)</option>
             </select>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', gridColumn: '1 / -1', padding: '10px 12px', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px' }}>
+            <input type="checkbox" id="createCopilot" checked={copilotAccess} onChange={e => setCopilotAccess(e.target.checked)} style={{ cursor: 'pointer' }} />
+            <label htmlFor="createCopilot" style={{ fontSize: '13px', color: c.title, cursor: 'pointer', fontWeight: '500' }}>
+              🤖 Habilitar acceso al Co-Piloto Corporativo (Kimi)
+            </label>
           </div>
 
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
@@ -312,6 +324,13 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', color: c.label }}>Nueva Contraseña (dejar en blanco para no cambiar)</label>
                 <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} minLength={6} placeholder="••••••••" style={inputStyle} />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px' }}>
+                <input type="checkbox" id="editCopilot" checked={editCopilotAccess} onChange={e => setEditCopilotAccess(e.target.checked)} style={{ cursor: 'pointer' }} />
+                <label htmlFor="editCopilot" style={{ fontSize: '13px', color: c.inputText, cursor: 'pointer', fontWeight: '500' }}>
+                  🤖 Acceso al Co-Piloto Corporativo (Kimi)
+                </label>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: editActive ? 'rgba(29,158,117,0.1)' : 'rgba(226,75,74,0.1)', border: `1px solid ${editActive ? '#1D9E7550' : '#E24B4A50'}`, borderRadius: '8px' }}>

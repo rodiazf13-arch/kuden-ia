@@ -14,6 +14,7 @@ import GlobalKeysManager from './admin/GlobalKeysManager.jsx';
 import BillingDashboard from './admin/BillingDashboard.jsx';
 import UserProfile from './admin/UserProfile.jsx';
 import SystemHealthDashboard from './admin/SystemHealthDashboard.jsx';
+import CopilotManager from './admin/CopilotManager.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
@@ -25,6 +26,7 @@ export default function App() {
   const [tenantLogo, setTenantLogo] = useState(null);
   const [tenantColor, setTenantColor] = useState(null);
   const [userRole,   setUserRole]   = useState(null);
+  const [copilotAccess, setCopilotAccess] = useState(false);
   const [loading,    setLoading]    = useState(true);
   const [currentTab, setCurrentTab] = useState('crm');
   const [accessDeniedMsg, setAccessDeniedMsg] = useState(null);
@@ -60,7 +62,7 @@ export default function App() {
     try {
       const { data, error } = await supabase
         .from('tenant_users')
-        .select('tenant_id, role, is_active, tenants(name, is_active, logo_url, primary_color)')
+        .select('tenant_id, role, is_active, copilot_access, tenants(name, is_active, logo_url, primary_color)')
         .eq('user_id', userId)
         .single();
       if (error) throw error;
@@ -75,6 +77,7 @@ export default function App() {
         } else {
           setTenantId(data.tenant_id);
           setUserRole(data.role);
+          setCopilotAccess(data.copilot_access || false);
           setTenantName(data.tenants?.name || null);
           setTenantLogo(data.tenants?.logo_url || null);
           setTenantColor(data.tenants?.primary_color || null);
@@ -191,6 +194,10 @@ export default function App() {
         if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
         return <SystemHealthDashboard isDark={isDark} />;
 
+      case 'copilot':
+        if (!copilotAccess) return <AccessDenied isDark={isDark} />;
+        return <CopilotManager tenantId={activeTenantId} isDark={isDark} />;
+
       default:
         return null;
     }
@@ -205,6 +212,7 @@ export default function App() {
       tenantColor={activeTenant?.primary_color || tenantColor}
       isSuperAdmin={isSuperAdmin}
       userRole={userRole}
+      copilotAccess={copilotAccess}
       currentTab={currentTab}
       setTab={setCurrentTab}
       handleLogout={handleLogout}

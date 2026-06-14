@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-export default function DashboardLayout({ userEmail, tenantName, tenantId, tenantLogo, tenantColor, isSuperAdmin, userRole, currentTab, setTab, handleLogout, allTenants, impersonatedTenantId, setImpersonatedTenantId, originalTenantName, children }) {
+export default function DashboardLayout({ userEmail, tenantName, tenantId, tenantLogo, tenantColor, isSuperAdmin, userRole, copilotAccess, currentTab, setTab, handleLogout, allTenants, impersonatedTenantId, setImpersonatedTenantId, originalTenantName, children }) {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('kuden_theme') || 'light'; // Light mode por defecto
   });
@@ -65,7 +65,8 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Motor IA',
       items: [
-        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' }
+        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' },
+        ...(copilotAccess ? [{ id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' }] : [])
       ]
     },
     {

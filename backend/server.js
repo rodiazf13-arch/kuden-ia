@@ -874,9 +874,9 @@ app.get("/api/admin/users", async (req, res) => {
 
 // ─── POST /api/admin/users ─────────────────────────────────────────────────────
 // Crea un usuario en Supabase Auth y lo asocia a un tenant
-// Body: { tenantId, email, password, role, display_name }
+// Body: { tenantId, email, password, role, display_name, copilot_access }
 app.post("/api/admin/users", async (req, res) => {
-  const { tenantId, email, password, role = 'agent', display_name = '' } = req.body;
+  const { tenantId, email, password, role = 'agent', display_name = '', copilot_access = false } = req.body;
 
   if (!tenantId || !email || !password) {
     return res.status(400).json({ error: "Faltan datos requeridos (tenantId, email, password)." });
@@ -903,7 +903,8 @@ app.post("/api/admin/users", async (req, res) => {
         user_id: newUserId,
         role: role,
         email: email,
-        display_name: display_name
+        display_name: display_name,
+        copilot_access: copilot_access
       });
 
     if (tenantErr) {
@@ -921,10 +922,10 @@ app.post("/api/admin/users", async (req, res) => {
 });
 
 // ─── PUT /api/admin/users/:userId ─────────────────────────────────────────────
-// Actualiza un usuario (rol, contraseña, estado activo, nombre)
+// Actualiza un usuario (rol, contraseña, estado activo, nombre, copilot_access)
 app.put("/api/admin/users/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { password, role, is_active, display_name } = req.body;
+  const { password, role, is_active, display_name, copilot_access } = req.body;
 
   try {
     // 1. Actualizar contraseña y metadata en Auth (solo si se proveen)
@@ -942,6 +943,7 @@ app.put("/api/admin/users/:userId", async (req, res) => {
     if (role) updates.role = role;
     if (typeof is_active !== 'undefined') updates.is_active = is_active;
     if (typeof display_name !== 'undefined') updates.display_name = display_name;
+    if (typeof copilot_access !== 'undefined') updates.copilot_access = copilot_access;
 
     if (Object.keys(updates).length > 0) {
       const { error: tenantErr } = await supabase
@@ -2211,6 +2213,128 @@ app.delete("/api/documents/:documentId", async (req, res) => {
     return res.json({ success: true });
   } catch (e) {
     console.error("[DELETE /api/documents/:id]", e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── COPILOT ENDPOINTS (KIMI) ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get("/api/copilot/history", async (req, res) => {
+  const { tenantId, userId } = req.query;
+  if (!tenantId || !userId) return res.status(400).json({ error: "tenantId y userId requeridos." });
+  
+  try {
+    const { data: conv } = await supabase
+      .from("copilot_conversations")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!conv) return res.json({ messages: [] });
+
+    const { data: msgs } = await supabase
+      .from("copilot_messages")
+      .select("*")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: true });
+
+    return res.json({ conversationId: conv.id, messages: msgs || [] });
+  } catch (e) {
+    console.error("[GET /api/copilot/history]", e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/copilot/chat", async (req, res) => {
+  const { tenantId, userId, message } = req.body;
+  if (!tenantId || !userId || !message) return res.status(400).json({ error: "Faltan parámetros." });
+
+  try {
+    // 1. Obtener o crear conversación
+    let { data: conv } = await supabase
+      .from("copilot_conversations")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!conv) {
+      const { data: newConv, error: errConv } = await supabase
+        .from("copilot_conversations")
+        .insert({ tenant_id: tenantId, user_id: userId, title: "Chat con Kimi" })
+        .select("id").single();
+      if (errConv) throw errConv;
+      conv = newConv;
+    }
+
+    // 2. Guardar mensaje del usuario
+    await supabase.from("copilot_messages").insert({
+      conversation_id: conv.id,
+      sender_type: "user",
+      content: message
+    });
+
+    // 3. Historial (últimos 10)
+    const { data: history } = await supabase
+      .from("copilot_messages")
+      .select("sender_type, content")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    
+    let chatHistory = [];
+    if (history && history.length > 0) {
+      chatHistory = history.reverse().map(m => ({
+        role: m.sender_type === "user" ? "user" : "assistant",
+        content: m.content
+      }));
+    }
+
+    // Asegurarse de que el último mensaje no está duplicado en el chatHistory 
+    // (el chatHistory de anthropic/openai espera los previos, y nosotros lo adjuntaremos)
+    // Extraemos todos los mensajes excepto el último (que acabamos de insertar y es de type "user")
+    const systemHistory = chatHistory.slice(0, -1);
+    
+    // 4. Inyectar Contexto de Empresa y RAG general
+    const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenantId).single();
+    
+    // RAG: Buscamos documentos genéricos (sin aiProfileId limitante)
+    const retrievedText = await retrieveKnowledge(message, supabase, tenantId, null);
+    
+    let systemPrompt = `Eres Kimi, el Co-Piloto Corporativo y consultor estratégico interno de la empresa "${tenant?.name || 'Kuden'}".
+Tu objetivo es ayudar a los ejecutivos de la empresa con información analítica, estrategias comerciales, redacción de correos, y asistencia operativa. 
+Eres muy inteligente, amable, analítica y proactiva. 
+Usa formato Markdown enriquecido de GitHub (ej. tablas, listas, negritas, código) para que tus respuestas sean fáciles de leer y estructuradas.
+NUNCA asumas que eres un bot de atención a clientes externos. Eres una colega interna y consultora para el equipo.`;
+
+    if (retrievedText) {
+      systemPrompt += `\n\n[BASE DE CONOCIMIENTO INTERNA]\nAquí tienes fragmentos de documentos de la empresa que pueden ayudar a responder la consulta del ejecutivo:\n${retrievedText}\n`;
+    }
+
+    // 5. Llamar al LLM (usamos Claude Sonnet por defecto para el Co-Piloto por ser muy inteligente)
+    systemHistory.push({ role: 'user', content: message });
+    
+    const { text: kimiResponse, usage } = await callLLM(supabase, {
+      provider: 'anthropic',
+      model: 'claude-sonnet-4-6',
+      system: systemPrompt,
+      messages: systemHistory,
+      max_tokens: 1500
+    });
+
+    // 6. Guardar respuesta
+    const { data: aiMsg } = await supabase.from("copilot_messages").insert({
+      conversation_id: conv.id,
+      sender_type: "ai",
+      content: kimiResponse
+    }).select().single();
+
+    return res.json({ message: aiMsg });
+  } catch (e) {
+    console.error("[POST /api/copilot/chat]", e);
     return res.status(500).json({ error: e.message });
   }
 });
