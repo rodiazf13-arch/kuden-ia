@@ -87,7 +87,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, background: c.bg }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', minHeight: 0, background: c.bg }}>
       <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
         <div>

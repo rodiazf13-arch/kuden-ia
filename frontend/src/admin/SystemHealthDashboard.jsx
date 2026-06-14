@@ -119,7 +119,7 @@ export default function SystemHealthDashboard({ isDark }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, gap: 20, animation: 'fadeSlideIn 0.3s ease-out' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', minHeight: 0, gap: 20, animation: 'fadeSlideIn 0.3s ease-out' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
