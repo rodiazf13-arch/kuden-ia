@@ -15,6 +15,8 @@ import BillingDashboard from './admin/BillingDashboard.jsx';
 import UserProfile from './admin/UserProfile.jsx';
 import SystemHealthDashboard from './admin/SystemHealthDashboard.jsx';
 import CopilotManager from './admin/CopilotManager.jsx';
+import KimiInsights from './admin/KimiInsights.jsx';
+import SettingsView from './admin/SettingsView.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
@@ -148,7 +150,6 @@ export default function App() {
         return <ContactsManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'profiles':
-        // ProfilesManager needs to act as a normal tenant when impersonating so it shows the global profiles correctly
         return <ProfilesManager tenantId={activeTenantId} isDark={isDark} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} actualTenantId={tenantId} allTenants={allTenants} />;
 
       case 'users':
@@ -197,6 +198,10 @@ export default function App() {
       case 'copilot':
         if (!copilotAccess) return <AccessDenied isDark={isDark} />;
         return <CopilotManager tenantId={activeTenantId} isDark={isDark} />;
+
+      case 'insights':
+        if (!copilotAccess) return <AccessDenied isDark={isDark} />;
+        return <KimiInsights tenantId={activeTenantId} isDark={isDark} />;
 
       default:
         return null;

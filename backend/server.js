@@ -2218,6 +2218,144 @@ app.delete("/api/documents/:documentId", async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ─── PREDICTIVE INSIGHTS (KIMI BI) ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get("/api/insights/macro", async (req, res) => {
+  const { tenantId, generate } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
+
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDateStr = thirtyDaysAgo.toISOString();
+
+    // 1. Obtener conversaciones de los últimos 30 días
+    const { data: convs, error: convsErr } = await supabase
+      .from('conversations')
+      .select('id, status, duracion, csat_final, fuga_final, total_mensajes, assigned_to')
+      .eq('tenant_id', tenantId)
+      .gte('updated_at', startDateStr);
+
+    if (convsErr) throw convsErr;
+
+    let totalConvs = convs.length;
+    let totalCsat = 0, csatCount = 0;
+    let fugaRisk = { alto: 0, medio: 0, bajo: 0, sin_riesgo: 0 };
+    const agentsMap = {};
+
+    convs.forEach(c => {
+      if (c.csat_final) {
+        totalCsat += c.csat_final;
+        csatCount++;
+      }
+      if (c.fuga_final && fugaRisk[c.fuga_final] !== undefined) {
+        fugaRisk[c.fuga_final]++;
+      }
+
+      if (c.assigned_to) {
+        if (!agentsMap[c.assigned_to]) agentsMap[c.assigned_to] = { total: 0, csatSum: 0, csatCount: 0, messagesSum: 0 };
+        agentsMap[c.assigned_to].total++;
+        if (c.csat_final) {
+          agentsMap[c.assigned_to].csatSum += c.csat_final;
+          agentsMap[c.assigned_to].csatCount++;
+        }
+        agentsMap[c.assigned_to].messagesSum += (c.total_mensajes || 0);
+      }
+    });
+
+    const agentIds = Object.keys(agentsMap);
+    let agentsInfo = [];
+    if (agentIds.length > 0) {
+      const { data: usersData } = await supabase
+        .from('tenant_users')
+        .select('user_id, display_name, email')
+        .in('user_id', agentIds)
+        .eq('tenant_id', tenantId);
+      
+      if (usersData) {
+        usersData.forEach(u => {
+          if (agentsMap[u.user_id]) {
+            agentsMap[u.user_id].name = u.display_name || u.email || 'Ejecutivo';
+          }
+        });
+      }
+
+      agentsInfo = Object.entries(agentsMap).map(([id, data]) => ({
+        id,
+        name: data.name || 'Desconocido',
+        total_casos: data.total,
+        promedio_csat: data.csatCount > 0 ? (data.csatSum / data.csatCount).toFixed(1) : 'N/A',
+        total_mensajes: data.messagesSum
+      })).sort((a, b) => b.total_casos - a.total_casos);
+    }
+
+    const payload = {
+      periodo: "Últimos 30 días",
+      total_conversaciones: totalConvs,
+      csat_global: csatCount > 0 ? (totalCsat / csatCount).toFixed(1) : 'N/A',
+      riesgo_fuga_distribucion: fugaRisk,
+      ranking_ejecutivos: agentsInfo
+    };
+
+    // Si solo piden datos crudos, retornar el payload
+    if (generate !== 'true') {
+      return res.json({ success: true, data: payload });
+    }
+
+    // 2. Si piden reporte IA, pasamos el payload a Kimi
+    const { data: tenant } = await supabase.from('tenants').select('name').eq('id', tenantId).single();
+    const { data: config } = await supabase.from('ai_settings').select('*').eq('tenant_id', tenantId).maybeSingle();
+    const provider = config?.default_provider || 'anthropic';
+    const model = config?.default_model || 'claude-haiku-4-5-20251001';
+
+    const systemPrompt = `Eres Kimi, Analista de Datos y Co-Piloto Estratégico de "${tenant?.name || 'la empresa'}".
+Tu objetivo es leer los siguientes datos agregados de los últimos 30 días y redactar un informe ejecutivo (en formato Markdown).
+Estructura sugerida:
+1. Resumen Ejecutivo (Conclusión de 2 líneas)
+2. Rendimiento Global (CSAT, Volumen de Casos, Riesgo de Fuga)
+3. Evaluación de Ejecutivos (Menciona al top performer y áreas de mejora si aplica)
+4. Recomendaciones Proactivas (2 o 3 ideas concretas para mejorar el servicio).
+
+Usa un tono analítico, corporativo y perspicaz. ¡NO ALUCINES DATOS que no estén en este JSON!
+
+DATOS CRUDOS A ANALIZAR:
+${JSON.stringify(payload, null, 2)}`;
+
+    const { callLLM } = await import('./llmService.js');
+    
+    // Llamada a LLM
+    const llmResponse = await callLLM(supabase, {
+      provider,
+      model,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: 'Genera el informe ejecutivo de los últimos 30 días basado en los datos proporcionados.' }]
+    });
+
+    if (llmResponse.error) throw new Error(llmResponse.error);
+
+    // Facturación (Asignamos source: 'insights')
+    await supabase.from('llm_usage_logs').insert({
+      tenant_id: tenantId, provider, model, source: 'insights',
+      prompt_tokens: llmResponse.usage.prompt_tokens,
+      completion_tokens: llmResponse.usage.completion_tokens,
+      api_cost_usd: llmResponse.cost.api_cost,
+      billed_usd: llmResponse.cost.billed_cost
+    });
+
+    return res.json({ 
+      success: true, 
+      data: payload,
+      report: llmResponse.text
+    });
+
+  } catch (e) {
+    console.error("[GET /api/insights/macro]", e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ─── COPILOT ENDPOINTS (KIMI) ──────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 

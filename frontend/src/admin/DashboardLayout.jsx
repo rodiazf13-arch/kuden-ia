@@ -66,7 +66,10 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Motor IA',
       items: [
         { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' },
-        ...(copilotAccess ? [{ id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' }] : [])
+        ...(copilotAccess ? [
+          { id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' },
+          { id: 'insights', label: 'Kimi Insights (BI)', icon: 'ti-chart-bar' }
+        ] : [])
       ]
     },
     {

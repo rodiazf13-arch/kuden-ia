@@ -193,7 +193,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
       )}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', marginTop: p.is_global ? '20px' : '0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', marginTop: (p.is_global || p.is_router || isOwnProfile) ? '18px' : '0' }}>
         <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <i className={`ti ${p.icon}`} style={{ fontSize: '18px', color: '#fff' }}></i>
         </div>
