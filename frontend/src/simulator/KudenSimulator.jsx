@@ -669,7 +669,7 @@ export default function KudenSimulator({ tenantId }) {
         body: JSON.stringify({
           provider: prof?.llm_provider || "anthropic",
           model: prof?.llm_model || "claude-sonnet-4-6",
-          aiProfileId: prof?.id || null,
+          aiProfileId: (prof?.id && prof.id !== 'master') ? prof.id : null,
           max_tokens:1000,
           system:buildSystem(masterConfig, prof, dbProfiles, cli, chLabel),
           messages:newHistory,
@@ -770,7 +770,7 @@ export default function KudenSimulator({ tenantId }) {
           // Metadatos del caso
           provider:         profile?.llm_provider || "anthropic",
           model:            profile?.llm_model || "claude-sonnet-4-6",
-          aiProfileId:      profile?.id || null,
+          aiProfileId:      (profile?.id && profile.id !== 'master') ? profile.id : null,
           motivoLabel:      caseData.motivoLabel,
           ticketId:         caseData.ticketId        || null,
           perfilCliente:    caseData.perfil           || null,
