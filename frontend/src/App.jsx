@@ -88,6 +88,10 @@ export default function App() {
               .eq('is_active', true)
               .order('name');
             if (tData) setAllTenants(tData);
+          } else {
+            // Asegurarnos de limpiar el estado si es un usuario normal
+            setAllTenants([]);
+            setImpersonatedTenantId(null);
           }
         }
       }
@@ -95,7 +99,11 @@ export default function App() {
     finally { setLoading(false); }
   };
 
-  const handleLogout = async () => { await supabase.auth.signOut(); };
+  const handleLogout = async () => { 
+    setImpersonatedTenantId(null);
+    setAllTenants([]);
+    await supabase.auth.signOut(); 
+  };
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff" }}>
@@ -137,8 +145,8 @@ export default function App() {
         return <ContactsManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'profiles':
-        // ProfilesManager needs real isSuperAdmin to show the Target Selector, and activeTenantId to fetch properly
-        return <ProfilesManager tenantId={activeTenantId} isDark={isDark} isSuperAdmin={isSuperAdmin} actualTenantId={tenantId} allTenants={allTenants} />;
+        // ProfilesManager needs to act as a normal tenant when impersonating so it shows the global profiles correctly
+        return <ProfilesManager tenantId={activeTenantId} isDark={isDark} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} actualTenantId={tenantId} allTenants={allTenants} />;
 
       case 'users':
         return <UsersManager isDark={isDark} filterTenantId={isSuperAdmin && !impersonatedTenantId ? null : activeTenantId} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} />;
