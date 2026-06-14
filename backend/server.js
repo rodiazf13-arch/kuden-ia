@@ -618,13 +618,16 @@ app.post("/api/summarize", async (req, res) => {
         });
 
         // Busca la conversación activa (sin resumen = sesión recién cerrada)
-        const { data: conv, error: findErr } = await supabase
+        const { data: convs, error: findErr } = await supabase
           .from("conversations")
           .select("id")
           .eq("tenant_id", tenantId)
           .eq("contact_id", contactId)
           .is("resumen_ejecutivo", null)
-          .maybeSingle();
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        const conv = convs && convs.length > 0 ? convs[0] : null;
 
         if (findErr) throw findErr;
 
