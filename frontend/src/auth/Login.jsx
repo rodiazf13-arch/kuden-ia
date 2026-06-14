@@ -51,6 +51,9 @@ export default function Login() {
             alt="KUDEN"
             style={{ width: "160px", height: "auto", marginBottom: "8px", objectFit: "contain" }}
           />
+          <p style={{ color: "#272f9bff", marginTop: "8px", fontSize: "25px", letterSpacing: "1px", textTransform: "uppercase" }}>
+            Kuden IA CRM
+          </p>
           <p style={{ color: "#888", marginTop: "8px", fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase" }}>
             Workspace Login
           </p>
