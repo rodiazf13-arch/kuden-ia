@@ -269,6 +269,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         body: JSON.stringify({ tenantId, userId, displayName }),
       });
       if (res.ok) {
+        if (!res.ok) throw new Error("API Error");
         const data = await res.json();
         if (data.suggestion) {
           setInput(data.suggestion);
@@ -576,9 +577,13 @@ function ReportPanel({ tenantId, c, campaigns }) {
         let url = `${API_URL}/api/crm/stats?tenantId=${tenantId}&from=${from}`;
         if (periodCampaign) url += `&campaignId=${periodCampaign}`;
         const res  = await fetch(url);
+        if (!res.ok) throw new Error("API Error");
         const data = await res.json();
         setStats(data);
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        console.error(e); 
+        setStats({ byStatus: {}, byCanal: {}, bySentimiento: {}, byFuga: {} });
+      }
       setLoading(false);
     };
     load();
