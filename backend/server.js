@@ -483,7 +483,13 @@ app.post("/api/chat", async (req, res) => {
           const { data: conv } = await supabase.from("conversations").select("campaign_id")
             .eq("tenant_id", tenantId).eq("contact_id", contactId).is("resumen_ejecutivo", null)
             .not("status", "in", "(closed,resolved,abandoned)").maybeSingle();
-          if (conv?.campaign_id) activeCampaignId = conv.campaign_id;
+          if (conv?.campaign_id) {
+            activeCampaignId = conv.campaign_id;
+          } else if (aiProfileId) {
+            // Si la conversación es nueva y viene con un perfil, buscar la campaña que usa este perfil
+            const { data: camp } = await supabase.from("campaigns").select("id").eq("ai_profile_id", aiProfileId).maybeSingle();
+            if (camp?.id) activeCampaignId = camp.id;
+          }
         } catch (e) { console.error("[POST /api/chat] Error al buscar campaña actual:", e.message); }
       }
 
@@ -747,7 +753,7 @@ app.post("/api/summarize", async (req, res) => {
           .eq("tenant_id", tenantId)
           .eq("contact_id", contactId)
           .is("resumen_ejecutivo", null)
-          .order("created_at", { ascending: false })
+          .order("last_message_at", { ascending: false })
           .limit(1);
 
         const conv = convs && convs.length > 0 ? convs[0] : null;
