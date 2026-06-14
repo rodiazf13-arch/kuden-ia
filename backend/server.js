@@ -1859,21 +1859,115 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
       }
     }
 
+    // ----------------------------------------------------
+    // HERRAMIENTAS AUTÓNOMAS n8n (Tool Calling)
+    // ----------------------------------------------------
+    let toolsContext = "";
+    let activeCampaignN8n = null;
+    let activeTools = [];
+
+    if (widgetConfig?.campaign_id) {
+      const { data: campaignData } = await supabase.from('campaigns')
+        .select('n8n_webhook_url, n8n_secret_token')
+        .eq('id', widgetConfig.campaign_id).maybeSingle();
+
+      if (campaignData?.n8n_webhook_url) {
+        activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token };
+
+        const { data: tools } = await supabase.from('agent_tools')
+          .select('name, label, description, n8n_workflow_id, input_schema')
+          .eq('campaign_id', widgetConfig.campaign_id)
+          .eq('is_active', true);
+
+        if (tools && tools.length > 0) {
+          activeTools = tools;
+          toolsContext += `\n\n═══════════════════════════════════════════════\nHERRAMIENTAS AUTÓNOMAS DISPONIBLES:\nCuando el cliente solicite EXPLÍCITAMENTE alguna de las acciones listadas abajo, puedes ejecutarlas de forma autónoma.\nPara activar una herramienta, incluye al FINAL de tu mensaje la siguiente etiqueta JSON (una sola, sin texto adicional después):\n[TOOL_CALL: {"tool": "NOMBRE_HERRAMIENTA", "params": {PARAMETROS}}]\nIMPORTANTE: NO confirmes la acción al cliente antes de recibir la respuesta del sistema. Responde primero: "Un momento, estoy procesando tu solicitud..." y luego incluye la etiqueta TOOL_CALL.\n\nHERRAMIENTAS:\n`;
+          tools.forEach(t => {
+            const schema = t.input_schema ? JSON.stringify(t.input_schema) : '{}';
+            toolsContext += `- NOMBRE: "${t.name}" | FUNCIÓN: ${t.description} | PARÁMETROS REQUERIDOS: ${schema}\n`;
+          });
+          toolsContext += `═══════════════════════════════════════════════\n`;
+        }
+      }
+    }
+
     let aiResponseText = "Lo siento, estoy experimentando problemas técnicos.";
+    let finalSystemPrompt = "";
+
     try {
       const claudeMessages = history.filter(m => m.role !== "system").map(m => ({ role: m.role, content: m.content }));
       const systemGreeting = history.find(m => m.role === "system")?.content;
 
+      finalSystemPrompt = systemPromptBase + crmContext + ragContext + toolsContext +
+        (systemGreeting ? `\n\nEl asistente comenzó la conversación saludando con: "${systemGreeting}". Tenlo en cuenta para el contexto.` : "") +
+        "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...].";
+
       const { text, usage } = await callLLM(supabase, {
         provider: llmProvider,
         model: llmModel,
-        system: systemPromptBase + crmContext + ragContext +
-          (systemGreeting ? `\n\nEl asistente comenzó la conversación saludando con: "${systemGreeting}". Tenlo en cuenta para el contexto.` : "") +
-          "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...].",
+        system: finalSystemPrompt,
         messages: claudeMessages,
         max_tokens: 1024
       });
       aiResponseText = text;
+
+      // ─── Intercepción de Tool Call (Agentes Autónomos vía n8n) ──────────────────
+      const toolCallMatch = aiResponseText.match(/\[TOOL_CALL:\s*({[\s\S]*?})\]/);
+      if (toolCallMatch && activeCampaignN8n && activeTools.length > 0) {
+        try {
+          const toolCallData = JSON.parse(toolCallMatch[1]);
+          const toolName = toolCallData.tool;
+          const toolParams = toolCallData.params || {};
+          const toolDef = activeTools.find(t => t.name === toolName);
+
+          if (toolDef) {
+            // Enriquecer el payload con datos del contacto
+            const enrichedParams = {
+              ...toolParams,
+              _kuden_tenant_id: tenantId || null,
+              _kuden_campaign_id: widgetConfig?.campaign_id || null,
+              _kuden_contact_name: existingConv?.contact_id ? "Cliente ID " + existingConv.contact_id : null,
+              _kuden_contact_phone: null,
+            };
+
+            const n8nResult = await callN8nTool(
+              activeCampaignN8n.url,
+              activeCampaignN8n.token,
+              toolDef.n8n_workflow_id,
+              enrichedParams
+            );
+
+            await insertAuditLog('info', 'agent_tool_call_widget', `Tool "${toolName}" ejecutada exitosamente.`, {
+              tool: toolName, params: toolParams, n8nResult
+            }, tenantId);
+
+            const n8nResultText = JSON.stringify(n8nResult);
+            const { text: finalResponseWithResult } = await callLLM(supabase, {
+              provider: llmProvider,
+              model: llmModel,
+              system: finalSystemPrompt,
+              messages: [
+                ...claudeMessages,
+                { role: 'assistant', content: aiResponseText },
+                { role: 'user', content: `[RESULTADO DEL SISTEMA]: La herramienta "${toolDef.label}" se ejecutó correctamente. Resultado: ${n8nResultText}. Ahora informa al cliente de forma amigable y natural sobre el resultado, sin mostrar datos técnicos JSON. Usa la información del resultado para dar una respuesta clara y concreta. Recuerda añadir siempre los [METADATOS].` }
+              ],
+              max_tokens: 1024
+            });
+
+            aiResponseText = finalResponseWithResult;
+          } else {
+            console.warn(`[TOOL_CALL] Tool "${toolName}" no encontrada en el widget.`);
+            await insertAuditLog('warning', 'agent_tool_call_widget', `Tool "${toolName}" no encontrada.`, { toolName }, tenantId);
+          }
+        } catch (toolErr) {
+          console.error("[TOOL_CALL Error en Widget]", toolErr.message);
+          await insertAuditLog('error', 'agent_tool_call_widget', `Error al ejecutar tool call: ${toolErr.message}`, { error: toolErr.message }, tenantId);
+          aiResponseText = aiResponseText.replace(/\[TOOL_CALL:[\s\S]*?\]/g, '').trim();
+        }
+      } else if (toolCallMatch) {
+        aiResponseText = aiResponseText.replace(/\[TOOL_CALL:[\s\S]*?\]/g, '').trim();
+      }
+      // ─── Fin Intercepción Tool Call ───────────────────────────────────────────────
 
       // Facturar/Loggear uso
       await logLLMUsage(supabase, {
