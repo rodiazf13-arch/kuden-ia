@@ -128,8 +128,9 @@ export default function BillingDashboard({ isDark = true }) {
   const totalMargin = totalBilled - totalApiCost;
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', flex: 1, minHeight: 0 }}>
+      <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12, flexShrink: 0 }}>
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Tarificador Multi-LLM</h2>
           <p style={{ margin: 0, color: c.subtitle }}>Visualiza y exporta los consumos de API y márgenes de ganancia.</p>
@@ -140,7 +141,7 @@ export default function BillingDashboard({ isDark = true }) {
       </div>
 
       {/* Barra de Filtros */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '16px', marginBottom: 24, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '16px', marginBottom: 24, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', flexShrink: 0 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 200 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: c.subtitle }}>Empresa</label>
           <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: isDark ? '#1a1a1a' : '#fff', color: c.text, outline: 'none' }}>
@@ -166,7 +167,7 @@ export default function BillingDashboard({ isDark = true }) {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 24, flexShrink: 0 }}>
         <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
           <p style={{ margin: '0 0 8px', fontSize: 13, color: c.subtitle }}>Costo API (Mostrado)</p>
           <p style={{ margin: 0, fontSize: 24, fontWeight: 'bold', color: '#ef4444' }}>${totalApiCost.toFixed(4)}</p>
@@ -182,9 +183,9 @@ export default function BillingDashboard({ isDark = true }) {
       </div>
 
       {/* Tabla de logs */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflowX: 'auto', overflowY: 'auto', flex: 1, minHeight: 0 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13, color: c.text }}>
-          <thead style={{ background: c.tableHd, borderBottom: `1px solid ${c.border}` }}>
+          <thead style={{ background: c.tableHd, borderBottom: `1px solid ${c.border}`, position: 'sticky', top: 0, zIndex: 1 }}>
             <tr>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Fecha</th>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Empresa</th>
@@ -226,6 +227,7 @@ export default function BillingDashboard({ isDark = true }) {
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

@@ -2306,7 +2306,10 @@ app.post("/api/copilot/chat", async (req, res) => {
     today.setHours(0, 0, 0, 0);
     const startOfDayStr = today.toISOString();
 
-    // Obtener estadísticas en tiempo real — GLOBALES
+    let advancedMetricsPrompt = "";
+
+    try {
+      // Obtener estadísticas en tiempo real — GLOBALES
     const { count: totalContacts } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
     const { count: newContactsToday } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).gte("created_at", startOfDayStr);
     
@@ -2316,21 +2319,69 @@ app.post("/api/copilot/chat", async (req, res) => {
     const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).not("status", "in", "(closed,pending_csat,resolved,abandoned)");
     const { count: ticketsClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).in("status", ["closed", "pending_csat", "resolved"]).gte("updated_at", startOfDayStr);
 
-    // Desglose POR CAMPAÑA — para preguntas de seguimiento
-    const { data: campaigns } = await supabase.from("campaigns").select("id, name, is_active").eq("tenant_id", tenantId);
-    let campaignBreakdown = "";
-    if (campaigns && campaigns.length > 0) {
-      const breakdownRows = await Promise.all(campaigns.map(async (camp) => {
-        const { count: campActive } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
-          .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
-          .not("status", "in", "(closed,pending_csat,resolved,abandoned)");
-        const { count: campClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
-          .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
-          .in("status", ["closed", "pending_csat", "resolved"])
-          .gte("updated_at", startOfDayStr);
-        return `  - Campaña: "${camp.name}" (Activa: ${camp.is_active ? 'Sí' : 'No'}) → Conv. abiertas: ${campActive || 0} | Cerradas hoy: ${campClosedToday || 0}`;
-      }));
-      campaignBreakdown = `\n\n[DESGLOSE OPERACIONAL POR CAMPAÑA (HOY)]\n${breakdownRows.join('\n')}`;
+      // Desglose POR CAMPAÑA — para preguntas de seguimiento
+      const { data: campaigns } = await supabase.from("campaigns").select("id, name, is_active").eq("tenant_id", tenantId);
+      let campaignBreakdown = "";
+      if (campaigns && campaigns.length > 0) {
+        const breakdownRows = await Promise.all(campaigns.map(async (camp) => {
+          const { count: campActive } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
+            .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
+            .not("status", "in", "(closed,pending_csat,resolved,abandoned)");
+          const { count: campClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
+            .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
+            .in("status", ["closed", "pending_csat", "resolved"])
+            .gte("updated_at", startOfDayStr);
+          return `  - Campaña: "${camp.name}" (Activa: ${camp.is_active ? 'Sí' : 'No'}) → Conv. abiertas: ${campActive || 0} | Cerradas hoy: ${campClosedToday || 0}`;
+        }));
+        campaignBreakdown = `\n[DESGLOSE OPERACIONAL POR CAMPAÑA (HOY)]\n${breakdownRows.join('\n')}`;
+      }
+
+      // Top 5 Contactos de Hoy
+      let topContactsString = "";
+      const { data: convsToday } = await supabase.from("conversations")
+        .select("contact_id, total_mensajes")
+        .eq("tenant_id", tenantId)
+        .gte("updated_at", startOfDayStr);
+
+      if (convsToday && convsToday.length > 0) {
+        const contactActivity = {};
+        for (const c of convsToday) {
+          if (!c.contact_id) continue;
+          contactActivity[c.contact_id] = (contactActivity[c.contact_id] || 0) + (c.total_mensajes || 1);
+        }
+        const topContacts = Object.entries(contactActivity).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        
+        if (topContacts.length > 0) {
+          const { data: contactsData } = await supabase.from("contacts")
+            .select("id, cliente_nombre, telefono, email")
+            .in("id", topContacts.map(t => t[0]));
+          const contactMap = {};
+          if (contactsData) contactsData.forEach(c => contactMap[c.id] = c);
+          
+          const topRows = topContacts.map(([id, msgs], i) => {
+            const c = contactMap[id] || { cliente_nombre: "Desconocido", telefono: "N/A" };
+            return `  ${i+1}. ${c.cliente_nombre || c.telefono || c.email} (${msgs} interacciones)`;
+          });
+          topContactsString = `\n\n[TOP 5 CONTACTOS MÁS ACTIVOS DE HOY]\n${topRows.join('\n')}`;
+        }
+      }
+
+      advancedMetricsPrompt = `
+[MÉTRICAS EN TIEMPO REAL DEL CRM (OPERACIÓN ACTUAL)]
+Al momento de responder, tienes acceso a los datos vivos de la empresa. Estos son los números oficiales:
+- Contactos totales en la base de datos: ${totalContacts || 0}
+- Nuevos contactos capturados HOY: ${newContactsToday || 0}
+- Campañas totales configuradas: ${totalCampaigns || 0} (Activas en este momento: ${activeCampaigns || 0})
+- Tickets/Conversaciones ABIERTAS (esperando atención): ${activeTickets || 0}
+- Tickets/Conversaciones COMPLETADAS/CERRADAS HOY: ${ticketsClosedToday || 0}
+${campaignBreakdown}${topContactsString}
+
+Usa estos datos con total seguridad cuando te pregunten sobre la operación de hoy, cuántos contactos o campañas hay, con quién se ha hablado más, o cómo va el rendimiento por campaña. Cuando puedas, ofrece conclusiones analíticas y sugerencias de acción.`;
+
+    } catch (metricErr) {
+      console.error("[Copilot Metrics Error]", metricErr);
+      await insertAuditLog('error', 'system_error', `Error calculando métricas de Kimi: ${metricErr.message}`, { error: metricErr.message, stack: metricErr.stack }, tenantId);
+      advancedMetricsPrompt = `\n[MÉTRICAS EN TIEMPO REAL DEL CRM (OPERACIÓN ACTUAL)]\nOcurrió un error al cargar las métricas en tiempo real. Informa al usuario que revisen el System Health Dashboard.`;
     }
 
     // RAG: Buscamos documentos genéricos (sin aiProfileId limitante)
@@ -2341,17 +2392,7 @@ Tu objetivo es ayudar a los ejecutivos de la empresa con información analítica
 Eres muy inteligente, amable, analítica y proactiva. 
 Usa formato Markdown enriquecido de GitHub (ej. tablas, listas, negritas, código) para que tus respuestas sean fáciles de leer y estructuradas.
 NUNCA asumas que eres un bot de atención a clientes externos. Eres una colega interna y consultora para el equipo.
-
-[MÉTRICAS EN TIEMPO REAL DEL CRM (OPERACIÓN ACTUAL)]
-Al momento de responder, tienes acceso a los datos vivos de la empresa. Estos son los números oficiales:
-- Contactos totales en la base de datos: ${totalContacts || 0}
-- Nuevos contactos capturados HOY: ${newContactsToday || 0}
-- Campañas totales configuradas: ${totalCampaigns || 0} (Activas en este momento: ${activeCampaigns || 0})
-- Tickets/Conversaciones ABIERTAS (esperando atención): ${activeTickets || 0}
-- Tickets/Conversaciones COMPLETADAS/CERRADAS HOY: ${ticketsClosedToday || 0}
-${campaignBreakdown}
-
-Usa estos datos con total seguridad cuando te pregunten sobre la operación de hoy, cuántos contactos o campañas hay, o cómo va el rendimiento por campaña. Cuando puedas, ofrece conclusiones analíticas y sugerencias de acción.`;
+${advancedMetricsPrompt}`;
 
     if (retrievedText) {
       systemPrompt += `\n\n[BASE DE CONOCIMIENTO INTERNA]\nAquí tienes fragmentos de documentos de la empresa que pueden ayudar a responder la consulta del ejecutivo:\n${retrievedText}\n`;

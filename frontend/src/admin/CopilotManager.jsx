@@ -87,7 +87,8 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', minHeight: 0, background: c.bg }}>
+    <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+      <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', background: c.bg, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
       <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
         <div>
@@ -208,6 +209,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
             <i className="ti ti-send"></i>
           </button>
         </form>
+      </div>
       </div>
     </div>
   );
