@@ -119,7 +119,7 @@ export default function SystemHealthDashboard({ isDark }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeSlideIn 0.3s ease-out' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, gap: 20, animation: 'fadeSlideIn 0.3s ease-out' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -142,7 +142,7 @@ export default function SystemHealthDashboard({ isDark }) {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, flexShrink: 0 }}>
         {kpis.map(k => (
           <KpiCard key={k.id} {...k}
             isDark={isDark}
@@ -155,7 +155,7 @@ export default function SystemHealthDashboard({ isDark }) {
 
       {/* ── Gráfico de Eventos ── */}
       {chartData.length > 0 && (
-        <div style={{ background: cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: 14, padding: '16px 18px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+        <div style={{ background: cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: 14, padding: '16px 18px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', flexShrink: 0 }}>
           <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 600, color: textMain }}>📈 Distribución temporal de eventos</p>
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -186,9 +186,9 @@ export default function SystemHealthDashboard({ isDark }) {
       )}
 
       {/* ── Filtros y tabla ── */}
-      <div style={{ background: cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: 14, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: 14, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         {/* Barra de filtros */}
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${border}`, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${border}`, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="🔍 Buscar en mensajes..."
@@ -210,7 +210,7 @@ export default function SystemHealthDashboard({ isDark }) {
         </div>
 
         {/* Tabla */}
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', minHeight: 0 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
