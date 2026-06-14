@@ -20,36 +20,36 @@ export default function Login() {
     if (authError) {
       setError(authError.message);
     }
-    
+
     setLoading(false);
   };
 
   return (
-    <div style={{ 
-      minHeight: "100vh", 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "center", 
-      background: "radial-gradient(circle at top, #1a153a 0%, #0a0a0a 50%, #050505 100%)", 
-      color: "#fff", 
-      padding: "1rem" 
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "radial-gradient(circle at top, #1a153a 0%, #0a0a0a 50%, #050505 100%)",
+      color: "#fff",
+      padding: "1rem"
     }}>
-      <div style={{ 
-        width: "100%", 
-        maxWidth: "400px", 
-        background: "rgba(255, 255, 255, 0.03)", 
+      <div style={{
+        width: "100%",
+        maxWidth: "400px",
+        background: "rgba(255, 255, 255, 0.88)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255, 255, 255, 0.05)", 
-        borderRadius: "16px", 
-        boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)", 
-        padding: "40px 32px" 
+        border: "1px solid rgba(255, 255, 255, 0.05)",
+        borderRadius: "16px",
+        boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+        padding: "40px 32px"
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
-          <img 
-            src="/kuden-logo.png" 
-            alt="KUDEN" 
-            style={{ width: "160px", height: "auto", marginBottom: "8px", objectFit: "contain" }} 
+          <img
+            src="/kuden-logo.png"
+            alt="KUDEN"
+            style={{ width: "160px", height: "auto", marginBottom: "8px", objectFit: "contain" }}
           />
           <p style={{ color: "#888", marginTop: "8px", fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase" }}>
             Workspace Login
@@ -90,18 +90,18 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            style={{ 
-              marginTop: "20px", 
-              background: "linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)", 
-              color: "#fff", 
-              fontWeight: "600", 
-              padding: "12px", 
-              borderRadius: "8px", 
-              border: "none", 
-              cursor: loading ? "not-allowed" : "pointer", 
-              opacity: loading ? 0.7 : 1, 
+            style={{
+              marginTop: "20px",
+              background: "linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)",
+              color: "#fff",
+              fontWeight: "600",
+              padding: "12px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
               boxShadow: "0 4px 14px 0 rgba(59, 130, 246, 0.39)",
-              transition: "opacity 0.2s, transform 0.1s" 
+              transition: "opacity 0.2s, transform 0.1s"
             }}
             onMouseOver={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
             onMouseOut={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
