@@ -29,7 +29,16 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState('crm');
   const [accessDeniedMsg, setAccessDeniedMsg] = useState(null);
 
+  const [impersonatedTenantId, setImpersonatedTenantId] = useState(null);
+  const [allTenants, setAllTenants] = useState([]);
+
   const isSuperAdmin = tenantName === MASTER_TENANT_NAME;
+  const activeTenantId = impersonatedTenantId || tenantId;
+
+  // Derive active tenant details
+  const activeTenant = impersonatedTenantId
+    ? allTenants.find(t => t.id === impersonatedTenantId)
+    : { name: tenantName, logo_url: tenantLogo, primary_color: tenantColor };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,6 +79,16 @@ export default function App() {
           setTenantLogo(data.tenants?.logo_url || null);
           setTenantColor(data.tenants?.primary_color || null);
           setAccessDeniedMsg(null);
+
+          // Si es superadmin, obtener la lista de clientes para impersonation
+          if (data.tenants?.name === MASTER_TENANT_NAME) {
+            const { data: tData } = await supabase
+              .from('tenants')
+              .select('id, name, logo_url, primary_color')
+              .eq('is_active', true)
+              .order('name');
+            if (tData) setAllTenants(tData);
+          }
         }
       }
     } catch (err) { console.error("Error obteniendo tenant_info:", err.message); }
@@ -110,21 +129,22 @@ export default function App() {
   const renderContent = (isDark) => {
     switch (currentTab) {
       case 'simulator':
-        return tenantId
-          ? <KudenSimulator tenantId={tenantId} />
+        return activeTenantId
+          ? <KudenSimulator tenantId={activeTenantId} />
           : <div style={{ padding: "40px", textAlign: "center", color: "#666" }}><h2>Sin empresa asignada</h2></div>;
 
       case 'contacts':
-        return <ContactsManager tenantId={tenantId} isDark={isDark} />;
+        return <ContactsManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'profiles':
-        return <ProfilesManager tenantId={tenantId} isDark={isDark} isSuperAdmin={isSuperAdmin} />;
+        // ProfilesManager needs real isSuperAdmin to show the Target Selector, and activeTenantId to fetch properly
+        return <ProfilesManager tenantId={activeTenantId} isDark={isDark} isSuperAdmin={isSuperAdmin} actualTenantId={tenantId} allTenants={allTenants} />;
 
       case 'users':
-        return <UsersManager isDark={isDark} filterTenantId={isSuperAdmin ? null : tenantId} isSuperAdmin={isSuperAdmin} />;
+        return <UsersManager isDark={isDark} filterTenantId={isSuperAdmin && !impersonatedTenantId ? null : activeTenantId} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} />;
 
       case 'ai_config':
-        return <AIConfigManager tenantId={tenantId} isDark={isDark} />;
+        return <AIConfigManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'global_keys':
         if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
@@ -135,7 +155,7 @@ export default function App() {
         return <BillingDashboard isDark={isDark} />;
 
       case 'widget':
-        return <WidgetSettings tenantId={tenantId} isDark={isDark} />;
+        return <WidgetSettings tenantId={activeTenantId} isDark={isDark} />;
 
       case 'profile':
         return <UserProfile isDark={isDark} userEmail={session?.user?.email} />;
@@ -145,17 +165,17 @@ export default function App() {
         return <TenantsManager isDark={isDark} />;
 
       case 'campaigns':
-        return <CampaignsManager tenantId={tenantId} isDark={isDark} />;
+        return <CampaignsManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'crm':
         return (
           <CRMManager
-            tenantId={tenantId}
+            tenantId={activeTenantId}
             isDark={isDark}
             userId={session?.user?.id}
             userEmail={session?.user?.email}
             userRole={userRole}
-            isSuperAdmin={isSuperAdmin}
+            isSuperAdmin={isSuperAdmin && !impersonatedTenantId}
           />
         );
 
@@ -171,15 +191,20 @@ export default function App() {
   return (
     <DashboardLayout
       userEmail={session.user.email}
-      tenantName={tenantName}
-      tenantId={tenantId}
-      tenantLogo={tenantLogo}
-      tenantColor={tenantColor}
+      tenantName={activeTenant?.name || tenantName}
+      tenantId={activeTenantId}
+      tenantLogo={activeTenant?.logo_url || tenantLogo}
+      tenantColor={activeTenant?.primary_color || tenantColor}
       isSuperAdmin={isSuperAdmin}
       userRole={userRole}
       currentTab={currentTab}
       setTab={setCurrentTab}
       handleLogout={handleLogout}
+      // Nuevos props para Impersonation
+      allTenants={allTenants}
+      impersonatedTenantId={impersonatedTenantId}
+      setImpersonatedTenantId={setImpersonatedTenantId}
+      originalTenantName={tenantName}
     >
       {(isDark) => renderContent(isDark)}
     </DashboardLayout>

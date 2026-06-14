@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import KnowledgeBaseManager from './KnowledgeBaseManager';
 
-export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin = false }) {
+export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin = false, actualTenantId, allTenants = [] }) {
   const [profiles,        setProfiles]        = useState([]);
   const [globalProfiles,  setGlobalProfiles]  = useState([]);
   const [loading,         setLoading]         = useState(true);
@@ -18,7 +18,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [icon,      setIcon]      = useState('ti-headset');
   const [llmProvider, setLlmProvider] = useState('anthropic');
   const [llmModel,    setLlmModel]    = useState('claude-3-5-sonnet-20240620');
-  const [isGlobal,  setIsGlobal]  = useState(false);  // Solo superAdmin puede activar
+  const [targetTenantId, setTargetTenantId] = useState('own'); // 'own', 'global', or a specific tenant.id
   const [creating,  setCreating]  = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -66,7 +66,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
 
   const resetForm = () => {
     setLabel(''); setDesc(''); setPersona(''); setHint('');
-    setColor('#1D9E75'); setBg('#E1F5EE'); setIcon('ti-headset'); setIsGlobal(false);
+    setColor('#1D9E75'); setBg('#E1F5EE'); setIcon('ti-headset'); setTargetTenantId('own');
     setLlmProvider('anthropic'); setLlmModel('claude-3-5-sonnet-20240620');
     setEditingId(null);
   };
@@ -75,7 +75,11 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     setEditingId(p.id); setLabel(p.label); setDesc(p.description || '');
     setPersona(p.persona_prompt || ''); setHint(p.hint_text || '');
     setColor(p.color || '#1D9E75'); setBg(p.bg || '#E1F5EE');
-    setIcon(p.icon || 'ti-headset'); setIsGlobal(p.is_global || false);
+    setIcon(p.icon || 'ti-headset'); 
+    if (p.is_global) setTargetTenantId('global');
+    else if (p.tenant_id !== actualTenantId) setTargetTenantId(p.tenant_id);
+    else setTargetTenantId('own');
+    
     setLlmProvider(p.llm_provider || 'anthropic'); setLlmModel(p.llm_model || 'claude-3-5-sonnet-20240620');
     window.scrollTo(0,0);
   };
@@ -84,9 +88,25 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     e.preventDefault();
     setCreating(true); setError(null);
     try {
+      let finalTenantId = tenantId;
+      let finalIsGlobal = false;
+      
+      if (isSuperAdmin) {
+        if (targetTenantId === 'global') {
+          finalIsGlobal = true;
+          finalTenantId = actualTenantId;
+        } else if (targetTenantId === 'own') {
+          finalIsGlobal = false;
+          finalTenantId = actualTenantId;
+        } else {
+          finalIsGlobal = false;
+          finalTenantId = targetTenantId;
+        }
+      }
+
       const payload = {
-        tenant_id: tenantId, label, description: desc, persona_prompt: persona,
-        hint_text: hint, color, bg, icon, is_global: isSuperAdmin ? isGlobal : false,
+        tenant_id: finalTenantId, label, description: desc, persona_prompt: persona,
+        hint_text: hint, color, bg, icon, is_global: finalIsGlobal,
         llm_provider: llmProvider, llm_model: llmModel
       };
       if (editingId) {
@@ -299,22 +319,23 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
             </div>
           </div>
 
-          {/* Toggle "Publicar como plantilla global" — solo visible para superAdmin */}
+          {/* Destino de la Plantilla — solo visible para superAdmin cuando NO está impersonando */}
           {isSuperAdmin && (
-            <div style={{ gridColumn: '1 / -1', background: isGlobal ? c.globalBg : 'transparent', border: `1px solid ${isGlobal ? c.globalBdr : c.border}`, borderRadius: '10px', padding: '14px', display: 'flex', alignItems: 'center', gap: '14px', transition: 'all 0.2s' }}>
-              <label style={{ position: 'relative', width: '44px', height: '24px', cursor: 'pointer', flexShrink: 0 }}>
-                <input type="checkbox" checked={isGlobal} onChange={e => setIsGlobal(e.target.checked)} style={{ opacity: 0, width: 0, height: 0 }} />
-                <span style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isGlobal ? '#f59e0b' : '#333', borderRadius: '24px', transition: '0.3s' }}></span>
-                <span style={{ position: 'absolute', top: '3px', left: isGlobal ? '23px' : '3px', width: '18px', height: '18px', backgroundColor: '#fff', borderRadius: '50%', transition: '0.3s' }}></span>
-              </label>
-              <div>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: isGlobal ? '#f59e0b' : c.sectionHd }}>
-                  ⭐ Publicar como Plantilla Kuden (global)
-                </p>
-                <p style={{ margin: 0, fontSize: '12px', color: c.subtitle }}>
-                  Este perfil estará disponible para todas las empresas clientes en modo lectura.
-                </p>
-              </div>
+            <div style={{ gridColumn: '1 / -1', background: targetTenantId === 'global' ? c.globalBg : (isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb'), border: `1px solid ${targetTenantId === 'global' ? c.globalBdr : c.border}`, borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s' }}>
+              <label style={{ fontSize: '13px', color: c.title, fontWeight: 600 }}>Destino del Perfil IA</label>
+              <select value={targetTenantId} onChange={e => setTargetTenantId(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
+                <option value="own">Solo Interno (Kuden Demo Tenant)</option>
+                <option value="global">⭐ Plantilla Global (Visible en modo lectura para todos los clientes)</option>
+                {allTenants.map(t => (
+                  <option key={t.id} value={t.id}>Asignar a cliente: {t.name}</option>
+                ))}
+              </select>
+              {targetTenantId === 'global' && (
+                <p style={{ margin: 0, fontSize: '12px', color: c.subtitle }}>Este perfil estará disponible para todas las empresas clientes en su lista de "Plantillas Kuden".</p>
+              )}
+              {targetTenantId !== 'global' && targetTenantId !== 'own' && (
+                <p style={{ margin: 0, fontSize: '12px', color: c.subtitle }}>Este perfil se creará directamente en el entorno de la empresa seleccionada.</p>
+              )}
             </div>
           )}
 
