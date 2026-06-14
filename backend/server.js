@@ -2306,7 +2306,7 @@ app.post("/api/copilot/chat", async (req, res) => {
     today.setHours(0, 0, 0, 0);
     const startOfDayStr = today.toISOString();
 
-    // Obtener estadísticas en tiempo real
+    // Obtener estadísticas en tiempo real — GLOBALES
     const { count: totalContacts } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
     const { count: newContactsToday } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).gte("created_at", startOfDayStr);
     
@@ -2315,6 +2315,25 @@ app.post("/api/copilot/chat", async (req, res) => {
     
     const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).not("status", "in", "(closed,pending_csat,resolved,abandoned)");
     const { count: ticketsClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).in("status", ["closed", "pending_csat", "resolved"]).gte("updated_at", startOfDayStr);
+
+    // Desglose POR CAMPAÑA — para preguntas de seguimiento
+    const { data: campaigns } = await supabase.from("campaigns").select("id, name, status").eq("tenant_id", tenantId);
+    let campaignBreakdown = "";
+    if (campaigns && campaigns.length > 0) {
+      const breakdownRows = await Promise.all(campaigns.map(async (camp) => {
+        const { count: campActive } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
+          .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
+          .not("status", "in", "(closed,pending_csat,resolved,abandoned)");
+        const { count: campClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true })
+          .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
+          .in("status", ["closed", "pending_csat", "resolved"])
+          .gte("updated_at", startOfDayStr);
+        const { count: campContactos } = await supabase.from("contacts").select("*", { count: 'exact', head: true })
+          .eq("tenant_id", tenantId).eq("campaign_id", camp.id);
+        return `  - Campaña: "${camp.name}" (Estado: ${camp.status || 'N/A'}) → Conv. abiertas: ${campActive || 0} | Cerradas hoy: ${campClosedToday || 0} | Contactos vinculados: ${campContactos || 0}`;
+      }));
+      campaignBreakdown = `\n\n[DESGLOSE OPERACIONAL POR CAMPAÑA (HOY)]\n${breakdownRows.join('\n')}`;
+    }
 
     // RAG: Buscamos documentos genéricos (sin aiProfileId limitante)
     const retrievedText = await retrieveKnowledge(message, supabase, tenantId, null);
@@ -2332,8 +2351,9 @@ Al momento de responder, tienes acceso a los datos vivos de la empresa. Estos so
 - Campañas totales configuradas: ${totalCampaigns || 0} (Activas en este momento: ${activeCampaigns || 0})
 - Tickets/Conversaciones ABIERTAS (esperando atención): ${activeTickets || 0}
 - Tickets/Conversaciones COMPLETADAS/CERRADAS HOY: ${ticketsClosedToday || 0}
+${campaignBreakdown}
 
-Usa estos datos con total seguridad cuando te pregunten sobre la operación de hoy, cuántos contactos o campañas hay, o cómo va el rendimiento. Si la información lo amerita, ofrece conclusiones analíticas sobre este rendimiento.`;
+Usa estos datos con total seguridad cuando te pregunten sobre la operación de hoy, cuántos contactos o campañas hay, o cómo va el rendimiento por campaña. Cuando puedas, ofrece conclusiones analíticas y sugerencias de acción.`;
 
     if (retrievedText) {
       systemPrompt += `\n\n[BASE DE CONOCIMIENTO INTERNA]\nAquí tienes fragmentos de documentos de la empresa que pueden ayudar a responder la consulta del ejecutivo:\n${retrievedText}\n`;

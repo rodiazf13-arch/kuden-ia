@@ -87,8 +87,8 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: c.bg }}>
-      <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, background: c.bg }}>
+      <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
         <div>
           <h2 style={{ margin: 0, fontSize: '18px', color: c.textMain }}>Co-Piloto (Kimi)</h2>
@@ -96,7 +96,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {fetching ? (
           <div style={{ textAlign: 'center', color: c.textSec, marginTop: '40px' }}>Cargando sesión...</div>
         ) : messages.length === 0 ? (
