@@ -2311,13 +2311,13 @@ app.post("/api/copilot/chat", async (req, res) => {
     const { count: newContactsToday } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).gte("created_at", startOfDayStr);
     
     const { count: totalCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
-    const { count: activeCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "active");
+    const { count: activeCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("is_active", true);
     
     const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).not("status", "in", "(closed,pending_csat,resolved,abandoned)");
     const { count: ticketsClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).in("status", ["closed", "pending_csat", "resolved"]).gte("updated_at", startOfDayStr);
 
     // Desglose POR CAMPAÑA — para preguntas de seguimiento
-    const { data: campaigns } = await supabase.from("campaigns").select("id, name, status").eq("tenant_id", tenantId);
+    const { data: campaigns } = await supabase.from("campaigns").select("id, name, is_active").eq("tenant_id", tenantId);
     let campaignBreakdown = "";
     if (campaigns && campaigns.length > 0) {
       const breakdownRows = await Promise.all(campaigns.map(async (camp) => {
@@ -2328,9 +2328,7 @@ app.post("/api/copilot/chat", async (req, res) => {
           .eq("tenant_id", tenantId).eq("campaign_id", camp.id)
           .in("status", ["closed", "pending_csat", "resolved"])
           .gte("updated_at", startOfDayStr);
-        const { count: campContactos } = await supabase.from("contacts").select("*", { count: 'exact', head: true })
-          .eq("tenant_id", tenantId).eq("campaign_id", camp.id);
-        return `  - Campaña: "${camp.name}" (Estado: ${camp.status || 'N/A'}) → Conv. abiertas: ${campActive || 0} | Cerradas hoy: ${campClosedToday || 0} | Contactos vinculados: ${campContactos || 0}`;
+        return `  - Campaña: "${camp.name}" (Activa: ${camp.is_active ? 'Sí' : 'No'}) → Conv. abiertas: ${campActive || 0} | Cerradas hoy: ${campClosedToday || 0}`;
       }));
       campaignBreakdown = `\n\n[DESGLOSE OPERACIONAL POR CAMPAÑA (HOY)]\n${breakdownRows.join('\n')}`;
     }
