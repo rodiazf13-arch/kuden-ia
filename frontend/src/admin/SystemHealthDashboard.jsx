@@ -105,7 +105,7 @@ export default function SystemHealthDashboard({ isDark }) {
       const sev = (l.severity === 'critical' || l.severity === 'error') ? 'error' : l.severity;
       buckets[hour][sev] = (buckets[hour][sev] || 0) + 1;
     });
-    return Object.values(buckets).slice(-24);
+    return Object.values(buckets).slice(0, 24).reverse();
   })();
 
   const criticalCount = (stats?.bySeverity?.critical || 0) + (stats?.bySeverity?.error || 0);
