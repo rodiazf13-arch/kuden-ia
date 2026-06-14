@@ -25,18 +25,35 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0a0a0a", color: "#fff", padding: "1rem" }}>
-      <div style={{ width: "100%", maxWidth: "400px", backgroundColor: "#111", border: "1px solid #222", borderRadius: "12px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)", padding: "32px" }}>
+    <div style={{ 
+      minHeight: "100vh", 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "center", 
+      background: "radial-gradient(circle at top, #1a153a 0%, #0a0a0a 50%, #050505 100%)", 
+      color: "#fff", 
+      padding: "1rem" 
+    }}>
+      <div style={{ 
+        width: "100%", 
+        maxWidth: "400px", 
+        background: "rgba(255, 255, 255, 0.03)", 
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(255, 255, 255, 0.05)", 
+        borderRadius: "16px", 
+        boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)", 
+        padding: "40px 32px" 
+      }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
-          <div style={{ width: "48px", height: "48px", backgroundColor: "#2563eb", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 15px rgba(37,99,235,0.4)", marginBottom: "16px" }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#fff" }}>
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-          </div>
-          <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0, color: "#60a5fa" }}>
-            KUDEN IA
-          </h1>
-          <p style={{ color: "#888", marginTop: "8px", fontSize: "14px" }}>Acceso Administrador</p>
+          <img 
+            src="/kuden-logo.png" 
+            alt="KUDEN" 
+            style={{ width: "160px", height: "auto", marginBottom: "8px", objectFit: "contain" }} 
+          />
+          <p style={{ color: "#888", marginTop: "8px", fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase" }}>
+            Workspace Login
+          </p>
         </div>
 
         {error && (
@@ -47,24 +64,24 @@ export default function Login() {
 
         <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "14px", color: "#aaa", marginLeft: "4px" }}>Correo Electrónico</label>
+            <label style={{ fontSize: "13px", color: "#9ca3af", marginLeft: "4px" }}>Correo Electrónico</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "12px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }}
+              style={{ backgroundColor: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "12px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box", transition: "border 0.3s" }}
               placeholder="tu@empresa.com"
               required
             />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <label style={{ fontSize: "14px", color: "#aaa", marginLeft: "4px" }}>Contraseña</label>
+            <label style={{ fontSize: "13px", color: "#9ca3af", marginLeft: "4px" }}>Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "12px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box" }}
+              style={{ backgroundColor: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "12px", color: "#fff", outline: "none", fontSize: "14px", width: "100%", boxSizing: "border-box", transition: "border 0.3s" }}
               placeholder="••••••••"
               required
             />
@@ -73,7 +90,23 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            style={{ marginTop: "16px", backgroundColor: "#2563eb", color: "#fff", fontWeight: "500", padding: "12px", borderRadius: "8px", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1, transition: "opacity 0.2s" }}
+            style={{ 
+              marginTop: "20px", 
+              background: "linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)", 
+              color: "#fff", 
+              fontWeight: "600", 
+              padding: "12px", 
+              borderRadius: "8px", 
+              border: "none", 
+              cursor: loading ? "not-allowed" : "pointer", 
+              opacity: loading ? 0.7 : 1, 
+              boxShadow: "0 4px 14px 0 rgba(59, 130, 246, 0.39)",
+              transition: "opacity 0.2s, transform 0.1s" 
+            }}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
+            onMouseOut={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
+            onMouseDown={(e) => !loading && (e.currentTarget.style.transform = 'translateY(1px)')}
+            onMouseUp={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
           >
             {loading ? 'Iniciando...' : 'Iniciar Sesión'}
           </button>
