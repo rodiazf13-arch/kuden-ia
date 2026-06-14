@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { supabase } from '../lib/supabaseClient';
+import KimiMascot from '../KimiMascot.jsx';
 
 export default function CopilotManager({ tenantId, isDark = true }) {
   const [messages, setMessages] = useState([]);
@@ -88,9 +89,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: c.bg }}>
       <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '20px' }}>
-          <i className="ti ti-bulb"></i>
-        </div>
+        <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
         <div>
           <h2 style={{ margin: 0, fontSize: '18px', color: c.textMain }}>Co-Piloto (Kimi)</h2>
           <p style={{ margin: 0, fontSize: '13px', color: c.textSec }}>Tu consultora estratégica y asistente interna</p>
@@ -102,7 +101,9 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           <div style={{ textAlign: 'center', color: c.textSec, marginTop: '40px' }}>Cargando sesión...</div>
         ) : messages.length === 0 ? (
           <div style={{ textAlign: 'center', marginTop: '60px', color: c.textSec }}>
-            <i className="ti ti-robot" style={{ fontSize: '48px', opacity: 0.5, marginBottom: '16px', display: 'block' }}></i>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <KimiMascot size={64} state="happy" />
+            </div>
             <h3 style={{ margin: '0 0 8px', color: c.textMain }}>¡Hola! Soy Kimi.</h3>
             <p style={{ maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
               Estoy conectada a los datos de la empresa y lista para ayudarte. Pregúntame sobre estrategias, pídemne redactar correos, o analicemos juntas las métricas de tus campañas.
