@@ -1825,9 +1825,9 @@ app.post("/api/widget/chat", async (req, res) => {
     // INYECCIÓN DE CONTEXTO CRM EN TIEMPO REAL
     // ----------------------------------------------------
     let crmContext = "";
+    let contactData = null;
     const rutMatch = content.match(/\b\d{7,8}-[\dkK]\b/);
     if (rutMatch || existingConv?.contact_id) {
-      let contactData = null;
       if (rutMatch) {
         const rut = rutMatch[0].toUpperCase();
         const { data: contacts } = await supabase.from('contacts').select('*').eq('tenant_id', tenantId).eq('rut', rut).limit(1);
@@ -1926,8 +1926,8 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
               ...toolParams,
               _kuden_tenant_id: tenantId || null,
               _kuden_campaign_id: widgetConfig?.campaign_id || null,
-              _kuden_contact_name: existingConv?.contact_id ? "Cliente ID " + existingConv.contact_id : null,
-              _kuden_contact_phone: null,
+              _kuden_contact_name: contactData?.cliente_nombre || null,
+              _kuden_contact_phone: contactData?.telefono || null,
             };
 
             const n8nResult = await callN8nTool(
