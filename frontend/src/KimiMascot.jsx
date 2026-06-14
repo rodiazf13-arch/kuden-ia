@@ -15,16 +15,14 @@ import React from 'react';
  */
 export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
   const s = size;
-  const center = s / 2;
-  const coreR  = s * 0.18;
 
-  // Colores según estado
+  // Colores según estado (mantenemos los del diseño original para coherencia)
   const colors = {
-    idle:     { core: '#2563eb', orbit1: '#7c3aed', orbit2: '#1D9E75', orbit3: '#534AB7', glow: '#2563eb40' },
-    thinking: { core: '#7c3aed', orbit1: '#2563eb', orbit2: '#EF9F27', orbit3: '#1D9E75', glow: '#7c3aed50' },
-    happy:    { core: '#1D9E75', orbit1: '#059669', orbit2: '#1D9E75', orbit3: '#34d399', glow: '#1D9E7560' },
-    alert:    { core: '#E24B4A', orbit1: '#D85A30', orbit2: '#EF9F27', orbit3: '#E24B4A', glow: '#E24B4A50' },
-    wave:     { core: '#534AB7', orbit1: '#2563eb', orbit2: '#7c3aed', orbit3: '#1D9E75', glow: '#534AB740' },
+    idle:     { core: '#2563eb', orbit1: '#7c3aed', orbit2: '#1D9E75', orbit3: '#534AB7', glow: 'rgba(37, 99, 235, 0.5)' },
+    thinking: { core: '#7c3aed', orbit1: '#2563eb', orbit2: '#EF9F27', orbit3: '#1D9E75', glow: 'rgba(124, 58, 237, 0.7)' },
+    happy:    { core: '#1D9E75', orbit1: '#059669', orbit2: '#1D9E75', orbit3: '#34d399', glow: 'rgba(29, 158, 117, 0.6)' },
+    alert:    { core: '#E24B4A', orbit1: '#D85A30', orbit2: '#EF9F27', orbit3: '#E24B4A', glow: 'rgba(226, 75, 74, 0.7)' },
+    wave:     { core: '#534AB7', orbit1: '#2563eb', orbit2: '#7c3aed', orbit3: '#1D9E75', glow: 'rgba(83, 74, 183, 0.5)' },
   };
 
   const c = colors[state] || colors.idle;
@@ -32,112 +30,104 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
   // Velocidades de órbita según estado
   const speeds = {
     idle:     { o1: '4s', o2: '6s', o3: '9s' },
-    thinking: { o1: '0.8s', o2: '1.2s', o3: '1.6s' },
-    happy:    { o1: '2s',   o2: '3s',   o3: '4s'   },
-    alert:    { o1: '0.6s', o2: '0.9s', o3: '1.3s' },
-    wave:     { o1: '3s',   o2: '4.5s', o3: '6s'   },
+    thinking: { o1: '1s', o2: '1.5s', o3: '2s' },
+    happy:    { o1: '2.5s', o2: '3.5s', o3: '5s' },
+    alert:    { o1: '0.8s', o2: '1.2s', o3: '1.8s' },
+    wave:     { o1: '3s', o2: '4.5s', o3: '6s' },
   };
   const sp = speeds[state] || speeds.idle;
 
-  const floatAnim    = state === 'idle' || state === 'wave' ? 'float 3s ease-in-out infinite' : 'none';
-  const pulseAnim    = state === 'thinking' ? 'kimi-pulse 0.8s ease-in-out infinite' : 'none';
-  const corePulse    = state === 'alert' ? 'pulse-glow 0.6s ease-in-out infinite' : state === 'happy' ? 'kimi-pulse 1s ease-in-out infinite' : 'none';
-
-  // Radios de órbita proporcionales al tamaño
-  const r1 = s * 0.30;
-  const r2 = s * 0.38;
-  const r3 = s * 0.44;
+  const floatAnim = state === 'idle' || state === 'wave' ? 'float 3s ease-in-out infinite' : 'none';
 
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', animation: floatAnim, ...style }}>
-      <svg
-        width={s} height={s}
-        viewBox={`0 0 ${s} ${s}`}
-        style={{ animation: pulseAnim, overflow: 'visible' }}
+      <style>{`
+        .kimi-new-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .kimi-new-core {
+            position: absolute;
+            border-radius: 50%;
+            animation: kimi-new-pulse 2s infinite ease-in-out;
+            z-index: 2;
+        }
+
+        .kimi-new-orbit {
+            position: absolute;
+            border: calc(var(--s) * 0.02) solid transparent;
+            border-radius: 50%;
+        }
+
+        @keyframes kimi-new-pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 calc(var(--s) * 0.15) var(--c-core), 0 0 calc(var(--s) * 0.3) var(--c-glow);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 calc(var(--s) * 0.22) var(--c-core), 0 0 calc(var(--s) * 0.4) var(--c-glow);
+            }
+        }
+
+        @keyframes kimi-rotate-1 { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
+        @keyframes kimi-rotate-2 { from { transform: rotate(-45deg); } to { transform: rotate(-405deg); } }
+        @keyframes kimi-rotate-3 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
+      
+      <div 
+        className="kimi-new-container" 
+        title="Kimi - Asistente de Kuden"
+        style={{
+          width: s,
+          height: s,
+          '--s': `${s}px`,
+          '--c-core': c.core,
+          '--c-glow': c.glow
+        }}
       >
-        <defs>
-          {/* Gradiente del núcleo */}
-          <radialGradient id={`core-grad-${state}`} cx="40%" cy="35%">
-            <stop offset="0%" stopColor="#fff" stopOpacity="0.6" />
-            <stop offset="100%" stopColor={c.core} />
-          </radialGradient>
-          {/* Glow del núcleo */}
-          <filter id="glow-filter">
-            <feGaussianBlur stdDeviation={s * 0.08} result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-
-        {/* Glow de fondo */}
-        <circle cx={center} cy={center} r={coreR * 2.2}
-          fill={c.glow} style={{ filter: `blur(${s * 0.1}px)` }} />
-
-        {/* Órbita 1 — elipse inclinada */}
-        <ellipse cx={center} cy={center}
-          rx={r1} ry={r1 * 0.35}
-          fill="none" stroke={c.orbit1} strokeWidth={s * 0.025}
-          strokeOpacity={0.6}
-          transform={`rotate(-30, ${center}, ${center})`}
-        />
-        {/* Electrón 1 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o1} linear infinite`, transformBox: 'view-box' }}>
-          <circle
-            cx={center + r1} cy={center}
-            r={s * 0.055}
-            fill={c.orbit1}
-            style={{ filter: `drop-shadow(0 0 ${s*0.04}px ${c.orbit1})` }}
-            transform={`rotate(-30, ${center}, ${center})`}
-          />
-        </g>
-
-        {/* Órbita 2 — elipse inclinada opuesta */}
-        <ellipse cx={center} cy={center}
-          rx={r2} ry={r2 * 0.35}
-          fill="none" stroke={c.orbit2} strokeWidth={s * 0.02}
-          strokeOpacity={0.45}
-          transform={`rotate(60, ${center}, ${center})`}
-        />
-        {/* Electrón 2 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o2} linear infinite reverse`, transformBox: 'view-box' }}>
-          <circle
-            cx={center + r2} cy={center}
-            r={s * 0.04}
-            fill={c.orbit2}
-            style={{ filter: `drop-shadow(0 0 ${s*0.03}px ${c.orbit2})` }}
-            transform={`rotate(60, ${center}, ${center})`}
-          />
-        </g>
-
-        {/* Órbita 3 — vertical */}
-        <ellipse cx={center} cy={center}
-          rx={r3} ry={r3 * 0.28}
-          fill="none" stroke={c.orbit3} strokeWidth={s * 0.018}
-          strokeOpacity={0.35}
-          transform={`rotate(90, ${center}, ${center})`}
-        />
-        {/* Electrón 3 */}
-        <g style={{ transformOrigin: `${center}px ${center}px`, animation: `kimi-spin ${sp.o3} linear infinite`, transformBox: 'view-box' }}>
-          <circle
-            cx={center + r3} cy={center}
-            r={s * 0.035}
-            fill={c.orbit3}
-            style={{ filter: `drop-shadow(0 0 ${s*0.025}px ${c.orbit3})` }}
-            transform={`rotate(90, ${center}, ${center})`}
-          />
-        </g>
-
-        {/* Núcleo central */}
-        <circle
-          cx={center} cy={center} r={coreR}
-          fill={`url(#core-grad-${state})`}
-          filter="url(#glow-filter)"
-          style={{ animation: corePulse }}
-        />
-        {/* Brillo interior del núcleo */}
-        <circle cx={center - coreR * 0.3} cy={center - coreR * 0.3} r={coreR * 0.35}
-          fill="rgba(255,255,255,0.45)"
-        />
-      </svg>
+          <div 
+            className="kimi-new-core"
+            style={{
+              width: s * 0.3,
+              height: s * 0.3,
+              background: \`radial-gradient(circle, #ffffff 0%, \${c.orbit1} 50%, \${c.core} 100%)\`,
+              animationDuration: state === 'thinking' ? '0.8s' : state === 'alert' ? '0.5s' : '2s'
+            }}
+          ></div>
+          <div 
+            className="kimi-new-orbit"
+            style={{
+              width: s * 0.7,
+              height: s * 0.4,
+              borderTopColor: c.orbit1,
+              borderBottomColor: \`\${c.orbit1}33\`,
+              animation: \`kimi-rotate-1 \${sp.o1} infinite linear\`
+            }}
+          ></div>
+          <div 
+            className="kimi-new-orbit"
+            style={{
+              width: s * 0.4,
+              height: s * 0.7,
+              borderLeftColor: c.orbit2,
+              borderRightColor: \`\${c.orbit2}33\`,
+              animation: \`kimi-rotate-2 \${sp.o2} infinite linear\`
+            }}
+          ></div>
+          <div 
+            className="kimi-new-orbit"
+            style={{
+              width: s * 0.8,
+              height: s * 0.8,
+              borderTopColor: c.orbit3,
+              animation: \`kimi-rotate-3 \${sp.o3} infinite linear\`
+            }}
+          ></div>
+      </div>
     </div>
   );
 }
