@@ -16,7 +16,6 @@ import UserProfile from './admin/UserProfile.jsx';
 import SystemHealthDashboard from './admin/SystemHealthDashboard.jsx';
 import CopilotManager from './admin/CopilotManager.jsx';
 import KimiInsights from './admin/KimiInsights.jsx';
-import SettingsView from './admin/SettingsView.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
