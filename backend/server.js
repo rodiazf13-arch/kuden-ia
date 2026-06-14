@@ -200,6 +200,37 @@ async function insertAuditLog(severity, source, message, metadata = {}, tenantId
   }
 }
 
+// ─── Helper: Llamada a n8n (Agentes Autónomos) ────────────────────────────────
+// Invoca un workflow de n8n y retorna la respuesta JSON.
+// webhookUrl: URL base del servidor n8n (ej: https://n8n.kuden.cl)
+// workflowId: ID del webhook del workflow en n8n
+// payload:    Parámetros que la IA extrajo de la conversación
+async function callN8nTool(webhookUrl, secretToken, workflowId, payload) {
+  const url = `${webhookUrl}/webhook/${workflowId}`;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(secretToken && { 'X-Kuden-Secret': secretToken })
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`n8n respondió con error ${response.status}: ${errText.slice(0, 200)}`);
+    }
+    return await response.json();
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Timeout: n8n no respondió en 10 segundos.');
+    throw err;
+  }
+}
+
 function normalizeRut(rut) {
   if (!rut) return null;
   let r = rut.trim().toLowerCase().replace(/[^0-9k\-]/g, '');
@@ -431,6 +462,8 @@ app.post("/api/chat", async (req, res) => {
   try {
     let finalSystemPrompt = system || "";
     let activeCampaignId = null;
+    let activeCampaignN8n = null; // { n8n_webhook_url, n8n_secret_token }
+    let activeTools = [];         // Herramientas disponibles para esta campaña
 
     if (contactData?.tenantId) {
       const { data: camps } = await supabase.from('campaigns').select('id, name, description').eq('tenant_id', contactData.tenantId);
@@ -442,7 +475,7 @@ app.post("/api/chat", async (req, res) => {
         finalSystemPrompt += `\nINSTRUCCIÓN DE ENRUTAMIENTO: Si según el mensaje del cliente puedes identificar claramente a qué departamento/campaña corresponde su solicitud, añade al final EXACTAMENTE la etiqueta [CAMPAÑA: ID_DE_LA_CAMPAÑA] (reemplazando con el ID exacto). Si no estás seguro o no aplica ninguna, omite la etiqueta.\n`;
       }
 
-      // 2. Intentar buscar la campaña activa de esta conversación para inyectar sus tipificaciones
+      // 2. Buscar la campaña activa de esta conversación
       if (contactData?.clienteNombre) {
         try {
           const { tenantId, clienteNombre, rut, telefono, direccion, plan, canal } = contactData;
@@ -455,6 +488,7 @@ app.post("/api/chat", async (req, res) => {
       }
 
       if (activeCampaignId) {
+        // 3a. Tipificaciones de la campaña
         const { data: typs } = await supabase.from("campaign_typifications").select("label").eq("campaign_id", activeCampaignId).order("order_index", { ascending: true });
         if (typs && typs.length > 0) {
           finalSystemPrompt += `\nTIPIFICACIONES DE CIERRE DE ESTA CAMPAÑA:\n`;
@@ -463,11 +497,35 @@ app.post("/api/chat", async (req, res) => {
           });
           finalSystemPrompt += `\nINSTRUCCIÓN DE TIPIFICACIÓN: Si logras resolver completamente la solicitud del cliente por tu cuenta, debes marcar [ESTADO: finalizado] y OBLIGATORIAMENTE usar una de las tipificaciones anteriores en tu etiqueta [ACCION: ...]. Ejemplo: [ACCION: Venta Cerrada].\n`;
         }
+
+        // 3b. Herramientas n8n activas para esta campaña (Agentes Autónomos)
+        const { data: campaignData } = await supabase.from('campaigns')
+          .select('n8n_webhook_url, n8n_secret_token')
+          .eq('id', activeCampaignId).maybeSingle();
+
+        if (campaignData?.n8n_webhook_url) {
+          activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token };
+
+          const { data: tools } = await supabase.from('agent_tools')
+            .select('name, label, description, n8n_workflow_id, input_schema')
+            .eq('campaign_id', activeCampaignId)
+            .eq('is_active', true);
+
+          if (tools && tools.length > 0) {
+            activeTools = tools;
+            finalSystemPrompt += `\n\n═══════════════════════════════════════════════\nHERRAMIENTAS AUTÓNOMAS DISPONIBLES:\nCuando el cliente solicite EXPLÍCITAMENTE alguna de las acciones listadas abajo, puedes ejecutarlas de forma autónoma.\nPara activar una herramienta, incluye al FINAL de tu mensaje la siguiente etiqueta JSON (una sola, sin texto adicional después):\n[TOOL_CALL: {"tool": "NOMBRE_HERRAMIENTA", "params": {PARAMETROS}}]\nIMPORTANTE: NO confirmes la acción al cliente antes de recibir la respuesta del sistema. Responde primero: "Un momento, estoy procesando tu solicitud..." y luego incluye la etiqueta TOOL_CALL.\n\nHERRAMIENTAS:\n`;
+            tools.forEach(t => {
+              const schema = t.input_schema ? JSON.stringify(t.input_schema) : '{}';
+              finalSystemPrompt += `- NOMBRE: "${t.name}" | FUNCIÓN: ${t.description} | PARÁMETROS REQUERIDOS: ${schema}\n`;
+            });
+            finalSystemPrompt += `═══════════════════════════════════════════════\n`;
+          }
+        }
       }
     }
 
     // 1. Llama a LLM
-    const { text: finalPromptResponse, usage } = await callLLM(supabase, {
+    let { text: finalPromptResponse, usage } = await callLLM(supabase, {
       provider: provider || 'anthropic',
       model: model || 'claude-sonnet-4-6',
       system: finalSystemPrompt,
@@ -485,6 +543,71 @@ app.post("/api/chat", async (req, res) => {
         usage
       }).catch(err => console.error("Error logging llm usage in /api/chat:", err));
     }
+
+    // ─── Intercepción de Tool Call (Agentes Autónomos vía n8n) ──────────────────
+    // Si la respuesta del LLM contiene [TOOL_CALL: {...}], ejecutar la acción en n8n
+    const toolCallMatch = finalPromptResponse.match(/\[TOOL_CALL:\s*({[\s\S]*?})\]/);
+    if (toolCallMatch && activeCampaignN8n && activeTools.length > 0) {
+      try {
+        const toolCallData = JSON.parse(toolCallMatch[1]);
+        const toolName = toolCallData.tool;
+        const toolParams = toolCallData.params || {};
+        const toolDef = activeTools.find(t => t.name === toolName);
+
+        if (toolDef) {
+          // Enriquecer el payload con datos del contacto para que n8n tenga contexto
+          const enrichedParams = {
+            ...toolParams,
+            _kuden_tenant_id: contactData?.tenantId || null,
+            _kuden_campaign_id: activeCampaignId || null,
+            _kuden_contact_name: contactData?.clienteNombre || null,
+            _kuden_contact_phone: contactData?.telefono || null,
+          };
+
+          // Llamar a n8n
+          const n8nResult = await callN8nTool(
+            activeCampaignN8n.url,
+            activeCampaignN8n.token,
+            toolDef.n8n_workflow_id,
+            enrichedParams
+          );
+
+          // Registrar en audit log
+          await insertAuditLog('info', 'agent_tool_call', `Tool "${toolName}" ejecutada exitosamente.`, {
+            tool: toolName, params: toolParams, n8nResult
+          }, contactData?.tenantId);
+
+          // Segunda llamada al LLM para que genere la respuesta final con el resultado de n8n
+          const n8nResultText = JSON.stringify(n8nResult);
+          const { text: finalResponseWithResult } = await callLLM(supabase, {
+            provider: provider || 'anthropic',
+            model: model || 'claude-sonnet-4-6',
+            system: finalSystemPrompt,
+            messages: [
+              ...messages,
+              { role: 'assistant', content: finalPromptResponse },
+              { role: 'user', content: `[RESULTADO DEL SISTEMA]: La herramienta "${toolDef.label}" se ejecutó correctamente. Resultado: ${n8nResultText}. Ahora informa al cliente de forma amigable y natural sobre el resultado, sin mostrar datos técnicos JSON. Usa la información del resultado para dar una respuesta clara y concreta.` }
+            ],
+            max_tokens: max_tokens || 1000
+          });
+
+          // Reemplazar la respuesta con la versión final (sin el TOOL_CALL tag)
+          finalPromptResponse = finalResponseWithResult;
+        } else {
+          console.warn(`[TOOL_CALL] Tool "${toolName}" no encontrada en las tools activas de la campaña.`);
+          await insertAuditLog('warning', 'agent_tool_call', `Tool "${toolName}" no encontrada.`, { toolName, activeTools: activeTools.map(t => t.name) }, contactData?.tenantId);
+        }
+      } catch (toolErr) {
+        console.error("[TOOL_CALL Error]", toolErr.message);
+        await insertAuditLog('error', 'agent_tool_call', `Error al ejecutar tool call: ${toolErr.message}`, { error: toolErr.message }, contactData?.tenantId);
+        // En caso de error de n8n, la respuesta del LLM original (sin el tag) llega al cliente
+        finalPromptResponse = finalPromptResponse.replace(/\[TOOL_CALL:[\s\S]*?\]/g, '').trim();
+      }
+    } else if (toolCallMatch) {
+      // Tool call detectado pero sin n8n configurado: limpiar el tag de la respuesta
+      finalPromptResponse = finalPromptResponse.replace(/\[TOOL_CALL:[\s\S]*?\]/g, '').trim();
+    }
+    // ─── Fin Intercepción Tool Call ───────────────────────────────────────────────
 
     // 2. Persiste en Supabase solo si se envían datos del contacto y el tenantId
     if (contactData?.clienteNombre && contactData?.tenantId) {
@@ -1054,6 +1177,137 @@ app.delete("/api/crm/campaigns/:id/agents/:userId", async (req, res) => {
     return res.json({ success: true });
   } catch (e) {
     return res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── AGENT TOOLS (Agentes Autónomos vía n8n) ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /api/crm/campaigns/:id/tools ─────────────────────────────────────────
+app.get("/api/crm/campaigns/:id/tools", async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('agent_tools')
+      .select('*')
+      .eq('campaign_id', req.params.id)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return res.json(data || []);
+  } catch (e) {
+    console.error("[GET /api/crm/campaigns/:id/tools]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── POST /api/crm/campaigns/:id/tools ────────────────────────────────────────
+app.post("/api/crm/campaigns/:id/tools", async (req, res) => {
+  const { tenantId, name, label, description, n8n_workflow_id, input_schema } = req.body;
+  if (!name || !label || !description || !n8n_workflow_id) {
+    return res.status(400).json({ error: "name, label, description y n8n_workflow_id son requeridos." });
+  }
+  try {
+    const { data, error } = await supabase.from('agent_tools').insert({
+      campaign_id: req.params.id,
+      tenant_id: tenantId || null,
+      name: name.toLowerCase().replace(/\s+/g, '_'),
+      label,
+      description,
+      n8n_workflow_id,
+      input_schema: input_schema || null,
+      is_active: true
+    }).select().single();
+    if (error) throw error;
+    return res.json(data);
+  } catch (e) {
+    console.error("[POST /api/crm/campaigns/:id/tools]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── PUT /api/agent-tools/:toolId ─────────────────────────────────────────────
+app.put("/api/agent-tools/:toolId", async (req, res) => {
+  const { name, label, description, n8n_workflow_id, input_schema, is_active } = req.body;
+  try {
+    const updates = {};
+    if (name !== undefined)             updates.name = name.toLowerCase().replace(/\s+/g, '_');
+    if (label !== undefined)            updates.label = label;
+    if (description !== undefined)      updates.description = description;
+    if (n8n_workflow_id !== undefined)  updates.n8n_workflow_id = n8n_workflow_id;
+    if (input_schema !== undefined)     updates.input_schema = input_schema;
+    if (is_active !== undefined)        updates.is_active = is_active;
+
+    const { data, error } = await supabase.from('agent_tools')
+      .update(updates).eq('id', req.params.toolId).select().single();
+    if (error) throw error;
+    return res.json(data);
+  } catch (e) {
+    console.error("[PUT /api/agent-tools/:toolId]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── DELETE /api/agent-tools/:toolId ──────────────────────────────────────────
+app.delete("/api/agent-tools/:toolId", async (req, res) => {
+  try {
+    const { error } = await supabase.from('agent_tools').delete().eq('id', req.params.toolId);
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (e) {
+    console.error("[DELETE /api/agent-tools/:toolId]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── GET /api/crm/campaigns/:id/n8n-config ────────────────────────────────────
+app.get("/api/crm/campaigns/:id/n8n-config", async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('campaigns')
+      .select('n8n_webhook_url, n8n_secret_token').eq('id', req.params.id).single();
+    if (error) throw error;
+    // No exponer el token completo, solo indicar si existe
+    return res.json({
+      n8n_webhook_url: data.n8n_webhook_url || '',
+      has_secret_token: !!data.n8n_secret_token
+    });
+  } catch (e) {
+    console.error("[GET /api/crm/campaigns/:id/n8n-config]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── PUT /api/crm/campaigns/:id/n8n-config ────────────────────────────────────
+app.put("/api/crm/campaigns/:id/n8n-config", async (req, res) => {
+  const { n8n_webhook_url, n8n_secret_token } = req.body;
+  try {
+    const updates = { n8n_webhook_url: n8n_webhook_url || null };
+    // Solo actualizar el token si se envió uno nuevo (no vacío)
+    if (n8n_secret_token && n8n_secret_token.trim() !== '') {
+      updates.n8n_secret_token = n8n_secret_token;
+    }
+    const { data, error } = await supabase.from('campaigns')
+      .update(updates).eq('id', req.params.id).select('id, n8n_webhook_url').single();
+    if (error) throw error;
+    return res.json({ success: true, n8n_webhook_url: data.n8n_webhook_url });
+  } catch (e) {
+    console.error("[PUT /api/crm/campaigns/:id/n8n-config]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── POST /api/crm/campaigns/:id/test-n8n ─────────────────────────────────────
+// Verifica que la URL de n8n está activa
+app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
+  const { n8n_webhook_url } = req.body;
+  if (!n8n_webhook_url) return res.status(400).json({ error: 'n8n_webhook_url requerido.' });
+  try {
+    const testUrl = n8n_webhook_url.replace(/\/$/, '');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(`${testUrl}/healthz`, { signal: controller.signal });
+    clearTimeout(timeout);
+    return res.json({ ok: response.ok, status: response.status });
+  } catch (e) {
+    return res.json({ ok: false, error: e.message });
   }
 });
 
