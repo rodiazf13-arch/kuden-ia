@@ -1853,6 +1853,35 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
 - Teléfono: ${contactData.telefono || 'No registra'}
 - Plan/Servicio Actual: ${contactData.plan || 'Ninguno'}
 - Notas del Sistema: ${contactData.global_summary || 'Sin notas especiales'}`;
+
+        try {
+          const { data: pastConvs } = await supabase.from('conversations')
+            .select('id, canal')
+            .eq('contact_id', contactData.id)
+            .neq('id', convId)
+            .order('updated_at', { ascending: false })
+            .limit(5);
+
+          if (pastConvs && pastConvs.length > 0) {
+            const pastConvIds = pastConvs.map(c => c.id);
+            const { data: pastMsgs } = await supabase.from('conversation_messages')
+              .select('sender_type, content, created_at, conversation_id')
+              .in('conversation_id', pastConvIds)
+              .order('created_at', { ascending: false })
+              .limit(10);
+            
+            if (pastMsgs && pastMsgs.length > 0) {
+              const formattedMsgs = pastMsgs.reverse().map(m => {
+                const convInfo = pastConvs.find(c => c.id === m.conversation_id);
+                const canal = convInfo ? convInfo.canal : 'desconocido';
+                return `[${canal.toUpperCase()}] [${m.sender_type === 'customer' ? 'Cliente' : 'Asistente'}]: ${m.content}`;
+              }).join('\n');
+              crmContext += `\n\n[HISTORIAL OMNICANAL RECIENTE]\nEstos son extractos de conversaciones anteriores con el cliente en otros canales o tickets. Úsalo como memoria para darle continuidad si el cliente hace referencia a cosas pasadas:\n${formattedMsgs}`;
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching omnichannel history", err.message);
+        }
       }
     }
 

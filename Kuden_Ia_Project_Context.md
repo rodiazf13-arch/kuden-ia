@@ -77,7 +77,7 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 3.  **Voz y VICIdial:** Transcripción y análisis de llamadas de voz mediante un microservicio de baja latencia.
 
 ### FASE 3: Ecosistema IA, RAG y Vista 360
-1.  **Vista 360° Omnicanal:** Unificar la línea de tiempo de un contacto (Web + WhatsApp + Voz) para que el ejecutivo humano y la IA tengan todo el contexto histórico.
+1.  ✅ **Vista 360° Omnicanal:** Unificar la línea de tiempo de un contacto (Web + WhatsApp + Voz) para que el ejecutivo humano y la IA tengan todo el contexto histórico. **COMPLETADO.** Se integró `Contact360View` dentro del `CRMManager` permitiendo a los ejecutivos ver el historial completo del contacto sin salir del chat en vivo. En el backend, se agregó la inyección automática del `[HISTORIAL OMNICANAL RECIENTE]` al prompt maestro, otorgándole a Kuden IA la memoria de conversaciones pasadas a través de cualquier canal.
 2.  ✅ **Gestor Multi-LLM y Tarificador:** Conectar OpenAI, Gemini, Claude, Llama para optimizar costos y tener un panel de márgenes de ganancia. Completado.
 3.  ✅ **Sistema RAG (Retrieval-Augmented Generation) Completo:** Motor de embeddings, vectorización y UI de gestión de documentos completados. El módulo **"Base de Conocimiento (RAG)"** dentro de Perfiles IA permite a los clientes subir **PDFs**, archivos **Markdown** y **URLs de sitios web** (con scraping automático) para que el agente los vectorice y los use como contexto de respuesta.
 

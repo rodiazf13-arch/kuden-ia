@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import Contact360View from './Contact360View';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -192,7 +193,7 @@ function MessageBubble({ msg, c }) {
 }
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
-function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], onBack }) {
+function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], onBack, onView360 }) {
   const [data,       setData]       = useState(null);
   const [messages,   setMessages]   = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -397,7 +398,17 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             )}
           </div>
         </div>
-        {/* Toggle panel lateral */}
+        {/* Toggle panel lateral y Vista 360 */}
+        <button
+          onClick={() => onView360(contact)}
+          title="Ver Vista 360° Omnicanal"
+          style={{ padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
+            background: 'transparent', color: c.subtitle,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+        >
+          <i className="ti ti-chart-pie" style={{ fontSize: 14 }} />
+          Vista 360°
+        </button>
         <button
           onClick={() => setShowInfo(v => !v)}
           title={showInfo ? 'Ocultar panel' : 'Ver ficha y análisis IA'}
@@ -691,6 +702,7 @@ function ReportPanel({ tenantId, c, campaigns }) {
 export default function CRMManager({ tenantId, isDark = true, userId, userEmail, userRole, isSuperAdmin }) {
   const [conversations, setConversations] = useState([]);
   const [selectedId,    setSelectedId]    = useState(null);
+  const [view360Contact, setView360Contact] = useState(null);
   const [alerts,        setAlerts]        = useState({ count: 0, alerts: [] });
   const [campaigns,     setCampaigns]     = useState([]);
   const [filterStatus,  setFilterStatus]  = useState('open');
@@ -811,7 +823,18 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
           )}
 
           {/* Layout: bandeja + detalle */}
-          <div style={{ display: 'flex', gap: 0, background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 170px)' }}>
+          {view360Contact ? (
+            <div style={{ height: 'calc(100vh - 170px)', background: c.card, borderRadius: 12, overflow: 'hidden' }}>
+              <Contact360View 
+                contact={view360Contact} 
+                onBack={() => setView360Contact(null)} 
+                isDark={isDark} 
+                c={c} 
+                tenantId={tenantId} 
+              />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 0, background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 170px)' }}>
             {/* Columna izquierda: Bandeja */}
             <div style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               {/* Filtros */}
@@ -878,10 +901,12 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                   c={c}
                   campaigns={campaigns}
                   onBack={() => setSelectedId(null)}
+                  onView360={(contact) => setView360Contact(contact)}
                 />
               </div>
             )}
           </div>
+          )}
         </>
       )}
     </div>
