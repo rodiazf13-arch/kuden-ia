@@ -2301,6 +2301,11 @@ app.post("/api/copilot/chat", async (req, res) => {
     // 4. Inyectar Contexto de Empresa y RAG general
     const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenantId).single();
     
+    // Obtener estadísticas en tiempo real
+    const { count: totalContacts } = await supabase.from("contacts").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+    const { count: totalCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
+    const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).neq("status", "closed");
+
     // RAG: Buscamos documentos genéricos (sin aiProfileId limitante)
     const retrievedText = await retrieveKnowledge(message, supabase, tenantId, null);
     
@@ -2308,7 +2313,15 @@ app.post("/api/copilot/chat", async (req, res) => {
 Tu objetivo es ayudar a los ejecutivos de la empresa con información analítica, estrategias comerciales, redacción de correos, y asistencia operativa. 
 Eres muy inteligente, amable, analítica y proactiva. 
 Usa formato Markdown enriquecido de GitHub (ej. tablas, listas, negritas, código) para que tus respuestas sean fáciles de leer y estructuradas.
-NUNCA asumas que eres un bot de atención a clientes externos. Eres una colega interna y consultora para el equipo.`;
+NUNCA asumas que eres un bot de atención a clientes externos. Eres una colega interna y consultora para el equipo.
+
+[MÉTRICAS EN TIEMPO REAL DEL CRM]
+Al momento de responder, tienes acceso a los datos vivos de la empresa. Estos son los números oficiales:
+- Total de contactos registrados: ${totalContacts || 0}
+- Campañas configuradas: ${totalCampaigns || 0}
+- Tickets/Conversaciones abiertas esperando atención: ${activeTickets || 0}
+
+Si te preguntan cuántos contactos, campañas o tickets hay, responde con seguridad basándote en estas métricas.`;
 
     if (retrievedText) {
       systemPrompt += `\n\n[BASE DE CONOCIMIENTO INTERNA]\nAquí tienes fragmentos de documentos de la empresa que pueden ayudar a responder la consulta del ejecutivo:\n${retrievedText}\n`;

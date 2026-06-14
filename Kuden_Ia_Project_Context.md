@@ -108,8 +108,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Para clientes de ventas, Kuden probará el perfil "Vendedor Consultivo" vs "Vendedor Urgencia". El panel reportará qué psicología convierte más ventas, basando nuestra asesoría en datos duros.
 7.  **Traducción y Multilingüismo en Tiempo Real:**
     El cliente en Brasil escribe en portugués, el ejecutivo chileno de tu cliente lo lee en español y responde en español. Kuden se encarga de re-traducir a nivel sistémico de forma invisible.
-8.  **Agente Asesor IA Interno (Co-Piloto Corporativo):**
-    Un módulo dedicado exclusivamente para los empleados de la empresa cliente (Ejecutivos de Ventas, Marketing). Al conocer toda la Base de Conocimiento (RAG) y los datos históricos de los clientes, este Agente Interno actuará como consultor estratégico: sugiriendo promociones, redactando copys para redes sociales, creando plantillas de WhatsApp de alta conversión, e incluso analizando tendencias de ventas. Kuden se convierte así en una herramienta de *crecimiento* (Growth), no solo de *soporte*.
+8.  ✅ **Agente Asesor IA Interno (Co-Piloto Corporativo):**
+    **COMPLETADO:** Se construyó un módulo interactivo (CopilotManager) para administradores y ejecutivos autorizados (controlado vía RLS y flag `copilot_access`). Kimi actúa como consultora interna privada para cada Tenant, inyectando de forma transparente la Base de Conocimiento (RAG) de la empresa y métricas vitales en tiempo real (Total de Contactos, Campañas, Tickets activos) directamente en su System Prompt. Esto la convierte en un verdadero "ChatGPT Corporativo" que apoya estratégicamente en el día a día.
 9.  **Alertas Automáticas y Escalación Proactiva (Vía n8n):**
     Si la IA detecta a un cliente VIP con riesgo de fuga ALTO, el sistema no solo lo muestra en el dashboard, sino que envía una alerta push inmediata al supervisor vía Slack o WhatsApp, permitiendo salvar la cuenta en minutos.
 10. ✅ **Dashboard de Salud del Sistema (Monitoring Interno):**
