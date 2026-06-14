@@ -35,7 +35,7 @@ export default function BillingDashboard({ isDark = true }) {
       let query = supabase
         .from('llm_usage_logs')
         .select(`
-          id, tenant_id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, created_at,
+          id, tenant_id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at,
           tenants ( name )
         `)
         .order('created_at', { ascending: false })
@@ -76,7 +76,7 @@ export default function BillingDashboard({ isDark = true }) {
       let query = supabase
         .from('llm_usage_logs')
         .select(`
-          id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, created_at,
+          id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at,
           tenants ( name )
         `)
         .order('created_at', { ascending: false });
@@ -89,7 +89,7 @@ export default function BillingDashboard({ isDark = true }) {
       if (error || !data) throw error;
 
       const csvRows = [];
-      const headers = ['Fecha', 'Empresa', 'Proveedor', 'Modelo', 'Prompt Tokens', 'Completion Tokens', 'Costo API (USD)', 'Cobrado (USD)', 'Margen (USD)'];
+      const headers = ['Fecha', 'Empresa', 'Origen', 'Proveedor', 'Modelo', 'Prompt Tokens', 'Completion Tokens', 'Costo API (USD)', 'Cobrado (USD)', 'Margen (USD)'];
       csvRows.push(headers.join(','));
 
       data.forEach(log => {
@@ -97,6 +97,7 @@ export default function BillingDashboard({ isDark = true }) {
         const values = [
           new Date(log.created_at).toLocaleString('es-CL').replace(',', ''),
           log.tenants?.name || 'N/A',
+          log.source || 'widget',
           log.provider,
           log.model,
           log.prompt_tokens,
@@ -187,6 +188,7 @@ export default function BillingDashboard({ isDark = true }) {
             <tr>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Fecha</th>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Empresa</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Origen</th>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Proveedor / Modelo</th>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Tokens (In/Out)</th>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Costo API</th>
@@ -202,10 +204,15 @@ export default function BillingDashboard({ isDark = true }) {
             ) : logs.map(log => {
               const date = new Date(log.created_at).toLocaleString();
               const margin = Number(log.billed_usd) - Number(log.api_cost_usd);
-              return (
+                  const sourceLabels = { widget: '💬 Widget', copilot: '🤖 Co-Piloto', agent_assist: '🧑 Asistencia Agente', summary: '📋 Resumen', other: '⚙️ Otro' };
+                  const sourceLabel = sourceLabels[log.source] || `⚙️ ${log.source || 'widget'}`;
+                  return (
                 <tr key={log.id} style={{ borderBottom: `1px solid ${c.border}` }}>
                   <td style={{ padding: '12px 16px', color: c.subtitle }}>{date}</td>
                   <td style={{ padding: '12px 16px', fontWeight: 500 }}>{log.tenants?.name || 'N/A'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ background: log.source === 'copilot' ? '#4c1d95' : log.source === 'agent_assist' ? '#164e63' : '#1e3a5f', color: '#fff', padding: '3px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{sourceLabel}</span>
+                  </td>
                   <td style={{ padding: '12px 16px' }}>
                     <span style={{ background: c.border, padding: '2px 6px', borderRadius: 4, fontSize: 11, marginRight: 6 }}>{log.provider}</span>
                     {log.model}

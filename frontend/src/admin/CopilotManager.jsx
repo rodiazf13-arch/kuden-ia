@@ -147,12 +147,24 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           })
         )}
         {loading && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ padding: '12px 16px', borderRadius: '12px', background: c.aiBubble, color: c.textSec, border: `1px solid ${c.border}` }}>
-              <i className="ti ti-dots" style={{ fontSize: '18px', animation: 'pulse 1.5s infinite' }}></i> Kimi está escribiendo...
+          <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-end', gap: '10px' }}>
+            <KimiMascot size={32} state="thinking" />
+            <div style={{ padding: '12px 16px', borderRadius: '12px', background: c.aiBubble, color: c.textSec, border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0s' }} />
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0.2s' }} />
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0.4s' }} />
+              </span>
+              <span style={{ fontSize: '13px' }}>Kimi está pensando...</span>
             </div>
           </div>
         )}
+        <style>{`
+          @keyframes kimiBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-6px); opacity: 1; }
+          }
+        `}</style>
         <div ref={messagesEndRef} />
       </div>
 

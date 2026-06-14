@@ -110,7 +110,7 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
   return { text: responseText, usage };
 }
 
-export async function logLLMUsage(supabase, { tenantId, campaignId, aiProfileId, provider, model, usage }) {
+export async function logLLMUsage(supabase, { tenantId, campaignId, aiProfileId, provider, model, usage, source }) {
   if (!tenantId || !usage) return;
   try {
     const { data: tenant } = await supabase.from('tenants').select('llm_markup_multiplier').eq('id', tenantId).maybeSingle();
@@ -134,7 +134,8 @@ export async function logLLMUsage(supabase, { tenantId, campaignId, aiProfileId,
       prompt_tokens: usage.prompt_tokens,
       completion_tokens: usage.completion_tokens,
       api_cost_usd: apiCostUsd,
-      billed_usd: billedUsd
+      billed_usd: billedUsd,
+      source: source || 'widget'
     }]);
   } catch (e) {
     console.error("Error logging LLM usage:", e.message);

@@ -2313,8 +2313,8 @@ app.post("/api/copilot/chat", async (req, res) => {
     const { count: totalCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId);
     const { count: activeCampaigns } = await supabase.from("campaigns").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "active");
     
-    const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).neq("status", "closed");
-    const { count: ticketsClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).eq("status", "closed").gte("updated_at", startOfDayStr);
+    const { count: activeTickets } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).not("status", "in", "(closed,pending_csat,resolved,abandoned)");
+    const { count: ticketsClosedToday } = await supabase.from("conversations").select("*", { count: 'exact', head: true }).eq("tenant_id", tenantId).in("status", ["closed", "pending_csat", "resolved"]).gte("updated_at", startOfDayStr);
 
     // RAG: Buscamos documentos genéricos (sin aiProfileId limitante)
     const retrievedText = await retrieveKnowledge(message, supabase, tenantId, null);
@@ -2350,12 +2350,23 @@ Usa estos datos con total seguridad cuando te pregunten sobre la operación de h
       max_tokens: 1500
     });
 
-    // 6. Guardar respuesta
+    // 6. Guardar respuesta y loggear uso LLM
     const { data: aiMsg } = await supabase.from("copilot_messages").insert({
       conversation_id: conv.id,
       sender_type: "ai",
       content: kimiResponse
     }).select().single();
+
+    // Log del uso para el Tarificador
+    await logLLMUsage(supabase, {
+      tenantId,
+      campaignId: null,
+      aiProfileId: null,
+      provider: 'anthropic',
+      model: 'claude-sonnet-4-6',
+      usage,
+      source: 'copilot'
+    });
 
     return res.json({ message: aiMsg });
   } catch (e) {
