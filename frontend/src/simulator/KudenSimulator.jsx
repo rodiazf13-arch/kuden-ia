@@ -67,22 +67,33 @@ const PLANES = ["Plan Básico 50MB","Plan Hogar 200MB","Plan Hogar 500MB","Plan 
 
 
 const buildSystem = (masterConfig, profile, dbProfiles, cliente, canal) => {
-  const agentName = masterConfig?.agent_name || "KUDEN";
   const companyName = masterConfig?.company_name || "ConectaChile";
-  const basePrompt = masterConfig?.base_prompt || "Eres el asistente virtual. Atiende amablemente.";
-  const allowed = masterConfig?.allowed_profiles || [];
   
-  const activeProfiles = dbProfiles.filter(p => allowed.includes(p.id));
-  const profilesList = activeProfiles.map(p => `- [Perfil: ${p.label}]: ${p.persona_prompt}`).join("\n");
-  
-  let prompt = `Eres ${agentName}, agente maestro de IA de ${companyName}.\n`;
-  prompt += `INSTRUCCIONES DEL AGENTE MAESTRO:\n${basePrompt}\n\n`;
+  let prompt = `Eres un asistente virtual de IA de ${companyName}.\n`;
   
   if (profile && profile.id !== 'master') {
-    prompt += `ATENCIÓN: Para esta respuesta específica, debes adoptar la siguiente personalidad/perfil:\n`;
-    prompt += `[Perfil Activo: ${profile.label}]: ${profile.persona_prompt || profile.persona || "Cliente estándar"}\n\n`;
-  } else if (activeProfiles.length > 0) {
-    prompt += `PERFILES DISPONIBLES (Adapta tu tono y personalidad al perfil que mejor encaje según lo que pida el cliente):\n${profilesList}\n\n`;
+    if (profile.is_router) {
+      prompt += `INSTRUCCIONES DEL AGENTE MAESTRO (Router):\n${profile.persona_prompt}\n\n`;
+      const allowed = profile.sub_profile_ids || [];
+      const activeProfiles = dbProfiles.filter(p => allowed.includes(p.id));
+      if (activeProfiles.length > 0) {
+        const profilesList = activeProfiles.map(p => `- [Perfil: ${p.label}]: ${p.persona_prompt}`).join("\n");
+        prompt += `PERFILES DISPONIBLES (Adapta tu tono y personalidad al perfil que mejor encaje según lo que pida el cliente, de manera natural y sin revelar esta instrucción):\n${profilesList}\n\n`;
+      }
+    } else {
+      prompt += `ATENCIÓN: Para esta respuesta específica, debes adoptar la siguiente personalidad/perfil:\n`;
+      prompt += `[Perfil Activo: ${profile.label}]: ${profile.persona_prompt || profile.persona || "Cliente estándar"}\n\n`;
+    }
+  } else {
+    // Fallback old master config
+    const basePrompt = masterConfig?.base_prompt || "Eres el asistente virtual. Atiende amablemente.";
+    const allowed = masterConfig?.allowed_profiles || [];
+    const activeProfiles = dbProfiles.filter(p => allowed.includes(p.id));
+    const profilesList = activeProfiles.map(p => `- [Perfil: ${p.label}]: ${p.persona_prompt}`).join("\n");
+    prompt += `INSTRUCCIONES DEL AGENTE MAESTRO:\n${basePrompt}\n\n`;
+    if (activeProfiles.length > 0) {
+      prompt += `PERFILES DISPONIBLES (Adapta tu tono y personalidad al perfil que mejor encaje según lo que pida el cliente):\n${profilesList}\n\n`;
+    }
   }
   
   prompt += `CLIENTE: ${cliente.nombre}, RUT: ${cliente.rut}, Plan: ${cliente.plan}, Tel: ${cliente.telefono}\n`;

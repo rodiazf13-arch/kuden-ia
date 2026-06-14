@@ -1807,11 +1807,19 @@ app.post("/api/widget/chat", async (req, res) => {
       const { data: campaign } = await supabase.from("campaigns").select("ai_profile_id").eq("id", widgetConfig.campaign_id).maybeSingle();
       if (campaign?.ai_profile_id) {
         aiProfileIdToLog = campaign.ai_profile_id;
-        const { data: profile } = await supabase.from("ai_profiles").select("persona_prompt, llm_provider, llm_model").eq("id", campaign.ai_profile_id).maybeSingle();
+        const { data: profile } = await supabase.from("ai_profiles").select("persona_prompt, llm_provider, llm_model, is_router, sub_profile_ids").eq("id", campaign.ai_profile_id).maybeSingle();
         if (profile) {
           if (profile.persona_prompt) systemPromptBase = profile.persona_prompt;
           if (profile.llm_provider) llmProvider = profile.llm_provider;
           if (profile.llm_model) llmModel = profile.llm_model;
+
+          if (profile.is_router && profile.sub_profile_ids && profile.sub_profile_ids.length > 0) {
+            const { data: subProfiles } = await supabase.from('ai_profiles').select('id, label, persona_prompt').in('id', profile.sub_profile_ids);
+            if (subProfiles && subProfiles.length > 0) {
+              const profilesList = subProfiles.map(p => `- [Perfil: ${p.label}]: ${p.persona_prompt}`).join('\n');
+              systemPromptBase += `\n\nPERFILES DISPONIBLES (Adapta tu tono y personalidad al perfil que mejor encaje según lo que pida el cliente, de manera natural y sin revelar esta instrucción):\n${profilesList}\n`;
+            }
+          }
         }
       }
     }

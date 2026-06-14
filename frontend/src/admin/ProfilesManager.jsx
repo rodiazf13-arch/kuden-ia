@@ -18,6 +18,8 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [icon,      setIcon]      = useState('ti-headset');
   const [llmProvider, setLlmProvider] = useState('anthropic');
   const [llmModel,    setLlmModel]    = useState('claude-3-5-sonnet-20240620');
+  const [isRouter,    setIsRouter]    = useState(false);
+  const [subProfileIds, setSubProfileIds] = useState([]);
   const [targetTenantId, setTargetTenantId] = useState('own'); // 'own', 'global', or a specific tenant.id
   const [creating,  setCreating]  = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -68,6 +70,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     setLabel(''); setDesc(''); setPersona(''); setHint('');
     setColor('#1D9E75'); setBg('#E1F5EE'); setIcon('ti-headset'); setTargetTenantId('own');
     setLlmProvider('anthropic'); setLlmModel('claude-3-5-sonnet-20240620');
+    setIsRouter(false); setSubProfileIds([]);
     setEditingId(null);
   };
 
@@ -80,6 +83,8 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     else if (p.tenant_id !== actualTenantId) setTargetTenantId(p.tenant_id);
     else setTargetTenantId('own');
     
+    setIsRouter(p.is_router || false);
+    setSubProfileIds(p.sub_profile_ids || []);
     setLlmProvider(p.llm_provider || 'anthropic'); setLlmModel(p.llm_model || 'claude-3-5-sonnet-20240620');
     window.scrollTo(0,0);
   };
@@ -107,7 +112,8 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
       const payload = {
         tenant_id: finalTenantId, label, description: desc, persona_prompt: persona,
         hint_text: hint, color, bg, icon, is_global: finalIsGlobal,
-        llm_provider: llmProvider, llm_model: llmModel
+        llm_provider: llmProvider, llm_model: llmModel,
+        is_router: isRouter, sub_profile_ids: subProfileIds
       };
       if (editingId) {
         const { error } = await supabase.from('ai_profiles').update(payload).eq('id', editingId);
@@ -156,6 +162,13 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
       {p.is_global && (
         <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#f59e0b20', color: '#f59e0b', border: '1px solid #f59e0b40', fontWeight: '700' }}>
           ⭐ Plantilla Kuden
+        </span>
+      )}
+      
+      {/* Badge Router */}
+      {p.is_router && (
+        <span style={{ position: 'absolute', top: '10px', left: p.is_global ? '120px' : '10px', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#2563eb20', color: '#2563eb', border: '1px solid #2563eb40', fontWeight: '700' }}>
+          🤖 Agente Maestro
         </span>
       )}
 
@@ -242,6 +255,36 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
             <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ej: Para clientes con problemas de servicio" required style={inputStyle} />
           </div>
 
+          <div style={{ gridColumn: '1 / -1', background: isRouter ? (isDark ? 'rgba(37,99,235,0.05)' : '#eff6ff') : 'transparent', border: `1px solid ${isRouter ? '#2563eb50' : c.border}`, borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input type="checkbox" checked={isRouter} onChange={e => setIsRouter(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: c.title }}>🤖 Configurar este perfil como Agente Maestro (Router)</span>
+            </label>
+            
+            {isRouter && (
+              <div style={{ marginLeft: 24 }}>
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: c.subtitle }}>Selecciona a qué otros perfiles podrá enrutar las conversaciones este Agente Maestro:</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {profiles.filter(p => p.id !== editingId).map(p => {
+                    const isSelected = subProfileIds.includes(p.id);
+                    return (
+                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? '#2563eb20' : (isDark ? '#222' : '#f0f0f0'), border: `1px solid ${isSelected ? '#2563eb' : c.border}`, padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, color: isSelected ? (isDark ? '#60a5fa' : '#2563eb') : c.inputText }}>
+                        <input type="checkbox" checked={isSelected} 
+                          onChange={e => {
+                            if (e.target.checked) setSubProfileIds([...subProfileIds, p.id]);
+                            else setSubProfileIds(subProfileIds.filter(id => id !== p.id));
+                          }}
+                          style={{ display: 'none' }}
+                        />
+                        {p.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, gridColumn: '1 / -1' }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>Proveedor de Inteligencia (LLM)</label>
@@ -290,9 +333,11 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: '1 / -1' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Instrucciones para KUDEN — ¿Cómo debe responder el agente IA?</label>
+            <label style={{ fontSize: '12px', color: c.label }}>
+              {isRouter ? 'Instrucciones Base (Routing Prompt)' : 'Instrucciones para KUDEN — ¿Cómo debe responder el agente IA?'}
+            </label>
             <textarea value={persona} onChange={e => setPersona(e.target.value)} rows={3}
-              placeholder="Ej: Responde con empatía y paciencia. El cliente puede estar frustrado. Ofrece soluciones concretas y confirma que el problema quedó registrado."
+              placeholder={isRouter ? "Ej: Eres el recepcionista central. Saluda y deriva al perfil correspondiente." : "Ej: Responde con empatía y paciencia..."}
               required style={{ ...inputStyle, resize: 'vertical' }} />
           </div>
 

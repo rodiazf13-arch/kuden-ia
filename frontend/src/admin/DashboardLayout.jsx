@@ -65,8 +65,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Motor IA',
       items: [
-        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' },
-        { id: 'ai_config',  label: 'Config. IA',    icon: 'ti-settings-automation' }
+        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' }
       ]
     },
     {

@@ -43,13 +43,13 @@ Kuden cuenta con una identidad corporativa que equilibra tecnología y calidez. 
 ## 2. Bitácora de Desarrollo: Módulos Ya Construidos
 La plataforma interna de Kuden ya cuenta con un motor potente listo para operar las cuentas de nuestros clientes:
 
-*   **Motor de Orquestación IA y Perfiles:** Módulo `AIConfigManager` (Agente Maestro) que evalúa intenciones y el `ProfilesManager` que permite que el bot adopte distintas "psicologías" dinámicamente.
+*   ✅ **Arquitectura Avanzada de Agentes Maestros (Routing Multi-perfil):** Evolución del motor de orquestación. El sistema permite crear **múltiples Agentes Maestros (Routers) por empresa** configurables directamente desde `ProfilesManager`. Cada Agente Maestro posee una lista específica de sub-perfiles permitidos. Esta arquitectura depreca la antigua pantalla global, permitiendo asignar routers de IA específicos a cada Campaña (`CampaignsManager`) inyectándolos dinámicamente en el prompt del LLM.
 *   **Extracción de Datos (El CRM Invisible):** La IA inyecta silenciosamente etiquetas `[METADATOS]` que el servidor intercepta para crear registros en `ContactsManager` automáticamente.
 *   **Bandeja de Ejecutivos (`CRMManager`):** Interfaz para humanos con *Takeover* (Toma de control del bot), paneles de sentimiento en tiempo real e indicadores de riesgo de fuga.
 *   **Web Chat Automático:** Script embebible (`kuden-widget.js`) con interfaz resiliente, que maneja estados de sesión y cierra activando la encuesta CSAT automáticamente.
 *   **Multi-Tenancy Genuino:** Gestión de clientes respaldada por PostgreSQL/Supabase, blindada con Row Level Security (RLS) para aislamiento de datos.
 *   **Módulo de Reportería Avanzada:** Panel de gráficos integrados (Recharts) en el CRM para visualizar rápidamente el Sentimiento y Riesgo de Fuga de las conversaciones, incluyendo **filtros dinámicos por Campaña**.
-*   **Gestor Multi-LLM y Tarificador:** Abstracción en backend que permite usar los modelos más modernos (Claude 4.6, GPT-5, Gemini 3.5 Flash, Llama 4). Panel de facturación (`BillingDashboard.jsx`) con multiplicador de margen de ganancia de IA (`llm_markup_multiplier`) por tenant.
+*   ✅ **Gestor Multi-LLM y Tarificador Avanzado:** Abstracción en backend que permite usar los modelos más modernos (Claude 4.6, GPT-5, Gemini 3.5 Flash, Llama 4). Panel de facturación (`BillingDashboard.jsx`) con filtros avanzados por **Empresa (Tenant)** y **Rango de Fechas**, multiplicador de margen de ganancia de IA (`llm_markup_multiplier`) y función de **Exportación a CSV** para agilizar la facturación mensual a clientes.
 *   **Arquitectura White-Label Dinámica:** Capacidad de inyectar colores corporativos y logos personalizados por empresa desde el gestor multi-tenant (`TenantsManager.jsx`), asegurando una estética premium con Glassmorphism compatible en modo claro y oscuro.
 *   **Soporte Multi-Industria:** Las plantillas de Tenant se adaptan dinámicamente insertando custom fields específicos para inmobiliarias, salud, cobranzas o soporte.
 *   **Sistema de Suplantación Superadmin ("Done-For-You" Genuino):** Capacidad en tiempo real (`DashboardLayout.jsx` + `App.jsx`) para que los superadministradores de Kuden puedan visualizar toda la plataforma y operar el CRM, Simulador y Perfiles exactamente como si fueran uno de sus clientes, sin perder sus privilegios maestros y sin fugas de estado entre sesiones. Esto facilita enormemente la gestión y el soporte integral de la plataforma.
@@ -84,10 +84,9 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 ### FASE 4: Atribución de Marketing y Automatización Social
 1.  **Atribución de Conversiones "Kuden Ads" (Offline Conversions):** Integrar la API de Conversiones de Meta (CAPI) y Google Ads para registrar como eventos offline las conversiones exitosas del chat (leads calificados, citas, ventas). Esto permite conectar el gasto publicitario con resultados reales en el CRM y optimizar el rendimiento del ad spend.
 2.  **Instagram Comments-to-DM (AI Comments):** Automatización de respuestas inteligentes en comentarios públicos de posts de Instagram, redirigiendo de forma inmediata al usuario a Direct Messages (DM) con un flujo de calificación personalizado operado por la IA.
-3.  **Módulo de Agendamiento Inteligente e Integración de Calendarios (Enfoque Híbrido):**
-    *   **Frontend UI (SaaS Premium):** Interfaz nativa en el panel del CRM (botones limpios como `[Conectar Google Calendar]`, `[Conectar Outlook]`) para que el cliente final no maneje configuraciones técnicas.
-    *   **Backend (n8n as a Router):** Delegar a flujos de trabajo dedicados en n8n el manejo de flujos de OAuth, almacenamiento de tokens, y ruteo de eventos de calendarios para mantener el core de Kuden limpio y desacoplado.
-    *   **Agregadores de Agenda (Cal.com / Calendly API):** Incorporar conectores estándar para delegar la compleja lógica de zonas horarias, cálculo de disponibilidad y agendamiento a APIs robustas especializadas.
+3.  **Hub de Conexión OAuth para Agendamientos (Delegación a n8n):**
+    *   **Regla de Arquitectura (Cero Reinvención):** Kuden NO construirá un motor de calendarios interno (manejo de zonas horarias, disponibilidad, etc.). Toda la carga transaccional y validación de fechas se delega exclusivamente a **n8n** interactuando con herramientas nativas del cliente (Google Calendar, Calendly, Cal.com).
+    *   **Frontend UI (Gestor de Credenciales):** En el roadmap se contempla crear botones limpios en el CRM (ej. `[Conectar Google Calendar]`, `[Vincular Calendly]`) cuyo único propósito sea automatizar el flujo OAuth. Kuden capturará el Token de seguridad y lo inyectará directamente en n8n para que las herramientas (`consultar_disponibilidad`, `agendar_cita`) operen de forma transparente bajo el modelo "Done-For-You".
 
 ---
 
@@ -95,8 +94,8 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 
 Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" en **Sistemas de Inteligencia Autónoma y Predictiva**.
 
-1.  **Agentes Autónomos Transaccionales (Action Agents) vía n8n:**
-    Dotar a la IA de herramientas para ejecutar acciones reales. En lugar de codificar integraciones frágiles en el core de Kuden, utilizaremos **n8n como middleware orquestador**. La IA detecta la intención (ej. *"Quiero agendar una cita"*), emite un JSON estructurado hacia nuestro servidor n8n, y n8n se encarga de hablar con los sistemas del cliente (Shopify, Zendesk, Calendly, sistemas médicos, etc.) para insertar o extraer datos. Kuden mantiene su core limpio y la IA gana extremidades ilimitadas. Kuden no solo chatea, **Kuden opera**.
+1.  ✅ **Agentes Autónomos Transaccionales (Action Agents) vía n8n:**
+    **COMPLETADO.** Se dotó a la IA de herramientas (Tools) para ejecutar acciones reales. Usando **n8n como middleware orquestador**, la IA detecta la intención (ej. *"Quiero agendar una cita"*), emite una etiqueta JSON estructurada (`[TOOL_CALL: ...]`), y el servidor de Kuden intercepta el comando, inyecta datos del CRM en tiempo real (Tenant, Campaña, Contacto) y gatilla el flujo en n8n. El resultado se re-inyecta en el LLM para responder al usuario. Se integraron "Safety Rules" robustas en el Prompt Maestro para evitar la ejecución duplicada de herramientas si la confirmación ya existe en el historial. Kuden no solo chatea, **Kuden opera**.
 2.  ✅ **Copiloto en Vivo para Humanos (Agent Assist):**
     Completado. Botón "Sugerencia IA" implementado en el CRM. Cuando el ejecutivo hace *Takeover*, la IA entra en acción sugiriendo un texto de respuesta a la conversación que el ejecutivo puede revisar y modificar antes de enviar, reduciendo el TMO drásticamente.
 3.  **Análisis Predictivo Proactivo de Fuga (Churn Prediction):**

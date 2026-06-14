@@ -353,7 +353,7 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
                   }}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
                   <option value="">Sin Perfil IA (Agente Genérico por Defecto)</option>
-                  {profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  {profiles.map(p => <option key={p.id} value={p.id}>{p.is_router ? '🤖 ' : ''}{p.label}</option>)}
                 </select>
               </div>
 
