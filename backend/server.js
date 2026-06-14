@@ -2248,6 +2248,33 @@ app.get("/api/copilot/history", async (req, res) => {
   }
 });
 
+app.delete("/api/copilot/history", async (req, res) => {
+  const { tenantId, userId } = req.query;
+  if (!tenantId || !userId) return res.status(400).json({ error: "tenantId y userId requeridos." });
+
+  try {
+    const { data: conv } = await supabase
+      .from("copilot_conversations")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!conv) return res.json({ success: true });
+
+    const { error } = await supabase
+      .from("copilot_messages")
+      .delete()
+      .eq("conversation_id", conv.id);
+
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (e) {
+    console.error("[DELETE /api/copilot/history]", e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 app.post("/api/copilot/chat", async (req, res) => {
   const { tenantId, userId, message } = req.body;
   if (!tenantId || !userId || !message) return res.status(400).json({ error: "Faltan parámetros." });

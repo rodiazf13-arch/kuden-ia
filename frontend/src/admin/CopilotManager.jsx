@@ -86,15 +86,41 @@ export default function CopilotManager({ tenantId, isDark = true }) {
     }
   };
 
+  const handleClearChat = async () => {
+    if (!window.confirm("¿Estás seguro de que deseas borrar todo el historial del chat actual con Kimi?")) return;
+    
+    setMessages([]);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      await fetch(`${API_URL}/api/copilot/history?tenantId=${tenantId}&userId=${userId}`, {
+        method: 'DELETE'
+      });
+    } catch (e) {
+      console.error("Error clearing chat history", e);
+    }
+  };
+
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
       <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', background: c.bg, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-      <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-        <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
-        <div>
-          <h2 style={{ margin: 0, fontSize: '18px', color: c.textMain }}>Co-Piloto (Kimi)</h2>
-          <p style={{ margin: 0, fontSize: '13px', color: c.textSec }}>Tu consultora estratégica y asistente interna</p>
+      <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
+          <div>
+            <h2 style={{ margin: 0, fontSize: '18px', color: c.textMain }}>Co-Piloto (Kimi)</h2>
+            <p style={{ margin: 0, fontSize: '13px', color: c.textSec }}>Tu consultora estratégica y asistente interna</p>
+          </div>
         </div>
+        {messages.length > 0 && (
+          <button 
+            onClick={handleClearChat}
+            style={{ padding: '6px 12px', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: '6px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', transition: 'all 0.2s' }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#ef444422'; e.currentTarget.style.borderColor = '#ef4444'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = c.border; }}
+          >
+            <i className="ti ti-trash"></i> Limpiar
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
