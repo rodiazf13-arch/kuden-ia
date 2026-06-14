@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import KnowledgeBaseManager from './KnowledgeBaseManager';
 
+const COMMON_ICONS = [
+  'ti-headset', 'ti-robot', 'ti-messages', 'ti-user', 'ti-user-check', 'ti-shield-check',
+  'ti-shopping-cart', 'ti-currency-dollar', 'ti-credit-card', 'ti-receipt',
+  'ti-heart', 'ti-thumb-up', 'ti-bulb', 'ti-flame', 'ti-star',
+  'ti-chart-bar', 'ti-device-mobile', 'ti-world', 'ti-mail', 'ti-phone',
+  'ti-calendar', 'ti-clock', 'ti-settings', 'ti-tool', 'ti-truck'
+];
+
 export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin = false, actualTenantId, allTenants = [] }) {
   const [profiles,        setProfiles]        = useState([]);
   const [globalProfiles,  setGlobalProfiles]  = useState([]);
@@ -23,6 +31,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [targetTenantId, setTargetTenantId] = useState('own'); // 'own', 'global', or a specific tenant.id
   const [creating,  setCreating]  = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
   const c = {
     card:      isDark ? '#111'    : '#ffffff',
@@ -358,9 +367,40 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               <input type="color" value={bg} onChange={e => setBg(e.target.value)}
                 style={{ width: '100%', height: '40px', backgroundColor: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', cursor: 'pointer' }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, position: 'relative' }}>
               <label style={{ fontSize: '12px', color: c.label }}>Ícono (Tabler Icons)</label>
-              <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="ti-headset" style={inputStyle} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ width: '40px', height: '40px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.inputText }}>
+                  <i className={`ti ${icon}`} style={{ fontSize: '20px' }}></i>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setIconPickerOpen(!iconPickerOpen)}
+                  style={{ flex: 1, padding: '0 12px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.inputText, fontSize: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  {icon || 'Seleccionar Ícono'}
+                  <i className="ti ti-chevron-down"></i>
+                </button>
+              </div>
+              
+              {iconPickerOpen && (
+                <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '8px', background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '12px', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                  {COMMON_ICONS.map(ic => (
+                    <button 
+                      key={ic} 
+                      type="button"
+                      onClick={() => { setIcon(ic); setIconPickerOpen(false); }}
+                      title={ic}
+                      style={{ height: '36px', background: icon === ic ? 'rgba(37,99,235,0.1)' : 'transparent', border: `1px solid ${icon === ic ? '#2563eb' : c.border}`, borderRadius: '6px', cursor: 'pointer', color: icon === ic ? '#2563eb' : c.inputText, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <i className={`ti ${ic}`} style={{ fontSize: '18px' }}></i>
+                    </button>
+                  ))}
+                  <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
+                     <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="Código manual (ej: ti-home)" style={{...inputStyle, padding: '6px 10px', fontSize: '12px'}} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

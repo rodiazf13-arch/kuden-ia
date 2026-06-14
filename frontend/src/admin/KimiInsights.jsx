@@ -107,7 +107,9 @@ export default function KimiInsights({ tenantId, isDark = true }) {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: c.textSec, background: c.highlight, borderRadius: '8px', border: `1px dashed ${c.border}` }}>
-                <i className="ti ti-robot" style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.5 }}></i>
+                <div style={{ width: 60, height: 60, margin: '0 auto 16px', opacity: 0.7, filter: 'grayscale(100%)' }}>
+                  <KimiMascot emotion="neutral" isDark={isDark} />
+                </div>
                 <p>Aún no has generado el análisis de este mes.</p>
                 <p style={{ fontSize: '12px', opacity: 0.7 }}>Haz clic en el botón superior para que evalúe el desempeño general.</p>
               </div>
