@@ -286,7 +286,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       </aside>
 
       {/* ── Contenido principal ── */}
-      <div style={{ flex: 1, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
+      <div style={{ flex: 1, background: isDark ? 'radial-gradient(circle at top right, #1f1f33 0%, #0a0a0a 60%, #050505 100%)' : 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
         <div style={{ padding: '28px 32px', maxWidth: '1140px', animation: 'fadeSlideIn 0.25s ease-out' }}>
           {typeof children === 'function' ? children(isDark) : children}
         </div>
