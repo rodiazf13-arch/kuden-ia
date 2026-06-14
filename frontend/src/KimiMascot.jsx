@@ -94,7 +94,7 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
             style={{
               width: s * 0.3,
               height: s * 0.3,
-              background: \`radial-gradient(circle, #ffffff 0%, \${c.orbit1} 50%, \${c.core} 100%)\`,
+              background: `radial-gradient(circle, #ffffff 0%, ${c.orbit1} 50%, ${c.core} 100%)`,
               animationDuration: state === 'thinking' ? '0.8s' : state === 'alert' ? '0.5s' : '2s'
             }}
           ></div>
@@ -104,8 +104,8 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
               width: s * 0.7,
               height: s * 0.4,
               borderTopColor: c.orbit1,
-              borderBottomColor: \`\${c.orbit1}33\`,
-              animation: \`kimi-rotate-1 \${sp.o1} infinite linear\`
+              borderBottomColor: `${c.orbit1}33`,
+              animation: `kimi-rotate-1 ${sp.o1} infinite linear`
             }}
           ></div>
           <div 
@@ -114,8 +114,8 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
               width: s * 0.4,
               height: s * 0.7,
               borderLeftColor: c.orbit2,
-              borderRightColor: \`\${c.orbit2}33\`,
-              animation: \`kimi-rotate-2 \${sp.o2} infinite linear\`
+              borderRightColor: `${c.orbit2}33`,
+              animation: `kimi-rotate-2 ${sp.o2} infinite linear`
             }}
           ></div>
           <div 
@@ -124,7 +124,7 @@ export default function KimiMascot({ size = 40, state = 'idle', style = {} }) {
               width: s * 0.8,
               height: s * 0.8,
               borderTopColor: c.orbit3,
-              animation: \`kimi-rotate-3 \${sp.o3} infinite linear\`
+              animation: `kimi-rotate-3 ${sp.o3} infinite linear`
             }}
           ></div>
       </div>
