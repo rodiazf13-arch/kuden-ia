@@ -38,12 +38,12 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   const borderCol    = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
 
   const sidebarBg    = isDark
-    ? 'linear-gradient(180deg, rgba(16,16,30,0.95) 0%, rgba(10,10,18,0.98) 100%)'
+    ? 'var(--gradient-bg-sidebar)'
     : 'linear-gradient(180deg, rgba(248,250,255,0.95) 0%, rgba(255,255,255,0.98) 100%)';
 
   const mainBg       = isDark
-    ? 'radial-gradient(ellipse at top-left, #0f0f23 0%, #0a0a0a 70%)'
-    : 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 40%, #fafafa 100%)';
+    ? 'var(--gradient-bg-main)'
+    : 'var(--gradient-bg-main)';
 
   const tabGroups = [
     {

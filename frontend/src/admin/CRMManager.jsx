@@ -582,7 +582,7 @@ function ReportPanel({ tenantId, c, campaigns }) {
       setLoading(false);
     };
     load();
-  }, [tenantId, period]);
+  }, [tenantId, period, periodCampaign]);
 
   if (loading) return <div style={{ padding: 40, color: c.subtitle, textAlign: 'center' }}>Cargando métricas...</div>;
   if (!stats)  return null;

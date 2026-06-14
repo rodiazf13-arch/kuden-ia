@@ -165,11 +165,11 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
           <i className={`ti ${p.icon}`} style={{ fontSize: '18px', color: '#fff' }}></i>
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 600, color: c.title, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <p style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
             {p.label}
-            <span style={{ fontSize: 10, background: c.inputBg, border: `1px solid ${c.border}`, padding: '2px 6px', borderRadius: 10, color: c.subtitle }}>{p.llm_provider || 'anthropic'}</span>
+            <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.1)', padding: '2px 6px', borderRadius: 10, color: '#4b5563' }}>{p.llm_provider || 'anthropic'}</span>
           </p>
-          <p style={{ margin: 0, fontSize: '12px', color: '#555' }}>{p.description}</p>
+          <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>{p.description}</p>
         </div>
       </div>
 
