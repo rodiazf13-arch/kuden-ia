@@ -86,8 +86,11 @@ export default function KimiInsights({ tenantId, isDark = true }) {
           
           {/* Columna Izquierda: Reporte Kimi */}
           <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 20px', color: c.textMain, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-file-analytics" style={{ color: c.primary }}></i> Reporte Estratégico
+            <h2 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 20px', color: c.textMain, display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 28, height: 28, flexShrink: 0 }}>
+                <KimiMascot emotion="happy" isDark={isDark} />
+              </div>
+              Análisis de Kimi
             </h2>
             
             {report ? (
