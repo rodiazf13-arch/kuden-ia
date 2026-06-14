@@ -180,35 +180,15 @@ export default function SystemHealthDashboard({ isDark }) {
               <Area type="monotone" dataKey="error"   stroke="#E24B4A" fill="url(#grad-error)"   strokeWidth={2} />
               <Area type="monotone" dataKey="warning" stroke="#EF9F27" fill="url(#grad-warning)" strokeWidth={1.5} />
               <Area type="monotone" dataKey="info"    stroke="#2563eb" fill="url(#grad-info)"    strokeWidth={1.5} />
-  const severityCounts = stats?.bySeverity || {};
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <div style={{ marginBottom: 24, flexShrink: 0 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 4px', color: textMain }}>Monitor de Salud del Sistema</h1>
-        <p style={{ margin: 0, color: textSec, fontSize: 13 }}>Vista en vivo de logs, errores y métricas operacionales.</p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24, flexShrink: 0 }}>
-        {Object.entries(SEV_CONFIG).map(([sev, config]) => {
-          if (sev === 'all') return null;
-          const count = severityCounts[sev] || 0;
-          return (
-            <div key={sev} style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: config.color + '15', color: config.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-                <i className={`ti ${config.icon}`} />
-              </div>
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: 12, color: textSec, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{config.label}</p>
-                <p style={{ margin: 0, fontSize: 24, fontWeight: 700, color: textMain }}>{count}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${border}`, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', background: isDark ? 'rgba(255,255,255,0.02)' : '#f9fafb', flexShrink: 0 }}>
+      {/* ── Filtros y tabla ── */}
+      <div style={{ background: cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${border}`, borderRadius: 14, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+        {/* Barra de filtros */}
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${border}`, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="🔍 Buscar en mensajes..."
@@ -218,22 +198,19 @@ export default function SystemHealthDashboard({ isDark }) {
             type="datetime-local" value={from} onChange={e => setFrom(e.target.value)}
             style={{ fontSize: 11, padding: '7px 8px', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', border: `1px solid ${border}`, borderRadius: 8, color: textMain }}
           />
-          {['all','critical','error','warning','info','debug'].map(s => {
-            const config = SEV_CONFIG[s];
-            if (!config && s !== 'all') return null;
-            return (
-              <button key={s} onClick={() => setSeverity(s)}
-                style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${severity === s ? (config?.color || '#2563eb') + '80' : border}`, background: severity === s ? (config?.color || '#2563eb') + '15' : 'transparent', color: severity === s ? (config?.color || '#2563eb') : textSec, transition: 'all 0.15s' }}>
-                {s === 'all' ? 'Todos' : config?.label || s}
-              </button>
-            )
-          })}
+          {['all','critical_error','warning','info','debug'].map(s => (
+            <button key={s} onClick={() => setSeverity(s)}
+              style={{ padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') + '80' : border}`, background: severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') + '15' : 'transparent', color: severity === s ? (SEV_CONFIG[s]?.color || '#2563eb') : textSec, transition: 'all 0.15s' }}>
+              {s === 'all' ? 'Todos' : SEV_CONFIG[s]?.label || s}
+            </button>
+          ))}
           <button onClick={fetchLogs} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer' }}>
             <i className="ti ti-refresh" style={{ marginRight: 4 }} />Actualizar
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', minHeight: 0 }}>
+        {/* Tabla */}
+        <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
@@ -251,6 +228,7 @@ export default function SystemHealthDashboard({ isDark }) {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                       <KimiMascot size={48} state="happy" />
                       <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1D9E75' }}>¡Sin eventos en este período!</p>
+                      <p style={{ margin: 0, fontSize: 12, color: textSec }}>Kimi está tranquila — el sistema opera con normalidad.</p>
                     </div>
                   </td>
                 </tr>
