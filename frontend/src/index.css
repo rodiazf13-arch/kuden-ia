@@ -27,7 +27,7 @@
   --glass-shadow:    0 8px 32px rgba(0, 0, 0, 0.08);
 
   /* ── Gradient Backgrounds ────────────────────────── */
-  --gradient-bg-main:    linear-gradient(135deg, #eef2ff 0%, #f5f3ff 40%, #fafafa 100%);
+  --gradient-bg-main:    linear-gradient(160deg, #fefffe 20%, #a5d7e6 80%, #2dadb67d 100%);
   --gradient-bg-sidebar: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
   --gradient-brand:      linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
   --gradient-success:    linear-gradient(135deg, #1D9E75 0%, #059669 100%);
@@ -67,7 +67,7 @@
   --glass-bg-card:  rgba(255, 255, 255, 0.03);
   --glass-border:   rgba(255, 255, 255, 0.07);
   --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.40);
-  --gradient-bg-main:    radial-gradient(ellipse at top-left, #0f0f23 0%, #0a0a0a 70%);
+  --gradient-bg-main:    linear-gradient(160deg, #0c0c0c 20%, #231b45b3 80%, #102d619e 100%);
   --gradient-bg-sidebar: linear-gradient(180deg, #12121f 0%, #0a0a0a 100%);
 }
 
