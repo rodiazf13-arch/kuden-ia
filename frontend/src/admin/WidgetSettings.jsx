@@ -285,7 +285,7 @@ export default function WidgetSettings({ tenantId, isDark = true }) {
                   </div>
                   <button 
                     onClick={() => copyScript(w)}
-                    style={{ background: isDark ? '#333' : '#111827', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 4 }}
+                    style={{ background: isDark ? '#54326d' : '#123683', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 4 }}
                   >
                     <i className="ti ti-copy"></i> Copiar Script
                   </button>

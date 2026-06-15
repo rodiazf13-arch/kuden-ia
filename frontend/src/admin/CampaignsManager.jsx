@@ -317,13 +317,14 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <h3 style={{ margin: '8px 0 4px', fontSize: 14, color: c.title }}>Campañas Creadas</h3>
             {campaigns.map(cam => (
               <div key={cam.id} onClick={() => setSelectedCam(cam)}
                 style={{ padding: '12px 16px', background: selectedCam?.id === cam.id ? `${cam.color}15` : c.card, border: `1px solid ${selectedCam?.id === cam.id ? cam.color : c.border}`, borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <i className={`ti ${cam.icon}`} style={{ color: cam.color, fontSize: 18, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: selectedCam?.id === cam.id ? cam.color : c.title, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cam.name}</p>
+                    <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: selectedCam?.id === cam.id ? cam.color : c.title, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cam.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: 11, color: c.subtitle }}>
                       {cam.campaign_agents?.length || 0} agentes
                       {cam.n8n_webhook_url ? ' · 🔗 n8n' : ''}

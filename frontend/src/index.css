@@ -18,9 +18,9 @@
   --color-text-primary: #111827;
   --color-text-secondary: #6b7280;
   --color-text-tertiary: #9ca3af;
-  --color-border-tertiary: #318bbf;
+  --color-border-tertiary: #e5e7eb;
   /* 318bbf e5e7eb*/
-  --color-border-secondary: #d1d5db; 
+  --color-border-secondary: #d1d5db;
 
   /* ── Glassmorphism ───────────────────────────────── */
   --glass-bg: rgba(255, 255, 255, 0.80);
