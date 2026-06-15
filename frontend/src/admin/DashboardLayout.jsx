@@ -7,6 +7,9 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   });
   const [alertCount, setAlertCount] = useState(0);
   const [impersonateOpen, setImpersonateOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('kuden_sidebar_collapsed') === 'true';
+  });
 
   useEffect(() => {
     localStorage.setItem('kuden_theme', theme);
@@ -14,6 +17,10 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     document.documentElement.setAttribute('data-theme', theme);
     return () => {};
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('kuden_sidebar_collapsed', isSidebarCollapsed);
+  }, [isSidebarCollapsed]);
 
   // Poll alert count every 5s for the CRM badge
   useEffect(() => {
@@ -91,7 +98,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     >
       {/* ── Sidebar ── */}
       <aside style={{
-        width: '250px',
+        width: isSidebarCollapsed ? '80px' : '250px',
         background: sidebarBg,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -99,13 +106,41 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         boxShadow: isDark ? '4px 0 24px rgba(0,0,0,0.3)' : '4px 0 24px rgba(0,0,0,0.05)',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'background 0.4s, border-color 0.3s',
+        transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s, border-color 0.3s',
         position: 'relative',
         zIndex: 10,
       }}>
 
+        {/* Botón para colapsar/expandir */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          title={isSidebarCollapsed ? "Expandir" : "Contraer"}
+          style={{
+            position: 'absolute',
+            top: '26px',
+            right: '-14px',
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            background: isDark ? '#1a1a2e' : '#fff',
+            border: `1px solid ${borderCol}`,
+            color: textSec,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            zIndex: 20,
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = brandColor; e.currentTarget.style.borderColor = brandColor; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = textSec; e.currentTarget.style.borderColor = borderCol; }}
+        >
+          <i className={`ti ti-chevron-${isSidebarCollapsed ? 'right' : 'left'}`} style={{ fontSize: '14px' }}></i>
+        </button>
+
         {/* Logo */}
-        <div style={{ padding: '20px 16px', borderBottom: `1px solid ${borderCol}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ padding: isSidebarCollapsed ? '20px 0' : '20px 16px', borderBottom: `1px solid ${borderCol}`, display: 'flex', alignItems: 'center', gap: '12px', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
           {tenantLogo ? (
             <img src={tenantLogo} alt="Logo Empresa" style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'contain', flexShrink: 0, background: isDark ? 'rgba(255,255,255,0.1)' : 'transparent', padding: 2 }} />
           ) : (
@@ -118,18 +153,20 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
               <span style={{ color: '#fff', fontWeight: 800, fontSize: 17 }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
             </div>
           )}
-          <div style={{ overflow: 'hidden' }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: brandColor, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 155 }}>
-              {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
-            </p>
-            <p style={{ margin: 0, fontSize: '11px', color: textSec }}>
-              {isSuperAdmin ? '⚡ Super Admin' : 'Panel de Control'}
-            </p>
-          </div>
+          {!isSidebarCollapsed && (
+            <div style={{ overflow: 'hidden' }}>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: brandColor, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 155 }}>
+                {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
+              </p>
+              <p style={{ margin: 0, fontSize: '11px', color: textSec }}>
+                {isSuperAdmin ? '⚡ Super Admin' : 'Panel de Control'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Empresa actual pill */}
-        {tenantName && (
+        {tenantName && !isSidebarCollapsed && (
           <div style={{ padding: '24px 20px', borderBottom: `1px solid ${borderCol}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -190,34 +227,49 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
               )}
             </div>
           )}
-        </div>
+          </div>
+        )}
+
+        {/* Empresa actual pill (Colapsado) */}
+        {tenantName && isSidebarCollapsed && (
+          <div style={{ padding: '16px 0', borderBottom: `1px solid ${borderCol}`, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }} title={tenantName}>
+              {tenantLogo ? <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <i className="ti ti-building" style={{ fontSize: 20, color: brandColor }}></i>}
+            </div>
+          </div>
         )}
 
         {/* Navegación */}
-        <nav style={{ flex: 1, padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: isSidebarCollapsed ? '14px 10px' : '14px 10px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto', overflowX: 'hidden' }}>
           {tabGroups.map((group, idx) => {
             const groupItems = group.items.filter(t => !t.superAdminOnly || isSuperAdmin);
             if (groupItems.length === 0) return null;
             return (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <p style={{ margin: '0 0 4px 10px', fontSize: '10px', fontWeight: '700', color: textSec, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                  {group.title}
-                </p>
+                {!isSidebarCollapsed ? (
+                  <p style={{ margin: '0 0 4px 10px', fontSize: '10px', fontWeight: '700', color: textSec, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+                    {group.title}
+                  </p>
+                ) : (
+                  <div style={{ height: 1, background: borderCol, margin: '8px 10px' }} title={group.title} />
+                )}
                 {groupItems.map(t => {
                   const isActive = currentTab === t.id;
                   return (
-                    <button key={t.id} onClick={() => setTab(t.id)}
+                    <button key={t.id} onClick={() => setTab(t.id)} title={isSidebarCollapsed ? t.label : ''}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '9px',
-                        padding: '9px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                        padding: isSidebarCollapsed ? '12px 0' : '9px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                        justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                         background: isActive
                           ? `linear-gradient(135deg, ${brandColor}22, ${brandColor}11)`
                           : 'transparent',
                         color: isActive ? brandColor : textSec,
                         fontWeight: isActive ? '600' : '500',
-                        fontSize: '13px', transition: 'all 0.15s', textAlign: 'left', width: '100%',
-                        borderLeft: isActive ? `3px solid ${brandColor}` : '3px solid transparent',
+                        fontSize: '13px', transition: 'all 0.15s', width: '100%',
+                        borderLeft: isActive && !isSidebarCollapsed ? `3px solid ${brandColor}` : '3px solid transparent',
                         boxShadow: isActive ? `inset 0 0 0 1px ${brandColor}20` : 'none',
+                        position: 'relative'
                       }}
                       onMouseEnter={(e) => {
                         if (!isActive) {
@@ -232,13 +284,16 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
                         }
                       }}
                     >
-                      <i className={`ti ${t.icon}`} style={{ fontSize: '15px', flexShrink: 0 }} />
-                      {t.label}
-                      {t.superAdminOnly && (
+                      <i className={`ti ${t.icon}`} style={{ fontSize: isSidebarCollapsed ? '20px' : '15px', flexShrink: 0 }} />
+                      {!isSidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{t.label}</span>}
+                      {t.superAdminOnly && !isSidebarCollapsed && (
                         <span style={{ marginLeft: 'auto', fontSize: '9px', background: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b30', borderRadius: '4px', padding: '1px 5px', fontWeight: '700' }}>MASTER</span>
                       )}
-                      {t.badge > 0 && (
+                      {t.badge > 0 && !isSidebarCollapsed && (
                         <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '700', background: t.badgeColor || '#E24B4A', color: '#fff', borderRadius: 20, padding: '1px 7px', minWidth: 20, textAlign: 'center', animation: 'badge-pop 0.3s ease-out' }}>{t.badge}</span>
+                      )}
+                      {t.badge > 0 && isSidebarCollapsed && (
+                        <div style={{ position: 'absolute', top: 6, right: 12, width: 8, height: 8, borderRadius: '50%', background: t.badgeColor || '#E24B4A' }} />
                       )}
                     </button>
                   );
@@ -249,41 +304,49 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         </nav>
 
         {/* Footer sidebar */}
-        <div style={{ padding: '14px', borderTop: `1px solid ${borderCol}` }}>
+        <div style={{ padding: isSidebarCollapsed ? '14px 10px' : '14px', borderTop: `1px solid ${borderCol}`, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
           {/* Rol badge */}
-          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              fontSize: '10px', padding: '3px 9px', borderRadius: '20px',
-              background: isSuperAdmin ? '#f59e0b15' : userRole === 'admin' ? '#2563eb15' : '#1D9E7515',
-              color:      isSuperAdmin ? '#f59e0b'   : userRole === 'admin' ? '#2563eb'   : '#1D9E75',
-              border: `1px solid ${isSuperAdmin ? '#f59e0b30' : userRole === 'admin' ? '#2563eb30' : '#1D9E7530'}`,
-              fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
-            }}>
-              {isSuperAdmin ? '⚡ Super Admin' : userRole === 'admin' ? 'Admin' : 'Agente'}
-            </span>
-          </div>
+          {!isSidebarCollapsed && (
+            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                fontSize: '10px', padding: '3px 9px', borderRadius: '20px',
+                background: isSuperAdmin ? '#f59e0b15' : userRole === 'admin' ? '#2563eb15' : '#1D9E7515',
+                color:      isSuperAdmin ? '#f59e0b'   : userRole === 'admin' ? '#2563eb'   : '#1D9E75',
+                border: `1px solid ${isSuperAdmin ? '#f59e0b30' : userRole === 'admin' ? '#2563eb30' : '#1D9E7530'}`,
+                fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
+              }}>
+                {isSuperAdmin ? '⚡ Super Admin' : userRole === 'admin' ? 'Admin' : 'Agente'}
+              </span>
+            </div>
+          )}
 
-          <p style={{ margin: '0 0 2px', fontSize: '10px', color: textSec }}>Conectado como</p>
-          <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '500', wordBreak: 'break-all', color: textMain }}>{userEmail}</p>
+          {!isSidebarCollapsed && (
+            <>
+              <p style={{ margin: '0 0 2px', fontSize: '10px', color: textSec }}>Conectado como</p>
+              <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '500', wordBreak: 'break-all', color: textMain }}>{userEmail}</p>
+            </>
+          )}
 
           {/* Theme toggle */}
-          <button onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', marginBottom: '6px' }}>
-            {isDark ? <><i className="ti ti-sun" /> Modo Claro</> : <><i className="ti ti-moon" /> Modo Oscuro</>}
+          <button onClick={() => setTheme(isDark ? 'light' : 'dark')} title={isDark ? 'Modo Claro' : 'Modo Oscuro'}
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px' }}>
+            {isDark ? <i className="ti ti-sun" /> : <i className="ti ti-moon" />}
+            {!isSidebarCollapsed && (isDark ? 'Modo Claro' : 'Modo Oscuro')}
           </button>
 
           {/* Mi Perfil */}
-          <button onClick={() => setTab('profile')}
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${currentTab === 'profile' ? brandColor + '40' : borderCol}`, background: currentTab === 'profile' ? brandColor + '10' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: currentTab === 'profile' ? brandColor : textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', marginBottom: '6px' }}>
-            <i className="ti ti-user" /> Mi Perfil
+          <button onClick={() => setTab('profile')} title="Mi Perfil"
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${currentTab === 'profile' ? brandColor + '40' : borderCol}`, background: currentTab === 'profile' ? brandColor + '10' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: currentTab === 'profile' ? brandColor : textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px' }}>
+            <i className="ti ti-user" /> {!isSidebarCollapsed && 'Mi Perfil'}
           </button>
 
           {/* Logout */}
-          <button onClick={handleLogout}
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: 'transparent', color: textSec, cursor: 'pointer', transition: 'all 0.2s', fontSize: '12px' }}
+          <button onClick={handleLogout} title="Cerrar Sesión"
+            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: 'transparent', color: textSec, cursor: 'pointer', transition: 'all 0.2s', fontSize: isSidebarCollapsed ? '16px' : '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSec; e.currentTarget.style.borderColor = borderCol; }}>
-            <i className="ti ti-logout" style={{ marginRight: 5 }} />Cerrar Sesión
+            <i className="ti ti-logout" style={{ marginRight: isSidebarCollapsed ? 0 : 5 }} />
+            {!isSidebarCollapsed && 'Cerrar Sesión'}
           </button>
         </div>
       </aside>
