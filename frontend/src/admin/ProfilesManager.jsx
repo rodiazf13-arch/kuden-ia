@@ -11,39 +11,39 @@ const COMMON_ICONS = [
 ];
 
 export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin = false, actualTenantId, allTenants = [] }) {
-  const [profiles,        setProfiles]        = useState([]);
-  const [globalProfiles,  setGlobalProfiles]  = useState([]);
-  const [loading,         setLoading]         = useState(true);
-  const [error,           setError]           = useState(null);
+  const [profiles, setProfiles] = useState([]);
+  const [globalProfiles, setGlobalProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Formulario
-  const [label,     setLabel]     = useState('');
-  const [desc,      setDesc]      = useState('');
-  const [persona,   setPersona]   = useState('');
-  const [hint,      setHint]      = useState('');
-  const [color,     setColor]     = useState('#1D9E75');
-  const [bg,        setBg]        = useState('#E1F5EE');
-  const [icon,      setIcon]      = useState('ti-headset');
+  const [label, setLabel] = useState('');
+  const [desc, setDesc] = useState('');
+  const [persona, setPersona] = useState('');
+  const [hint, setHint] = useState('');
+  const [color, setColor] = useState('#1D9E75');
+  const [bg, setBg] = useState('#E1F5EE');
+  const [icon, setIcon] = useState('ti-headset');
   const [llmProvider, setLlmProvider] = useState('anthropic');
-  const [llmModel,    setLlmModel]    = useState('claude-3-5-sonnet-20240620');
-  const [isRouter,    setIsRouter]    = useState(false);
+  const [llmModel, setLlmModel] = useState('claude-3-5-sonnet-20240620');
+  const [isRouter, setIsRouter] = useState(false);
   const [subProfileIds, setSubProfileIds] = useState([]);
   const [targetTenantId, setTargetTenantId] = useState('own'); // 'own', 'global', or a specific tenant.id
-  const [creating,  setCreating]  = useState(false);
+  const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
   const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    inputBg:   isDark ? '#1a1a1a' : '#f9fafb',
+    card: isDark ? '#111' : '#ffffff',
+    border: isDark ? '#222' : '#e5e7eb',
+    title: isDark ? '#ffffff' : '#111827',
+    subtitle: isDark ? '#aaaaaa' : '#6b7280',
+    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
     inputText: isDark ? '#ffffff' : '#111827',
-    label:     isDark ? '#888888' : '#6b7280',
+    label: isDark ? '#888888' : '#6b7280',
     sectionHd: isDark ? '#cccccc' : '#374151',
-    divider:   isDark ? '#222222' : '#e5e7eb',
-    globalBg:  isDark ? '#1a1500' : '#fffbeb',
+    divider: isDark ? '#222222' : '#e5e7eb',
+    globalBg: isDark ? '#1a1500' : '#fffbeb',
     globalBdr: isDark ? '#78350f' : '#fcd34d',
   };
 
@@ -87,15 +87,15 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     setEditingId(p.id); setLabel(p.label); setDesc(p.description || '');
     setPersona(p.persona_prompt || ''); setHint(p.hint_text || '');
     setColor(p.color || '#1D9E75'); setBg(p.bg || '#E1F5EE');
-    setIcon(p.icon || 'ti-headset'); 
+    setIcon(p.icon || 'ti-headset');
     if (p.is_global) setTargetTenantId('global');
     else if (p.tenant_id !== actualTenantId) setTargetTenantId(p.tenant_id);
     else setTargetTenantId('own');
-    
+
     setIsRouter(p.is_router || false);
     setSubProfileIds(p.sub_profile_ids || []);
     setLlmProvider(p.llm_provider || 'anthropic'); setLlmModel(p.llm_model || 'claude-3-5-sonnet-20240620');
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   };
 
   const handleCreate = async (e) => {
@@ -104,7 +104,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     try {
       let finalTenantId = tenantId;
       let finalIsGlobal = false;
-      
+
       if (isSuperAdmin) {
         if (targetTenantId === 'global') {
           finalIsGlobal = true;
@@ -173,7 +173,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
           ⭐ Plantilla Kuden
         </span>
       )}
-      
+
       {/* Badge Router */}
       {p.is_router && (
         <span style={{ position: 'absolute', top: '10px', left: p.is_global ? '120px' : '10px', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#2563eb20', color: '#2563eb', border: '1px solid #2563eb40', fontWeight: '700' }}>
@@ -238,7 +238,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
       <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Perfiles del Agente IA</h2>
       <p style={{ margin: '0 0 24px', fontSize: '14px', color: c.subtitle }}>
         Define cómo responde <strong>KUDEN</strong> según el tipo de atención. El cliente siempre es humano; estos perfiles le indican a la IA su tono y enfoque.
-        {isSuperAdmin && <span style={{ color: '#f59e0b' }}> Como Super Admin, puedes publicar perfiles como <strong>Plantillas Kuden</strong> para que estén disponibles en todas las empresas.</span>}
+        {isSuperAdmin && <span style={{ color: '#24b9eb' }}> Como Super Admin, puedes publicar perfiles como <strong>Plantillas Kuden</strong> para que estén disponibles en todas las empresas.</span>}
       </p>
 
       {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
@@ -269,7 +269,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               <input type="checkbox" checked={isRouter} onChange={e => setIsRouter(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: c.title }}>🤖 Configurar este perfil como Agente Maestro (Router)</span>
             </label>
-            
+
             {isRouter && (
               <div style={{ marginLeft: 24 }}>
                 <p style={{ margin: '0 0 10px', fontSize: 12, color: c.subtitle }}>Selecciona a qué otros perfiles podrá enrutar las conversaciones este Agente Maestro:</p>
@@ -278,7 +278,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                     const isSelected = subProfileIds.includes(p.id);
                     return (
                       <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? '#2563eb20' : (isDark ? '#222' : '#f0f0f0'), border: `1px solid ${isSelected ? '#2563eb' : c.border}`, padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, color: isSelected ? (isDark ? '#60a5fa' : '#2563eb') : c.inputText }}>
-                        <input type="checkbox" checked={isSelected} 
+                        <input type="checkbox" checked={isSelected}
                           onChange={e => {
                             if (e.target.checked) setSubProfileIds([...subProfileIds, p.id]);
                             else setSubProfileIds(subProfileIds.filter(id => id !== p.id));
@@ -299,10 +299,10 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>Proveedor de Inteligencia (LLM)</label>
               <select value={llmProvider} onChange={e => {
                 setLlmProvider(e.target.value);
-                if(e.target.value === 'anthropic') setLlmModel('claude-3-5-sonnet-20240620');
-                else if(e.target.value === 'openai') setLlmModel('gpt-4o-mini');
-                else if(e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
-                else if(e.target.value === 'groq') setLlmModel('llama3-8b-8192');
+                if (e.target.value === 'anthropic') setLlmModel('claude-3-5-sonnet-20240620');
+                else if (e.target.value === 'openai') setLlmModel('gpt-4o-mini');
+                else if (e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
+                else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
               }} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
                 <option value="anthropic">Anthropic (Claude)</option>
                 <option value="openai">OpenAI (GPT)</option>
@@ -373,8 +373,8 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                 <div style={{ width: '40px', height: '40px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.inputText }}>
                   <i className={`ti ${icon}`} style={{ fontSize: '20px' }}></i>
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIconPickerOpen(!iconPickerOpen)}
                   style={{ flex: 1, padding: '0 12px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.inputText, fontSize: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
@@ -382,12 +382,12 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                   <i className="ti ti-chevron-down"></i>
                 </button>
               </div>
-              
+
               {iconPickerOpen && (
                 <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '8px', background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '12px', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                   {COMMON_ICONS.map(ic => (
-                    <button 
-                      key={ic} 
+                    <button
+                      key={ic}
                       type="button"
                       onClick={() => { setIcon(ic); setIconPickerOpen(false); }}
                       title={ic}
@@ -397,7 +397,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                     </button>
                   ))}
                   <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
-                     <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="Código manual (ej: ti-home)" style={{...inputStyle, padding: '6px 10px', fontSize: '12px'}} />
+                    <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="Código manual (ej: ti-home)" style={{ ...inputStyle, padding: '6px 10px', fontSize: '12px' }} />
                   </div>
                 </div>
               )}

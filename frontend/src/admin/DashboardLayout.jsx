@@ -15,7 +15,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     localStorage.setItem('kuden_theme', theme);
     // Aplicar data-theme al documento para que las variables CSS de dark mode funcionen
     document.documentElement.setAttribute('data-theme', theme);
-    return () => {};
+    return () => { };
   }, [theme]);
 
   useEffect(() => {
@@ -27,10 +27,10 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     if (!tenantId) return;
     const fetchAlerts = async () => {
       try {
-        const res  = await fetch(`${API_URL}/api/crm/alerts?tenantId=${tenantId}`);
+        const res = await fetch(`${API_URL}/api/crm/alerts?tenantId=${tenantId}`);
         const data = await res.json();
         setAlertCount(data?.count || 0);
-      } catch {}
+      } catch { }
     };
     fetchAlerts();
     const t = setInterval(fetchAlerts, 5000);
@@ -40,16 +40,16 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   const isDark = theme === 'dark';
 
   // Colors adaptados al tema — con soporte glassmorphism
-  const brandColor   = tenantColor || '#2563eb';
-  const textMain     = isDark ? '#f9fafb' : '#111827';
-  const textSec      = isDark ? '#9ca3af' : '#6b7280';
-  const borderCol    = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const brandColor = tenantColor || '#2563eb';
+  const textMain = isDark ? '#f9fafb' : '#111827';
+  const textSec = isDark ? '#9ca3af' : '#6b7280';
+  const borderCol = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
 
-  const sidebarBg    = isDark
+  const sidebarBg = isDark
     ? 'var(--gradient-bg-sidebar)'
     : 'linear-gradient(180deg, rgba(248,250,255,0.95) 0%, rgba(255,255,255,0.98) 100%)';
 
-  const mainBg       = isDark
+  const mainBg = isDark
     ? 'var(--gradient-bg-main)'
     : 'var(--gradient-bg-main)';
 
@@ -57,22 +57,22 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Demos & Integración',
       items: [
-        { id: 'simulator',  label: 'Simulador IA',  icon: 'ti-message-chatbot', superAdminOnly: true },
-        { id: 'widget',     label: 'Widget Web',    icon: 'ti-world' }
+        { id: 'simulator', label: 'Simulador IA', icon: 'ti-message-chatbot', superAdminOnly: true },
+        { id: 'widget', label: 'Widget Web', icon: 'ti-world' }
       ]
     },
     {
       title: 'Operaciones CRM',
       items: [
-        { id: 'crm',        label: 'CRM',           icon: 'ti-messages', badge: alertCount > 0 ? alertCount : null, badgeColor: '#EF9F27' },
-        { id: 'campaigns',  label: 'Campañas',      icon: 'ti-speakerphone' },
-        { id: 'contacts',   label: 'Contactos',     icon: 'ti-address-book' }
+        { id: 'crm', label: 'CRM', icon: 'ti-messages', badge: alertCount > 0 ? alertCount : null, badgeColor: '#EF9F27' },
+        { id: 'campaigns', label: 'Campañas', icon: 'ti-speakerphone' },
+        { id: 'contacts', label: 'Contactos', icon: 'ti-address-book' }
       ]
     },
     {
       title: 'Motor IA',
       items: [
-        { id: 'profiles',   label: 'Perfiles IA',   icon: 'ti-robot' },
+        { id: 'profiles', label: 'Perfiles IA', icon: 'ti-robot' },
         ...(copilotAccess ? [
           { id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' },
           { id: 'insights', label: 'Kimi Insights (BI)', icon: 'ti-chart-bar' }
@@ -82,11 +82,11 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Administración',
       items: [
-        { id: 'users',      label: 'Usuarios',      icon: 'ti-user-plus' },
-        { id: 'tenants',    label: 'Empresas',      icon: 'ti-building',   superAdminOnly: true },
-        { id: 'global_keys',label: 'Llaves API',    icon: 'ti-key',        superAdminOnly: true },
-        { id: 'billing',    label: 'Tarificador',   icon: 'ti-receipt',    superAdminOnly: true },
-        { id: 'monitoring', label: 'Health Monitor',icon: 'ti-activity',   superAdminOnly: true },
+        { id: 'users', label: 'Usuarios', icon: 'ti-user-plus' },
+        { id: 'tenants', label: 'Empresas', icon: 'ti-building', superAdminOnly: true },
+        { id: 'global_keys', label: 'Llaves API', icon: 'ti-key', superAdminOnly: true },
+        { id: 'billing', label: 'Tarificador', icon: 'ti-receipt', superAdminOnly: true },
+        { id: 'monitoring', label: 'Health Monitor', icon: 'ti-activity', superAdminOnly: true },
       ]
     }
   ];
@@ -168,65 +168,65 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         {/* Empresa actual pill */}
         {tenantName && !isSidebarCollapsed && (
           <div style={{ padding: '24px 20px', borderBottom: `1px solid ${borderCol}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {tenantLogo ? <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <i className="ti ti-building" style={{ fontSize: 20, color: brandColor }}></i>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {tenantLogo ? <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <i className="ti ti-building" style={{ fontSize: 20, color: brandColor }}></i>}
+              </div>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <h2 style={{ fontSize: 14, margin: '0 0 2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{tenantName || 'Sin Empresa'}</h2>
+                <span style={{ fontSize: 11, color: textSec, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', padding: '2px 6px', borderRadius: 10 }}>{userRole === 'admin' ? 'Administrador' : 'Agente'}</span>
+              </div>
             </div>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <h2 style={{ fontSize: 14, margin: '0 0 2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{tenantName || 'Sin Empresa'}</h2>
-              <span style={{ fontSize: 11, color: textSec, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', padding: '2px 6px', borderRadius: 10 }}>{userRole === 'admin' ? 'Administrador' : 'Agente'}</span>
-            </div>
-          </div>
-          
-          {/* Impersonation Dropdown for SuperAdmins */}
-          {(isSuperAdmin || impersonatedTenantId) && allTenants?.length > 0 && (
-            <div style={{ marginTop: 16, position: 'relative' }}>
-              <button
-                onClick={() => setImpersonateOpen(!impersonateOpen)}
-                style={{
-                  width: '100%', padding: '8px 12px', background: impersonatedTenantId ? 'rgba(239, 159, 39, 0.15)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                  border: `1px solid ${impersonatedTenantId ? '#EF9F27' : borderCol}`, borderRadius: 8, color: impersonatedTenantId ? '#EF9F27' : textSec,
-                  fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
-                  fontWeight: impersonatedTenantId ? 600 : 500
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                  <i className="ti ti-eye"></i>
-                  <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                    {impersonatedTenantId ? `Viendo: ${tenantName}` : 'Visualizar como cliente...'}
-                  </span>
-                </div>
-                <i className={`ti ti-chevron-${impersonateOpen ? 'up' : 'down'}`}></i>
-              </button>
-              
-              {impersonateOpen && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
-                  background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
-                  borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100,
-                  maxHeight: 200, overflowY: 'auto'
-                }}>
-                  <button
-                    onClick={() => { setImpersonatedTenantId(null); setImpersonateOpen(false); }}
-                    style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: !impersonatedTenantId ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', borderBottom: `1px solid ${borderCol}`, color: textMain, fontSize: 12, cursor: 'pointer' }}
-                  >
-                    <i className="ti ti-shield" style={{ marginRight: 6, color: '#2563eb' }}></i>
-                    {originalTenantName} (Vista Original)
-                  </button>
-                  {allTenants.map(t => (
+
+            {/* Impersonation Dropdown for SuperAdmins */}
+            {(isSuperAdmin || impersonatedTenantId) && allTenants?.length > 0 && (
+              <div style={{ marginTop: 16, position: 'relative' }}>
+                <button
+                  onClick={() => setImpersonateOpen(!impersonateOpen)}
+                  style={{
+                    width: '100%', padding: '8px 12px', background: impersonatedTenantId ? 'rgba(239, 159, 39, 0.15)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
+                    border: `1px solid ${impersonatedTenantId ? '#EF9F27' : borderCol}`, borderRadius: 8, color: impersonatedTenantId ? '#EF9F27' : textSec,
+                    fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
+                    fontWeight: impersonatedTenantId ? 600 : 500
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    <i className="ti ti-eye"></i>
+                    <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      {impersonatedTenantId ? `Viendo: ${tenantName}` : 'Visualizar como cliente...'}
+                    </span>
+                  </div>
+                  <i className={`ti ti-chevron-${impersonateOpen ? 'up' : 'down'}`}></i>
+                </button>
+
+                {impersonateOpen && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+                    background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
+                    borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100,
+                    maxHeight: 200, overflowY: 'auto'
+                  }}>
                     <button
-                      key={t.id}
-                      onClick={() => { setImpersonatedTenantId(t.id); setImpersonateOpen(false); }}
-                      style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: impersonatedTenantId === t.id ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', color: textMain, fontSize: 12, cursor: 'pointer' }}
+                      onClick={() => { setImpersonatedTenantId(null); setImpersonateOpen(false); }}
+                      style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: !impersonatedTenantId ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', borderBottom: `1px solid ${borderCol}`, color: textMain, fontSize: 12, cursor: 'pointer' }}
                     >
-                      <i className="ti ti-building" style={{ marginRight: 6, color: textSec }}></i>
-                      {t.name}
+                      <i className="ti ti-shield" style={{ marginRight: 6, color: '#2563eb' }}></i>
+                      {originalTenantName} (Vista Original)
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    {allTenants.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => { setImpersonatedTenantId(t.id); setImpersonateOpen(false); }}
+                        style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: impersonatedTenantId === t.id ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', color: textMain, fontSize: 12, cursor: 'pointer' }}
+                      >
+                        <i className="ti ti-building" style={{ marginRight: 6, color: textSec }}></i>
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -287,7 +287,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
                       <i className={`ti ${t.icon}`} style={{ fontSize: isSidebarCollapsed ? '20px' : '15px', flexShrink: 0 }} />
                       {!isSidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{t.label}</span>}
                       {t.superAdminOnly && !isSidebarCollapsed && (
-                        <span style={{ marginLeft: 'auto', fontSize: '9px', background: '#f59e0b15', color: '#f59e0b', border: '1px solid #f59e0b30', borderRadius: '4px', padding: '1px 5px', fontWeight: '700' }}>MASTER</span>
+                        <span style={{ marginLeft: 'auto', fontSize: '9px', background: '#0b8cf51e', color: '#24b9eb', border: '1px solid #0b84f530', borderRadius: '4px', padding: '1px 5px', fontWeight: '700' }}>MASTER</span>
                       )}
                       {t.badge > 0 && !isSidebarCollapsed && (
                         <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '700', background: t.badgeColor || '#E24B4A', color: '#fff', borderRadius: 20, padding: '1px 7px', minWidth: 20, textAlign: 'center', animation: 'badge-pop 0.3s ease-out' }}>{t.badge}</span>
@@ -311,7 +311,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
               <span style={{
                 fontSize: '10px', padding: '3px 9px', borderRadius: '20px',
                 background: isSuperAdmin ? '#f59e0b15' : userRole === 'admin' ? '#2563eb15' : '#1D9E7515',
-                color:      isSuperAdmin ? '#f59e0b'   : userRole === 'admin' ? '#2563eb'   : '#1D9E75',
+                color: isSuperAdmin ? '#f59e0b' : userRole === 'admin' ? '#2563eb' : '#1D9E75',
                 border: `1px solid ${isSuperAdmin ? '#f59e0b30' : userRole === 'admin' ? '#2563eb30' : '#1D9E7530'}`,
                 fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
               }}>
