@@ -721,7 +721,19 @@ function ReportPanel({ tenantId, c, campaigns }) {
 
 // ── Tablero Kanban ──────────────────────────────────────────────────────────────
 function KanbanBoard({ conversations, typifications, c, onClick }) {
-  const [collapsedColumns, setCollapsedColumns] = useState(new Set());
+  // Inicializar estado desde localStorage
+  const [collapsedColumns, setCollapsedColumns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kanbanCollapsedCols');
+      if (saved) return new Set(JSON.parse(saved));
+    } catch (e) { console.error('Error reading localStorage', e); }
+    return new Set();
+  });
+
+  // Guardar en localStorage cada vez que cambie
+  useEffect(() => {
+    localStorage.setItem('kanbanCollapsedCols', JSON.stringify(Array.from(collapsedColumns)));
+  }, [collapsedColumns]);
 
   if (!typifications || typifications.length === 0) {
     return (

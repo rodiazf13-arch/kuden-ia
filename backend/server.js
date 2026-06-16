@@ -1168,6 +1168,22 @@ app.delete("/api/crm/campaigns/:id/typifications/:typId", async (req, res) => {
   }
 });
 
+app.put("/api/crm/campaigns/:id/typifications/reorder", async (req, res) => {
+  const { typifications } = req.body; // array de { id, order_index }
+  if (!Array.isArray(typifications)) return res.status(400).json({ error: "Invalid payload" });
+  try {
+    for (const t of typifications) {
+      const { error } = await supabase.from("campaign_typifications")
+        .update({ order_index: t.order_index })
+        .eq("id", t.id);
+      if (error) throw error;
+    }
+    return res.json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 app.post("/api/crm/campaigns/:id/agents", async (req, res) => {
   const { userId, canTakeover = true, canClose = true, isSupervisor = false } = req.body;
   try {
