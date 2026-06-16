@@ -845,7 +845,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [search,        setSearch]        = useState('');
   const [loading,       setLoading]       = useState(true);
   const [tab,           setTab]           = useState('reports'); // 'inbox' | 'reports'
-  const [viewMode,      setViewMode]      = useState('list'); // 'list' | 'board'
+  const [viewMode,      setViewMode]      = useState('board'); // 'list' | 'board'
   const [campaignTypifications, setCampaignTypifications] = useState([]);
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
