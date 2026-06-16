@@ -1138,7 +1138,7 @@ app.get("/api/crm/typification-templates", async (req, res) => {
 
 app.get("/api/crm/campaigns/:id/typifications", async (req, res) => {
   try {
-    const { data, error } = await supabase.from("campaign_typifications").select("*").eq("campaign_id", req.params.id);
+    const { data, error } = await supabase.from("campaign_typifications").select("*").eq("campaign_id", req.params.id).order("order_index", { ascending: true });
     if (error) throw error;
     return res.json(data || []);
   } catch (e) {
