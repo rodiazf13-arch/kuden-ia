@@ -353,7 +353,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
       {/* ── Contenido principal ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1140px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1640px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
           {typeof children === 'function' ? children(isDark) : children}
         </div>
       </div>

@@ -354,6 +354,7 @@ function parseClaudeMetadata(text) {
     fuga: get("FUGA"),
     intencion: get("INTENCION"),
     accion: get("ACCION"),
+    etapa: get("ETAPA"),
     nombre: get("NOMBRE"),
     rut: get("RUT"),
     telefono: get("TELEFONO"),
@@ -396,7 +397,10 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
   } else if (isResolved && existing?.is_ai_active !== false) {
     updatePayload.status = "closed";
     updatePayload.is_ai_active = false;
-    updatePayload.motivo_label = parsedMeta?.accion || "Resuelto por IA";
+    updatePayload.motivo_label = parsedMeta?.etapa || parsedMeta?.accion || "Resuelto por IA";
+  } else if (parsedMeta?.etapa && existing?.is_ai_active !== false) {
+    // Auto-tipificación en tiempo real mientras el chat está abierto
+    updatePayload.motivo_label = parsedMeta.etapa;
   }
   if (canal) updatePayload.canal = canal;
   if (parsedMeta?.campana && parsedMeta.campana.length > 5) {
@@ -497,11 +501,11 @@ app.post("/api/chat", async (req, res) => {
         // 3a. Tipificaciones de la campaña
         const { data: typs } = await supabase.from("campaign_typifications").select("label").eq("campaign_id", activeCampaignId).order("order_index", { ascending: true });
         if (typs && typs.length > 0) {
-          finalSystemPrompt += `\nTIPIFICACIONES DE CIERRE DE ESTA CAMPAÑA:\n`;
+          finalSystemPrompt += `\nTIPIFICACIONES (ETAPAS KANBAN) DE ESTA CAMPAÑA:\n`;
           typs.forEach(t => {
             finalSystemPrompt += `- "${t.label}"\n`;
           });
-          finalSystemPrompt += `\nINSTRUCCIÓN DE TIPIFICACIÓN: Si logras resolver completamente la solicitud del cliente por tu cuenta, debes marcar [ESTADO: finalizado] y OBLIGATORIAMENTE usar una de las tipificaciones anteriores en tu etiqueta [ACCION: ...]. Ejemplo: [ACCION: Venta Cerrada].\n`;
+          finalSystemPrompt += `\nINSTRUCCIÓN DE TIPIFICACIÓN Y ETAPAS: Evalúa el estado de la conversación y la intención del cliente, y OBLIGATORIAMENTE incluye al final de tu mensaje la etiqueta [ETAPA: <nombre de la etapa>] usando exactamente una de las tipificaciones anteriores. Esto moverá automáticamente la tarjeta del cliente en nuestro Tablero Kanban. Si la conversación recién empieza, usa la etapa inicial o más apropiada. Además, si logras resolver completamente la solicitud por tu cuenta, debes marcar [ESTADO: finalizado].\n`;
         }
 
         // 3b. Herramientas n8n activas para esta campaña (Agentes Autónomos)
@@ -666,7 +670,7 @@ app.post("/api/chat", async (req, res) => {
           // Respuesta de la IA
           if (assistantMessage) {
             const cleanText = assistantMessage
-              .replace(/\[(ACCION|INTENCION|ESTADO|SENTIMIENTO|FUGA):.*?\]/gi, "").trim();
+              .replace(/\[(ACCION|INTENCION|ESTADO|SENTIMIENTO|FUGA|ETAPA):.*?\]/gi, "").trim();
             await insertConvMessage({
               conversationId: convId,
               tenantId,
