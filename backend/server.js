@@ -231,6 +231,30 @@ async function callN8nTool(webhookUrl, secretToken, workflowId, payload) {
   }
 }
 
+// ─── Helper: Notificar a n8n de cambio de etapa (Fase 3) ──────────────────────
+async function triggerN8nStageChange(webhookUrl, secretToken, payload) {
+  if (!webhookUrl) return;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(secretToken && { 'X-Kuden-Secret': secretToken })
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      console.error(`[triggerN8nStageChange] n8n respondió con error ${response.status}`);
+    }
+  } catch (err) {
+    console.error("[triggerN8nStageChange] Excepción:", err.message);
+  }
+}
+
 function normalizeRut(rut) {
   if (!rut) return null;
   let r = rut.trim().toLowerCase().replace(/[^0-9k\-]/g, '');
@@ -1562,6 +1586,14 @@ app.post("/api/crm/conversations/:id/typification", async (req, res) => {
   const { id } = req.params;
   const { tenantId, userId, displayName, motivoLabel } = req.body;
   try {
+    const { data: conv, error: convErr } = await supabase
+      .from("conversations")
+      .select("*, contacts(*)")
+      .eq("id", id).single();
+    if (convErr) throw convErr;
+
+    const oldStage = conv.motivo_label;
+
     const updatePayload = {
       motivo_label: motivoLabel || null,
       updated_at: new Date().toISOString()
@@ -1575,6 +1607,26 @@ app.post("/api/crm/conversations/:id/typification", async (req, res) => {
       content: `${displayName || "El ejecutivo"} cambió la etapa a: ${motivoLabel || "Sin Etapa"}.`,
     });
     
+    // Gatillo n8n (Fase 3)
+    if (motivoLabel && motivoLabel !== oldStage && conv.campaign_id) {
+      const { data: campaign } = await supabase.from("campaigns").select("n8n_webhook_url, n8n_secret_token").eq("id", conv.campaign_id).single();
+      if (campaign?.n8n_webhook_url) {
+         const payload = {
+            event: "STAGE_CHANGED",
+            timestamp: new Date().toISOString(),
+            campaign_id: conv.campaign_id,
+            conversation: {
+              id: id,
+              contact_phone: conv.contacts?.telefono,
+              contact_name: conv.contacts?.cliente_nombre,
+              old_stage: oldStage,
+              new_stage: motivoLabel
+            }
+         };
+         triggerN8nStageChange(campaign.n8n_webhook_url, campaign.n8n_secret_token, payload);
+      }
+    }
+
     return res.json({ success: true, motivo_label: motivoLabel });
   } catch (e) {
     console.error("[POST /api/crm/conversations/:id/typification]", e.message);
@@ -2121,6 +2173,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
       fuga_final: metadata.fuga,
       intencion: metadata.accion,
     };
+    let oldStage = existingConv.motivo_label;
     if (metadata.etapa) {
       updateFields.motivo_label = metadata.etapa;
     }
@@ -2130,6 +2183,24 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     console.log("AI Parsed metadata:", metadata);
 
     await supabase.from("conversations").update(updateFields).eq("id", convId);
+
+    // Gatillo n8n (Fase 3)
+    if (metadata.etapa && metadata.etapa !== oldStage && activeCampaignN8n) {
+      const payload = {
+        event: "STAGE_CHANGED",
+        timestamp: new Date().toISOString(),
+        campaign_id: widgetConfig?.campaign_id,
+        conversation: {
+          id: convId,
+          contact_phone: contactData?.telefono || metadata.telefono,
+          contact_name: contactData?.cliente_nombre || metadata.nombre,
+          old_stage: oldStage,
+          new_stage: metadata.etapa
+        }
+      };
+      // No esperamos (await) para no bloquear la respuesta al usuario
+      triggerN8nStageChange(activeCampaignN8n.url, activeCampaignN8n.token, payload);
+    }
 
     return res.json({
       conversationId: convId,
