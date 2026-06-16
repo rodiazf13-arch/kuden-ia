@@ -721,6 +721,8 @@ function ReportPanel({ tenantId, c, campaigns }) {
 
 // ── Tablero Kanban ──────────────────────────────────────────────────────────────
 function KanbanBoard({ conversations, typifications, c, onClick }) {
+  const [collapsedColumns, setCollapsedColumns] = useState(new Set());
+
   if (!typifications || typifications.length === 0) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: c.subtitle, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -745,47 +747,75 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
     else grouped['sin_etapa'].push(conv);
   });
 
+  const toggleCollapse = (id, e) => {
+    if (e) e.stopPropagation();
+    const nextSet = new Set(collapsedColumns);
+    if (nextSet.has(id)) nextSet.delete(id);
+    else nextSet.add(id);
+    setCollapsedColumns(nextSet);
+  };
+
   return (
     <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '16px', height: '100%', boxSizing: 'border-box', background: c.inputBg }}>
-      {columns.map(col => (
-        <div key={col.id} style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}` }}>
-          <div style={{ padding: '12px 16px', borderBottom: `2px solid #2563eb`, background: c.inputBg, borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {col.label}
-            </h3>
-            <span style={{ fontSize: 11, fontWeight: 600, color: c.subtitle, background: c.card, padding: '2px 8px', borderRadius: 12, border: `1px solid ${c.border}` }}>
-              {grouped[col.id].length}
-            </span>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {grouped[col.id].map(conv => (
-              <div key={conv.id} onClick={() => onClick(conv.id)}
-                style={{ background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {conv.contacts?.cliente_nombre || '—'}
+      {columns.map(col => {
+        const isCollapsed = collapsedColumns.has(col.id);
+        if (isCollapsed) {
+          return (
+            <div key={col.id} onClick={() => toggleCollapse(col.id)} style={{ width: 60, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}`, cursor: 'pointer', transition: 'all 0.2s', alignItems: 'center', padding: '12px 0' }}>
+              <i className="ti ti-arrows-maximize" style={{ fontSize: 16, color: '#2563eb', marginBottom: 16 }} />
+              <span style={{ fontSize: 11, fontWeight: 600, color: c.subtitle, background: c.inputBg, padding: '4px 8px', borderRadius: 12, border: `1px solid ${c.border}`, marginBottom: 16 }}>
+                {grouped[col.id].length}
+              </span>
+              <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: 13, fontWeight: 600, color: c.title, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                {col.label}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div key={col.id} style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}`, transition: 'all 0.2s' }}>
+            <div style={{ padding: '12px 16px', borderBottom: `2px solid #2563eb`, background: c.inputBg, borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {col.label}
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: c.subtitle, background: c.card, padding: '2px 8px', borderRadius: 12, border: `1px solid ${c.border}` }}>
+                  {grouped[col.id].length}
+                </span>
+                <i className="ti ti-arrows-minimize" onClick={(e) => toggleCollapse(col.id, e)} style={{ cursor: 'pointer', fontSize: 16, color: c.subtitle }} title="Minimizar columna" />
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {grouped[col.id].map(conv => (
+                <div key={conv.id} onClick={() => onClick(conv.id)}
+                  style={{ background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {conv.contacts?.cliente_nombre || '—'}
+                    </p>
+                    <span style={{ fontSize: 10, color: c.subtitle, flexShrink: 0, marginLeft: 8 }}>{timeAgo(conv.last_message_at)}</span>
+                  </div>
+                  <p style={{ margin: '0 0 10px', fontSize: 11, color: c.subtitle, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {conv.last_message_preview || 'Sin mensajes aún'}
                   </p>
-                  <span style={{ fontSize: 10, color: c.subtitle, flexShrink: 0, marginLeft: 8 }}>{timeAgo(conv.last_message_at)}</span>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <StatusBadge status={conv.status} />
+                    {conv.canal && <span style={{ fontSize: 9, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
+                  </div>
                 </div>
-                <p style={{ margin: '0 0 10px', fontSize: 11, color: c.subtitle, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {conv.last_message_preview || 'Sin mensajes aún'}
-                </p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <StatusBadge status={conv.status} />
-                  {conv.canal && <span style={{ fontSize: 9, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
+              ))}
+              {grouped[col.id].length === 0 && (
+                <div style={{ padding: 20, textAlign: 'center', color: c.subtitle, fontSize: 12, fontStyle: 'italic' }}>
+                  Vacío
                 </div>
-              </div>
-            ))}
-            {grouped[col.id].length === 0 && (
-              <div style={{ padding: 20, textAlign: 'center', color: c.subtitle, fontSize: 12, fontStyle: 'italic' }}>
-                Vacío
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

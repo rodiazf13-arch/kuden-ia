@@ -165,6 +165,37 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
     } catch (e) { console.error(e); }
   };
 
+  const moveTypification = (index, direction) => {
+    const newTyps = [...typifications];
+    if (direction === 'up' && index > 0) {
+      const temp = newTyps[index];
+      newTyps[index] = newTyps[index - 1];
+      newTyps[index - 1] = temp;
+      setTypifications(newTyps);
+    } else if (direction === 'down' && index < newTyps.length - 1) {
+      const temp = newTyps[index];
+      newTyps[index] = newTyps[index + 1];
+      newTyps[index + 1] = temp;
+      setTypifications(newTyps);
+    }
+  };
+
+  const saveTypificationOrder = async () => {
+    try {
+      const payload = typifications.map((t, index) => ({ id: t.id, order_index: index }));
+      const res = await fetch(`${API_URL}/api/crm/campaigns/${selectedCam.id}/typifications/reorder`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typifications: payload })
+      });
+      if (res.ok) {
+        alert('Orden guardado correctamente');
+        loadTypifications(selectedCam.id);
+      } else {
+        alert('Error al guardar el orden');
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const applyTemplate = async (template) => {
     if (!template || !template.labels) return;
     for (const label of template.labels) { await addTypification(label); }
@@ -552,14 +583,26 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
                     Añadir
                   </button>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {typifications.length === 0 ? <p style={{ fontSize: 13, color: c.subtitle }}>No hay tipificaciones. Crea una o aplica una plantilla.</p> : null}
-                  {typifications.map(typ => (
-                    <div key={typ.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: `${selectedCam.color}15`, border: `1px solid ${selectedCam.color}40`, borderRadius: 20, color: selectedCam.color, fontSize: 12, fontWeight: 500 }}>
-                      {typ.label}
-                      <i className="ti ti-x" style={{ cursor: 'pointer', opacity: 0.7 }} onClick={() => removeTypification(typ.id)} />
+                  {typifications.map((typ, idx) => (
+                    <div key={typ.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: `${selectedCam.color}15`, border: `1px solid ${selectedCam.color}40`, borderRadius: 10, color: selectedCam.color, fontSize: 13, fontWeight: 500 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ opacity: 0.5, fontSize: 11 }}>{idx + 1}.</span>
+                        {typ.label}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => moveTypification(idx, 'up')} disabled={idx === 0} style={{ background: 'transparent', border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', opacity: idx === 0 ? 0.3 : 0.8, color: selectedCam.color, padding: 0 }}><i className="ti ti-arrow-up" /></button>
+                        <button onClick={() => moveTypification(idx, 'down')} disabled={idx === typifications.length - 1} style={{ background: 'transparent', border: 'none', cursor: idx === typifications.length - 1 ? 'not-allowed' : 'pointer', opacity: idx === typifications.length - 1 ? 0.3 : 0.8, color: selectedCam.color, padding: 0 }}><i className="ti ti-arrow-down" /></button>
+                        <i className="ti ti-trash" style={{ cursor: 'pointer', opacity: 0.8, marginLeft: 8 }} onClick={() => removeTypification(typ.id)} />
+                      </div>
                     </div>
                   ))}
+                  {typifications.length > 1 && (
+                    <button onClick={saveTypificationOrder} style={{ alignSelf: 'flex-end', padding: '6px 14px', background: selectedCam.color, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, marginTop: 8 }}>
+                      💾 Guardar Orden
+                    </button>
+                  )}
                 </div>
               </div>
 
