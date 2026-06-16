@@ -243,6 +243,16 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
+  // Cargar tipificaciones si la campaña está definida, para permitir cambio de etapa
+  useEffect(() => {
+    if (data?.campaign_id) {
+      fetch(`${API_URL}/api/crm/campaigns/${data.campaign_id}/typifications`)
+        .then(r => r.json()).then(d => setTypifications(Array.isArray(d) ? d : [])).catch(console.error);
+    } else {
+      setTypifications([]);
+    }
+  }, [data?.campaign_id]);
+
   // Polling every 5s — smart update prevents unnecessary re-renders
   useEffect(() => {
     const t = setInterval(fetchDetail, 5000);
@@ -499,6 +509,17 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                   <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>Último mensaje</p>
                   <p style={{ margin: 0, fontSize: 11, color: c.title }}>{conv.last_message_at ? new Date(conv.last_message_at).toLocaleString('es-CL') : '—'}</p>
                 </div>
+                <div>
+                  <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>Etapa Kanban</p>
+                  <select 
+                    value={conv.motivo_label || ''} 
+                    onChange={(e) => doAction('typification', 'Etapa actualizada', { motivoLabel: e.target.value })}
+                    style={{ width: '100%', fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}
+                  >
+                    <option value="">Entrada / Sin Etapa</option>
+                    {typifications.map(t => <option key={t.id} value={t.label}>{t.label}</option>)}
+                  </select>
+                </div>
                 {conv.campaigns && (
                   <div style={{ background: `${conv.campaigns.color}15`, border: `0.5px solid ${conv.campaigns.color}40`, borderRadius: 8, padding: '5px 8px' }}>
                     <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: conv.campaigns.color }}>{conv.campaigns.name}</p>
@@ -698,6 +719,77 @@ function ReportPanel({ tenantId, c, campaigns }) {
   );
 }
 
+// ── Tablero Kanban ──────────────────────────────────────────────────────────────
+function KanbanBoard({ conversations, typifications, c, onClick }) {
+  if (!typifications || typifications.length === 0) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: c.subtitle, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <i className="ti ti-layout-kanban" style={{ fontSize: 48, display: 'block', marginBottom: 16, color: '#2563eb' }} />
+        <h3 style={{ margin: '0 0 8px', fontSize: 18, color: c.title }}>Vista Kanban no disponible</h3>
+        <p style={{ margin: 0, fontSize: 14 }}>Por favor, selecciona una <strong>Campaña</strong> específica en los filtros para ver el tablero con sus etapas.</p>
+      </div>
+    );
+  }
+
+  const columns = [
+    { id: 'sin_etapa', label: 'Entrada / Sin Etapa' },
+    ...typifications.map(t => ({ id: t.label, label: t.label }))
+  ];
+
+  const grouped = {};
+  columns.forEach(col => { grouped[col.id] = []; });
+  
+  conversations.forEach(conv => {
+    const stage = conv.motivo_label || 'sin_etapa';
+    if (grouped[stage]) grouped[stage].push(conv);
+    else grouped['sin_etapa'].push(conv);
+  });
+
+  return (
+    <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '16px', height: '100%', boxSizing: 'border-box', background: c.inputBg }}>
+      {columns.map(col => (
+        <div key={col.id} style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}` }}>
+          <div style={{ padding: '12px 16px', borderBottom: `2px solid #2563eb`, background: c.inputBg, borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {col.label}
+            </h3>
+            <span style={{ fontSize: 11, fontWeight: 600, color: c.subtitle, background: c.card, padding: '2px 8px', borderRadius: 12, border: `1px solid ${c.border}` }}>
+              {grouped[col.id].length}
+            </span>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {grouped[col.id].map(conv => (
+              <div key={conv.id} onClick={() => onClick(conv.id)}
+                style={{ background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {conv.contacts?.cliente_nombre || '—'}
+                  </p>
+                  <span style={{ fontSize: 10, color: c.subtitle, flexShrink: 0, marginLeft: 8 }}>{timeAgo(conv.last_message_at)}</span>
+                </div>
+                <p style={{ margin: '0 0 10px', fontSize: 11, color: c.subtitle, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {conv.last_message_preview || 'Sin mensajes aún'}
+                </p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <StatusBadge status={conv.status} />
+                  {conv.canal && <span style={{ fontSize: 9, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
+                </div>
+              </div>
+            ))}
+            {grouped[col.id].length === 0 && (
+              <div style={{ padding: 20, textAlign: 'center', color: c.subtitle, fontSize: 12, fontStyle: 'italic' }}>
+                Vacío
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Módulo principal CRM ──────────────────────────────────────────────────────
 export default function CRMManager({ tenantId, isDark = true, userId, userEmail, userRole, isSuperAdmin }) {
   const [conversations, setConversations] = useState([]);
@@ -711,6 +803,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [search,        setSearch]        = useState('');
   const [loading,       setLoading]       = useState(true);
   const [tab,           setTab]           = useState('reports'); // 'inbox' | 'reports'
+  const [viewMode,      setViewMode]      = useState('list'); // 'list' | 'board'
+  const [campaignTypifications, setCampaignTypifications] = useState([]);
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
   const c = {
@@ -757,6 +851,16 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
     fetch(`${API_URL}/api/crm/campaigns?tenantId=${tenantId}`)
       .then(r => r.json()).then(d => setCampaigns(Array.isArray(d) ? d : [])).catch(console.error);
   }, [tenantId]);
+
+  // Cargar tipificaciones de la campaña seleccionada para el Kanban
+  useEffect(() => {
+    if (!filterCampaign) {
+      setCampaignTypifications([]);
+      return;
+    }
+    fetch(`${API_URL}/api/crm/campaigns/${filterCampaign}/typifications`)
+      .then(r => r.json()).then(d => setCampaignTypifications(Array.isArray(d) ? d : [])).catch(console.error);
+  }, [filterCampaign]);
 
   const FILTER_TABS = [
     { id: 'open',          label: 'Activas'        },
@@ -839,8 +943,21 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
             <div style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               {/* Filtros */}
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o ticket..."
-                  style={{ width: '100%', padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }} />
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o ticket..."
+                    style={{ flex: 1, padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }} />
+                  {/* View Toggle */}
+                  <div style={{ display: 'flex', background: c.inputBg, borderRadius: 8, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+                    <button onClick={() => setViewMode('list')} title="Vista de Lista"
+                      style={{ padding: '0 10px', background: viewMode === 'list' ? '#2563eb' : 'transparent', color: viewMode === 'list' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer' }}>
+                      <i className="ti ti-list" style={{ fontSize: 16 }} />
+                    </button>
+                    <button onClick={() => setViewMode('board')} title="Vista de Tablero Kanban"
+                      style={{ padding: '0 10px', background: viewMode === 'board' ? '#2563eb' : 'transparent', color: viewMode === 'board' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer', borderLeft: `1px solid ${c.border}` }}>
+                      <i className="ti ti-layout-kanban" style={{ fontSize: 16 }} />
+                    </button>
+                  </div>
+                </div>
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {FILTER_TABS.map(f => (
                     <button key={f.id} onClick={() => setFilterStatus(f.id)}
@@ -869,7 +986,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                   )}
                 </div>
               </div>
-              {/* Lista */}
+              {/* Lista o Tablero */}
               <div style={{ flex: 1, overflowY: 'auto' }}>
                 {loading ? (
                   <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>
@@ -881,10 +998,14 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     <i className="ti ti-messages-off" style={{ fontSize: 32, display: 'block', marginBottom: 10 }} />
                     <p style={{ margin: 0, fontSize: 13 }}>No hay conversaciones con estos filtros</p>
                   </div>
-                ) : conversations.map(conv => (
-                  <ConvRow key={conv.id} conv={conv} isSelected={selectedId === conv.id}
-                    onClick={() => setSelectedId(conv.id)} c={c} />
-                ))}
+                ) : viewMode === 'board' && !selectedId ? (
+                  <KanbanBoard conversations={conversations} typifications={campaignTypifications} c={c} onClick={id => setSelectedId(id)} />
+                ) : (
+                  conversations.map(conv => (
+                    <ConvRow key={conv.id} conv={conv} isSelected={selectedId === conv.id}
+                      onClick={() => setSelectedId(conv.id)} c={c} />
+                  ))
+                )}
               </div>
             </div>
 

@@ -1534,6 +1534,33 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
   }
 });
 
+// ─── POST /api/crm/conversations/:id/typification ──────────────────────────────
+// Actualiza la tipificación (motivo_label) sin cerrar el chat (para vista Kanban)
+// Body: { tenantId, userId, displayName, motivoLabel }
+app.post("/api/crm/conversations/:id/typification", async (req, res) => {
+  const { id } = req.params;
+  const { tenantId, userId, displayName, motivoLabel } = req.body;
+  try {
+    const updatePayload = {
+      motivo_label: motivoLabel || null,
+      updated_at: new Date().toISOString()
+    };
+    
+    await supabase.from("conversations").update(updatePayload).eq("id", id);
+    
+    await insertConvMessage({
+      conversationId: id, tenantId,
+      senderType: "system",
+      content: `${displayName || "El ejecutivo"} cambió la etapa a: ${motivoLabel || "Sin Etapa"}.`,
+    });
+    
+    return res.json({ success: true, motivo_label: motivoLabel });
+  } catch (e) {
+    console.error("[POST /api/crm/conversations/:id/typification]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── GET /api/crm/stats ───────────────────────────────────────────────────────
 // KPIs para la reportería. Query: tenantId, from, to, campaignId
 app.get("/api/crm/stats", async (req, res) => {
