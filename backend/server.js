@@ -977,7 +977,7 @@ app.get("/api/crm/conversations", async (req, res) => {
         id, ticket_id, status, canal, is_ai_active, assigned_to,
         last_message_at, last_message_preview, unread_count,
         sentimiento_final, fuga_final, intencion, csat_final,
-        campaign_id,
+        campaign_id, motivo_label,
         contacts(id, cliente_nombre, rut, telefono, email),
         campaigns(id, name, color, icon)
       `)
