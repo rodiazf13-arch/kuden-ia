@@ -1384,6 +1384,7 @@ app.post("/api/crm/conversations/:id/suggest", async (req, res) => {
     let systemPrompt = "Eres un asistente virtual experto.";
     let llmProvider = "anthropic";
     let llmModel = "claude-sonnet-4-6";
+    let systemPromptBase = "Eres Kuden IA, un asistente virtual experto...";
     let aiProfileId = null;
 
     if (conv.campaign_id) {
@@ -1970,7 +1971,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
 
       finalSystemPrompt = systemPromptBase + crmContext + ragContext + toolsContext +
         (systemGreeting ? `\n\nEl asistente comenzó la conversación saludando con: "${systemGreeting}". Tenlo en cuenta para el contexto.` : "") +
-        "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...].";
+        "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...]. Además, OBLIGATORIAMENTE añade la etiqueta [ETAPA: <nombre de etapa>] basándote en la intención actual del usuario (ej: [ETAPA: Nueva campaña], [ETAPA: Cotizando], [ETAPA: Cerrado]).";
 
       const { text, usage } = await callLLM(supabase, {
         provider: llmProvider,
@@ -2089,6 +2090,9 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
       fuga_final: metadata.fuga,
       intencion: metadata.accion,
     };
+    if (metadata.etapa) {
+      updateFields.motivo_label = metadata.etapa;
+    }
     if (contactId) updateFields.contact_id = contactId;
 
     console.log("AI Raw text:", aiResponseText);
