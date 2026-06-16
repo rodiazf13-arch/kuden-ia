@@ -1971,7 +1971,22 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
 
       finalSystemPrompt = systemPromptBase + crmContext + ragContext + toolsContext +
         (systemGreeting ? `\n\nEl asistente comenzó la conversación saludando con: "${systemGreeting}". Tenlo en cuenta para el contexto.` : "") +
-        "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...]. Además, OBLIGATORIAMENTE añade la etiqueta [ETAPA: <nombre de etapa>] basándote en la intención actual del usuario (ej: [ETAPA: Nueva campaña], [ETAPA: Cotizando], [ETAPA: Cerrado]).";
+        "\n\nInstrucción obligatoria: Analiza la conversación y añade un bloque [METADATOS] al final de tu respuesta indicando ESTADO (activo/esperando_humano/finalizada), SENTIMIENTO (muy_negativo/negativo/neutral/positivo/muy_positivo), FUGA (sin_riesgo/bajo/medio/alto), y ACCION (ninguna/agendar/venta). Si el usuario pide humano, pon ESTADO: esperando_humano. Si el usuario se despide o la conversación concluye, pon ESTADO: finalizada. Además, si a lo largo del chat el usuario indica sus datos personales, extrae y añade en el bloque de metadatos: NOMBRE (nombre completo o nombre), RUT, TELEFONO, DIRECCION. Ej: [NOMBRE: Juan Pérez][TELEFONO: +569...].";
+
+      if (widgetConfig?.campaign_id) {
+        const { data: typs } = await supabase.from("campaign_typifications").select("label").eq("campaign_id", widgetConfig.campaign_id).order("order_index", { ascending: true });
+        if (typs && typs.length > 0) {
+          finalSystemPrompt += `\n\nTIPIFICACIONES (ETAPAS KANBAN) DE ESTA CAMPAÑA:\n`;
+          typs.forEach(t => {
+            finalSystemPrompt += `- "${t.label}"\n`;
+          });
+          finalSystemPrompt += `\nINSTRUCCIÓN DE TIPIFICACIÓN Y ETAPAS: Evalúa el estado de la conversación y la intención del cliente, y OBLIGATORIAMENTE incluye al final de tu mensaje la etiqueta [ETAPA: <nombre de la etapa>] usando exactamente una de las tipificaciones anteriores. Esto moverá automáticamente la tarjeta del cliente en nuestro Tablero Kanban. Si la conversación recién empieza, usa la etapa inicial o más apropiada. Además, si logras resolver completamente la solicitud por tu cuenta, debes marcar [ESTADO: finalizado].\n`;
+        } else {
+          finalSystemPrompt += `\n\nAdemás, OBLIGATORIAMENTE añade la etiqueta [ETAPA: <nombre de etapa>] basándote en la intención actual del usuario (ej: [ETAPA: Nueva campaña], [ETAPA: Cotizando], [ETAPA: Cerrado]).`;
+        }
+      } else {
+        finalSystemPrompt += `\n\nAdemás, OBLIGATORIAMENTE añade la etiqueta [ETAPA: <nombre de etapa>] basándote en la intención actual del usuario (ej: [ETAPA: Nueva campaña], [ETAPA: Cotizando], [ETAPA: Cerrado]).`;
+      }
 
       const { text, usage } = await callLLM(supabase, {
         provider: llmProvider,
