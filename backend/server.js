@@ -538,7 +538,7 @@ app.post("/api/chat", async (req, res) => {
           .eq('id', activeCampaignId).maybeSingle();
 
         if (campaignData?.n8n_webhook_url) {
-          activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token };
+          activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token, stage_webhook_id: campaignData.n8n_stage_change_webhook_id };
 
           const { data: tools } = await supabase.from('agent_tools')
             .select('name, label, description, n8n_workflow_id, input_schema')
@@ -1314,12 +1314,13 @@ app.delete("/api/agent-tools/:toolId", async (req, res) => {
 app.get("/api/crm/campaigns/:id/n8n-config", async (req, res) => {
   try {
     const { data, error } = await supabase.from('campaigns')
-      .select('n8n_webhook_url, n8n_secret_token').eq('id', req.params.id).single();
+      .select('n8n_webhook_url, n8n_secret_token, n8n_stage_change_webhook_id').eq('id', req.params.id).single();
     if (error) throw error;
     // No exponer el token completo, solo indicar si existe
     return res.json({
       n8n_webhook_url: data.n8n_webhook_url || '',
-      has_secret_token: !!data.n8n_secret_token
+      has_secret_token: !!data.n8n_secret_token,
+      n8n_stage_change_webhook_id: data.n8n_stage_change_webhook_id || ''
     });
   } catch (e) {
     console.error("[GET /api/crm/campaigns/:id/n8n-config]", e.message);
@@ -1329,17 +1330,20 @@ app.get("/api/crm/campaigns/:id/n8n-config", async (req, res) => {
 
 // ─── PUT /api/crm/campaigns/:id/n8n-config ────────────────────────────────────
 app.put("/api/crm/campaigns/:id/n8n-config", async (req, res) => {
-  const { n8n_webhook_url, n8n_secret_token } = req.body;
+  const { n8n_webhook_url, n8n_secret_token, n8n_stage_change_webhook_id } = req.body;
   try {
-    const updates = { n8n_webhook_url: n8n_webhook_url || null };
+    const updates = { 
+      n8n_webhook_url: n8n_webhook_url || null,
+      n8n_stage_change_webhook_id: n8n_stage_change_webhook_id || null
+    };
     // Solo actualizar el token si se envió uno nuevo (no vacío)
     if (n8n_secret_token && n8n_secret_token.trim() !== '') {
       updates.n8n_secret_token = n8n_secret_token;
     }
     const { data, error } = await supabase.from('campaigns')
-      .update(updates).eq('id', req.params.id).select('id, n8n_webhook_url').single();
+      .update(updates).eq('id', req.params.id).select('id, n8n_webhook_url, n8n_stage_change_webhook_id').single();
     if (error) throw error;
-    return res.json({ success: true, n8n_webhook_url: data.n8n_webhook_url });
+    return res.json({ success: true, n8n_webhook_url: data.n8n_webhook_url, n8n_stage_change_webhook_id: data.n8n_stage_change_webhook_id });
   } catch (e) {
     console.error("[PUT /api/crm/campaigns/:id/n8n-config]", e.message);
     return res.status(500).json({ error: e.message });
@@ -1609,8 +1613,8 @@ app.post("/api/crm/conversations/:id/typification", async (req, res) => {
     
     // Gatillo n8n (Fase 3)
     if (motivoLabel && motivoLabel !== oldStage && conv.campaign_id) {
-      const { data: campaign } = await supabase.from("campaigns").select("n8n_webhook_url, n8n_secret_token").eq("id", conv.campaign_id).single();
-      if (campaign?.n8n_webhook_url) {
+      const { data: campaign } = await supabase.from("campaigns").select("n8n_webhook_url, n8n_secret_token, n8n_stage_change_webhook_id").eq("id", conv.campaign_id).single();
+      if (campaign?.n8n_webhook_url && campaign?.n8n_stage_change_webhook_id) {
          const payload = {
             event: "STAGE_CHANGED",
             timestamp: new Date().toISOString(),
@@ -1623,7 +1627,8 @@ app.post("/api/crm/conversations/:id/typification", async (req, res) => {
               new_stage: motivoLabel
             }
          };
-         triggerN8nStageChange(campaign.n8n_webhook_url, campaign.n8n_secret_token, payload);
+         const stageHookUrl = `${campaign.n8n_webhook_url.replace(/\/$/, '')}/webhook/${campaign.n8n_stage_change_webhook_id}`;
+         triggerN8nStageChange(stageHookUrl, campaign.n8n_secret_token, payload);
       }
     }
 
@@ -2011,7 +2016,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
         .eq('id', widgetConfig.campaign_id).maybeSingle();
 
       if (campaignData?.n8n_webhook_url) {
-        activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token };
+        activeCampaignN8n = { url: campaignData.n8n_webhook_url, token: campaignData.n8n_secret_token, stage_webhook_id: campaignData.n8n_stage_change_webhook_id };
 
         const { data: tools } = await supabase.from('agent_tools')
           .select('name, label, description, n8n_workflow_id, input_schema')
@@ -2185,7 +2190,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     await supabase.from("conversations").update(updateFields).eq("id", convId);
 
     // Gatillo n8n (Fase 3)
-    if (metadata.etapa && metadata.etapa !== oldStage && activeCampaignN8n) {
+    if (metadata.etapa && metadata.etapa !== oldStage && activeCampaignN8n && activeCampaignN8n.stage_webhook_id) {
       const payload = {
         event: "STAGE_CHANGED",
         timestamp: new Date().toISOString(),
@@ -2199,7 +2204,8 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
         }
       };
       // No esperamos (await) para no bloquear la respuesta al usuario
-      triggerN8nStageChange(activeCampaignN8n.url, activeCampaignN8n.token, payload);
+      const stageHookUrl = `${activeCampaignN8n.url.replace(/\/$/, '')}/webhook/${activeCampaignN8n.stage_webhook_id}`;
+      triggerN8nStageChange(stageHookUrl, activeCampaignN8n.token, payload);
     }
 
     return res.json({

@@ -15,6 +15,7 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
 
   // ─── n8n + Tools state ───────────────────────────────────────────────────────
   const [n8nUrl, setN8nUrl] = useState('');
+  const [n8nStageWebhookId, setN8nStageWebhookId] = useState('');
   const [n8nToken, setN8nToken] = useState('');
   const [n8nHasToken, setN8nHasToken] = useState(false);
   const [n8nStatus, setN8nStatus] = useState(null); // null | 'ok' | 'error'
@@ -89,6 +90,7 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
       if (res.ok) {
         const data = await res.json();
         setN8nUrl(data.n8n_webhook_url || '');
+        setN8nStageWebhookId(data.n8n_stage_change_webhook_id || '');
         setN8nHasToken(data.has_secret_token || false);
         setN8nToken('');
         setN8nStatus(null);
@@ -237,7 +239,7 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
   const saveN8nConfig = async () => {
     setN8nSaving(true);
     try {
-      const body = { n8n_webhook_url: n8nUrl };
+      const body = { n8n_webhook_url: n8nUrl, n8n_stage_change_webhook_id: n8nStageWebhookId };
       if (n8nToken.trim()) body.n8n_secret_token = n8nToken;
       const res = await fetch(`${API_URL}/api/crm/campaigns/${selectedCam.id}/n8n-config`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -425,13 +427,21 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
                     {n8nTesting ? '⏳ Probando...' : '⚡ Probar'}
                   </button>
                 </div>
-                <input
-                  placeholder={n8nHasToken ? '🔐 Token guardado — escribe uno nuevo para reemplazarlo' : 'Token secreto (opcional) — para autenticar las llamadas de Kuden → n8n'}
-                  value={n8nToken}
-                  onChange={e => setN8nToken(e.target.value)}
-                  type="password"
-                  style={{ ...inp, marginBottom: 12 }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                  <input
+                    placeholder="ID Webhook para Cambio de Etapa (ej: 1234-abcd)"
+                    value={n8nStageWebhookId}
+                    onChange={e => setN8nStageWebhookId(e.target.value)}
+                    style={inp}
+                  />
+                  <input
+                    placeholder={n8nHasToken ? '🔐 Token guardado — nuevo lo reemplaza' : 'Token secreto (opcional)'}
+                    value={n8nToken}
+                    onChange={e => setN8nToken(e.target.value)}
+                    type="password"
+                    style={inp}
+                  />
+                </div>
                 <button onClick={saveN8nConfig} disabled={n8nSaving}
                   style={{ padding: '9px 22px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
                   {n8nSaving ? 'Guardando...' : '💾 Guardar configuración n8n'}
