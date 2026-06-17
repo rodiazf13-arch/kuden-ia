@@ -156,6 +156,7 @@ export default function App() {
         return <UsersManager isDark={isDark} filterTenantId={isSuperAdmin && !impersonatedTenantId ? null : activeTenantId} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} />;
 
       case 'ai_config':
+        if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
         return <AIConfigManager tenantId={activeTenantId} isDark={isDark} />;
 
       case 'global_keys':
