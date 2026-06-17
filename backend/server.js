@@ -1538,7 +1538,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
             body: JSON.stringify({
               tenantId,
               to: contact?.email,
-              content: content || "",
+              content: content ? content.replace(/\n/g, '<br>') : "",
               messageId,
               subject,
               conversationId: id,
