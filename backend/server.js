@@ -1417,7 +1417,7 @@ app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
 // ─── POST /api/webhook/n8n-email ───────────────────────────────────────────────
 // Webhook entrante desde n8n para correos electrónicos
 app.post("/api/webhook/n8n-email", async (req, res) => {
-  const { tenantId, senderEmail, senderName, subject, textBody, messageId } = req.body;
+  const { tenantId, senderEmail, senderName, subject, textBody, messageId, attachments = [] } = req.body;
   if (!tenantId || !senderEmail) return res.status(400).json({ error: "Faltan datos obligatorios (tenantId, senderEmail)." });
   
   try {
@@ -1450,21 +1450,44 @@ app.post("/api/webhook/n8n-email", async (req, res) => {
       await supabase.from('conversations').update({ metadata: newMetadata }).eq('id', conv.id);
     }
 
-    // 3. Insertar el mensaje
+    // 3. Procesar y subir adjuntos si existen
+    const processedAttachments = [];
+    if (attachments && attachments.length > 0) {
+      for (const att of attachments) {
+        if (!att.data || !att.name) continue;
+        const fileExt = att.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${tenantId}/${conv.id}/${fileName}`;
+        const buffer = Buffer.from(att.data, 'base64');
+        
+        const { error: uploadError } = await supabase.storage
+          .from('chat_attachments')
+          .upload(filePath, buffer, { contentType: att.mimeType || 'application/octet-stream' });
+          
+        if (!uploadError) {
+          const { data } = supabase.storage.from('chat_attachments').getPublicUrl(filePath);
+          processedAttachments.push({ url: data.publicUrl, name: att.name, type: att.mimeType });
+        } else {
+          console.error("Error subiendo adjunto entrante:", uploadError.message);
+        }
+      }
+    }
+
+    // 4. Insertar el mensaje
     const messageContent = subject ? `Asunto: ${subject}\n\n${textBody}` : textBody;
     await insertConvMessage({
       conversationId: conv.id,
       tenantId,
       senderType: 'customer',
       senderName: contact.cliente_nombre,
-      content: messageContent,
-      metadata: { messageId }
+      content: messageContent || "",
+      metadata: { messageId, attachments: processedAttachments }
     });
 
-    // 4. Actualizar preview
+    // 5. Actualizar preview
     await supabase.from("conversations").update({
       last_message_at: now,
-      last_message_preview: messageContent.slice(0, 100)
+      last_message_preview: messageContent ? messageContent.slice(0, 100) : `[Cliente] 📎 ${processedAttachments.length} adjuntos`
     }).eq("id", conv.id);
 
     return res.json({ success: true, conversationId: conv.id });
