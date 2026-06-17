@@ -158,78 +158,18 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
 
   return (
     <div style={{ maxWidth: '800px' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Agente Maestro IA (Routing)</h2>
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Inteligencia Interna Kuden</h2>
       <p style={{ margin: '0 0 24px', fontSize: '14px', color: c.subtitle, lineHeight: 1.5 }}>
-        Configura la identidad base de tu Asistente Virtual. Este es el <strong>Agente Maestro</strong> que recibe al cliente, evalúa su intención y adopta dinámicamente los "Perfiles IA" adecuados para cada situación (Ej: cambiar automáticamente al perfil de <em>Retención</em> si el cliente está molesto).
+        Configura qué modelos procesan las tareas internas de la plataforma (como reportería, análisis y Kimi Co-Piloto).
       </p>
 
       {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
-      {success && <div style={{ background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.5)', color: '#1D9E75', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>✅ Configuración del Agente Maestro actualizada correctamente. El Simulador y el CRM ahora usarán estas reglas.</div>}
+      {success && <div style={{ background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.5)', color: '#1D9E75', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>✅ Configuración de Inteligencia Interna actualizada correctamente.</div>}
 
       <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px' }}>
-        <h3 style={{ margin: '0 0 20px', fontSize: '16px', color: c.sectionHd }}>Identidad Global</h3>
-        
-        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Nombre de tu Empresa</label>
-            <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Ej: ConectaChile" required style={inputStyle} />
-            <span style={{ fontSize: '11px', color: c.subtitle }}>La IA se presentará como representante de esta marca.</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Nombre del Asistente</label>
-            <input type="text" value={agentName} onChange={e => setAgentName(e.target.value)} placeholder="Ej: KUDEN, Sofía, Max" required style={inputStyle} />
-            <span style={{ fontSize: '11px', color: c.subtitle }}>El nombre con el que el Agente firma sus mensajes.</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: '1 / -1' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Instrucciones del Agente Maestro (Routing Prompt)</label>
-            <textarea value={basePrompt} onChange={e => setBasePrompt(e.target.value)} rows={6}
-              placeholder="Ej: Eres Sofía, asistente virtual de ConectaChile. Tu misión es entender la necesidad del cliente y responder con amabilidad. Si el cliente tiene un problema técnico o comercial, adopta la personalidad adecuada."
-              required style={{ ...inputStyle, resize: 'vertical' }} />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', background: 'rgba(29,158,117,0.05)', border: '1px solid rgba(29,158,117,0.2)', padding: '16px', borderRadius: '8px' }}>
-            <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: '600', color: '#1D9E75' }}>Perfiles IA Permitidos (Habilidades)</p>
-            <p style={{ margin: '0 0 12px', fontSize: '11px', color: c.subtitle }}>
-              Selecciona a cuáles Perfiles IA tendrá acceso el Agente Maestro para enrutar las conversaciones de los clientes. Si no seleccionas ninguno, solo usará sus instrucciones maestras.
-            </p>
-            
-            {dbProfiles.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '12px', color: c.subtitle, fontStyle: 'italic' }}>No hay perfiles disponibles.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {dbProfiles.map(p => {
-                  const isChecked = allowedProfiles.includes(p.id);
-                  return (
-                    <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={isChecked} onChange={(e) => {
-                        if (e.target.checked) setAllowedProfiles(prev => [...prev, p.id]);
-                        else setAllowedProfiles(prev => prev.filter(id => id !== p.id));
-                      }} style={{ cursor: 'pointer' }}/>
-                      <span style={{ fontSize: '13px', color: c.inputText }}>{p.label}</span>
-                      {p.is_global && <span style={{ fontSize: '9px', background: '#f59e0b20', color: '#f59e0b', padding: '2px 6px', borderRadius: '10px' }}>Global</span>}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-            <button type="submit" disabled={saving}
-              style={{ backgroundColor: '#1D9E75', color: '#fff', fontWeight: '500', padding: '10px 28px', borderRadius: '8px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '14px' }}>
-              {saving ? 'Guardando...' : 'Guardar Configuración'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginTop: '24px' }}>
-        <h3 style={{ margin: '0 0 20px', fontSize: '16px', color: c.sectionHd }}>Inteligencia Interna Kuden</h3>
+        <h3 style={{ margin: '0 0 20px', fontSize: '16px', color: c.sectionHd }}>Modelos de Inteligencia Interna</h3>
         <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
-          Configura qué modelos procesan las tareas internas (que no son visibles al cliente). Elegir modelos económicos para resúmenes puede ahorrar mucho presupuesto.
+          Elige los proveedores y modelos que Kuden utilizará por detrás para realizar tareas operativas. Elegir modelos económicos para resúmenes puede ahorrar mucho presupuesto.
         </p>
 
         <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
