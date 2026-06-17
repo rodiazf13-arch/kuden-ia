@@ -16,6 +16,7 @@ import UserProfile from './admin/UserProfile.jsx';
 import SystemHealthDashboard from './admin/SystemHealthDashboard.jsx';
 import CopilotManager from './admin/CopilotManager.jsx';
 import KimiInsights from './admin/KimiInsights.jsx';
+import IntegrationsHub from './admin/IntegrationsHub.jsx';
 import { supabase } from "./lib/supabaseClient.js";
 
 const MASTER_TENANT_NAME = "Kuden Demo Tenant";
@@ -167,6 +168,10 @@ export default function App() {
 
       case 'widget':
         return <WidgetSettings tenantId={activeTenantId} isDark={isDark} />;
+
+      case 'integrations':
+        if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
+        return <IntegrationsHub isDark={isDark} />;
 
       case 'profile':
         return <UserProfile isDark={isDark} userEmail={session?.user?.email} />;

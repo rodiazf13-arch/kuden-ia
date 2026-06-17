@@ -55,10 +55,11 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
   const tabGroups = [
     {
-      title: 'Demos & Integración',
+      title: 'Integraciones & Web',
       items: [
         { id: 'simulator', label: 'Simulador IA', icon: 'ti-message-chatbot', superAdminOnly: true },
-        { id: 'widget', label: 'Widget Web', icon: 'ti-world' }
+        { id: 'widget', label: 'Widget Web', icon: 'ti-world' },
+        { id: 'integrations', label: 'Hub Integraciones', icon: 'ti-plug', superAdminOnly: true }
       ]
     },
     {

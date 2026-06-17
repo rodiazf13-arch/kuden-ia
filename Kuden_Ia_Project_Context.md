@@ -127,8 +127,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     La IA detecta la intención de compra y genera automáticamente un link de pago (Transbank, Mercado Pago, Stripe) enviándolo dentro de la misma conversación para cerrar ventas sin fricción.
 16. **SLA Monitor con Alertas de Incumplimiento:**
     Timer automático para asegurar acuerdos de nivel de servicio (ej. "respuesta en 2 horas"). Dispara alertas urgentes a supervisores antes de que el SLA se venza.
-17. **App Móvil Ligera para Ejecutivos (PWA):**
-    Una Progressive Web App para que los ejecutivos en terreno puedan recibir notificaciones push, ver la bandeja del CRM y responder leads urgentes directamente desde su celular sin instalar nada.
+17. **App Móvil Ligera para Ejecutivos (Responsividad -> PWA -> Tiendas):**
+    Fase estructurada: 1) Adaptación responsiva total de la vista web actual para uso fluido en móviles/tablets. 2) Conversión a Progressive Web App (PWA) para instalación rápida sin tiendas. 3) Empaquetado futuro para publicación oficial en App Store y Google Play para mayor autoridad de marca.
 18. **Canal de Email Integrado:**
     Incorporar el correo electrónico como un canal omnicanal adicional. La IA lee, clasifica, asigna y puede responder automáticamente emails frecuentes, unificando todo en la Vista 360°.
 19. **Formularios y Encuestas Personalizables Conversacionales:**
