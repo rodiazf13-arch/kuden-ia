@@ -15,6 +15,14 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   const [allowedProfiles, setAllowedProfiles] = useState([]);
   const [dbProfiles, setDbProfiles] = useState([]);
 
+  // Internal AI Config
+  const [kimiProvider, setKimiProvider] = useState('anthropic');
+  const [kimiModel, setKimiModel] = useState('claude-sonnet-4-6');
+  const [summaryProvider, setSummaryProvider] = useState('anthropic');
+  const [summaryModel, setSummaryModel] = useState('claude-haiku-4-5-20251001');
+  const [openRouterModels, setOpenRouterModels] = useState([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
   const c = {
     card:      isDark ? '#111'    : '#ffffff',
     border:    isDark ? '#222'    : '#e5e7eb',
@@ -29,6 +37,24 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   useEffect(() => {
     if (tenantId) fetchConfig();
   }, [tenantId]);
+
+  useEffect(() => {
+    if ((kimiProvider === 'openrouter' || summaryProvider === 'openrouter') && openRouterModels.length === 0) {
+      setLoadingModels(true);
+      fetch('https://openrouter.ai/api/v1/models')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.data) {
+            const sortedModels = data.data.sort((a,b) => a.id.localeCompare(b.id));
+            setOpenRouterModels(sortedModels);
+            if (kimiProvider === 'openrouter' && (!kimiModel || !sortedModels.find(m => m.id === kimiModel))) setKimiModel(sortedModels[0].id);
+            if (summaryProvider === 'openrouter' && (!summaryModel || !sortedModels.find(m => m.id === summaryModel))) setSummaryModel(sortedModels[0].id);
+          }
+        })
+        .catch(err => console.error("Error fetching openrouter models:", err))
+        .finally(() => setLoadingModels(false));
+    }
+  }, [kimiProvider, summaryProvider]);
 
   const fetchConfig = async () => {
     try {
@@ -54,6 +80,10 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
         setAgentName(data.agent_name || '');
         setBasePrompt(data.base_prompt || '');
         setAllowedProfiles(data.allowed_profiles || []);
+        setKimiProvider(data.kimi_llm_provider || 'anthropic');
+        setKimiModel(data.kimi_llm_model || 'claude-sonnet-4-6');
+        setSummaryProvider(data.summary_llm_provider || 'anthropic');
+        setSummaryModel(data.summary_llm_model || 'claude-haiku-4-5-20251001');
       } else {
         // Init default if doesn't exist
         setCompanyName('Mi Empresa');
@@ -81,6 +111,10 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
         agent_name: agentName,
         base_prompt: basePrompt,
         allowed_profiles: allowedProfiles,
+        kimi_llm_provider: kimiProvider,
+        kimi_llm_model: kimiModel,
+        summary_llm_provider: summaryProvider,
+        summary_llm_model: summaryModel,
       };
 
       let res;
@@ -181,6 +215,97 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                 })}
               </div>
             )}
+          </div>
+
+          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <button type="submit" disabled={saving}
+              style={{ backgroundColor: '#1D9E75', color: '#fff', fontWeight: '500', padding: '10px 28px', borderRadius: '8px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '14px' }}>
+              {saving ? 'Guardando...' : 'Guardar Configuración'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginTop: '24px' }}>
+        <h3 style={{ margin: '0 0 20px', fontSize: '16px', color: c.sectionHd }}>Inteligencia Interna Kuden</h3>
+        <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
+          Configura qué modelos procesan las tareas internas (que no son visibles al cliente). Elegir modelos económicos para resúmenes puede ahorrar mucho presupuesto.
+        </p>
+
+        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          
+          {/* KIMI COPILOT */}
+          <div style={{ gridColumn: '1 / -1', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', padding: '16px', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#2563eb' }}>Kimi Co-Piloto</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Proveedor LLM</label>
+                <select value={kimiProvider} onChange={e => {
+                  setKimiProvider(e.target.value);
+                  if (e.target.value === 'anthropic') setKimiModel('claude-sonnet-4-6');
+                  else if (e.target.value === 'openai') setKimiModel('gpt-4o');
+                  else if (e.target.value === 'gemini') setKimiModel('gemini-1.5-pro');
+                  else if (e.target.value === 'groq') setKimiModel('llama-3-70b-8192');
+                  else if (e.target.value === 'openrouter') {
+                    if (openRouterModels.length > 0) setKimiModel(openRouterModels[0].id);
+                    else setKimiModel('');
+                  }
+                }} style={inputStyle}>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Google</option>
+                  <option value="groq">Groq</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Modelo Específico</label>
+                <select value={kimiModel} onChange={e => setKimiModel(e.target.value)} disabled={loadingModels} style={inputStyle}>
+                  {kimiProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
+                  {kimiProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
+                  {kimiProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
+                  {kimiProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                  {kimiProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* SUMMARY ANALYST */}
+          <div style={{ gridColumn: '1 / -1', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', padding: '16px', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#d97706' }}>Analista de Resúmenes (Cierre de Tickets)</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Proveedor LLM</label>
+                <select value={summaryProvider} onChange={e => {
+                  setSummaryProvider(e.target.value);
+                  if (e.target.value === 'anthropic') setSummaryModel('claude-haiku-4-5-20251001');
+                  else if (e.target.value === 'openai') setSummaryModel('gpt-4o-mini');
+                  else if (e.target.value === 'gemini') setSummaryModel('gemini-1.5-flash');
+                  else if (e.target.value === 'groq') setSummaryModel('llama3-8b-8192');
+                  else if (e.target.value === 'openrouter') {
+                    if (openRouterModels.length > 0) setSummaryModel(openRouterModels[0].id);
+                    else setSummaryModel('');
+                  }
+                }} style={inputStyle}>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Google</option>
+                  <option value="groq">Groq</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Modelo Específico</label>
+                <select value={summaryModel} onChange={e => setSummaryModel(e.target.value)} disabled={loadingModels} style={inputStyle}>
+                  {summaryProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
+                  {summaryProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
+                  {summaryProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
+                  {summaryProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                  {summaryProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
 
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>

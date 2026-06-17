@@ -743,10 +743,21 @@ app.post("/api/summarize", async (req, res) => {
     conversacion;
 
   try {
+    let summaryProvider = provider || 'anthropic';
+    let summaryModel = model || 'claude-haiku-4-5-20251001';
+
+    if (tenantId && !provider) {
+      const { data: configData } = await supabase.from('tenant_ai_config').select('summary_llm_provider, summary_llm_model').eq('tenant_id', tenantId).maybeSingle();
+      if (configData) {
+        if (configData.summary_llm_provider) summaryProvider = configData.summary_llm_provider;
+        if (configData.summary_llm_model) summaryModel = configData.summary_llm_model;
+      }
+    }
+
     // 1. Llama a LLM para generar el resumen
     const { text: resumenEjecutivo, usage } = await callLLM(supabase, {
-      provider: provider || 'anthropic',
-      model: model || 'claude-haiku-4-5-20251001',
+      provider: summaryProvider,
+      model: summaryModel,
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
     });
@@ -755,8 +766,8 @@ app.post("/api/summarize", async (req, res) => {
       logLLMUsage(supabase, {
         tenantId,
         aiProfileId: aiProfileId || null,
-        provider: provider || 'anthropic',
-        model: model || 'claude-haiku-4-5-20251001',
+        provider: summaryProvider,
+        model: summaryModel,
         usage
       }).catch(err => console.error("Error logging llm usage in /api/summarize:", err));
     }
@@ -2709,9 +2720,18 @@ ${advancedMetricsPrompt}`;
     // 5. Llamar al LLM (usamos Claude Sonnet por defecto para el Co-Piloto por ser muy inteligente)
     systemHistory.push({ role: 'user', content: message });
     
+    let kimiProvider = 'anthropic';
+    let kimiModel = 'claude-sonnet-4-6';
+
+    const { data: configData } = await supabase.from('tenant_ai_config').select('kimi_llm_provider, kimi_llm_model').eq('tenant_id', tenantId).maybeSingle();
+    if (configData) {
+      if (configData.kimi_llm_provider) kimiProvider = configData.kimi_llm_provider;
+      if (configData.kimi_llm_model) kimiModel = configData.kimi_llm_model;
+    }
+
     const { text: kimiResponse, usage } = await callLLM(supabase, {
-      provider: 'anthropic',
-      model: 'claude-sonnet-4-6',
+      provider: kimiProvider,
+      model: kimiModel,
       system: systemPrompt,
       messages: systemHistory,
       max_tokens: 1500
@@ -2729,8 +2749,8 @@ ${advancedMetricsPrompt}`;
       tenantId,
       campaignId: null,
       aiProfileId: null,
-      provider: 'anthropic',
-      model: 'claude-sonnet-4-6',
+      provider: kimiProvider,
+      model: kimiModel,
       usage,
       source: 'copilot'
     });
