@@ -129,8 +129,10 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Timer automático para asegurar acuerdos de nivel de servicio (ej. "respuesta en 2 horas"). Dispara alertas urgentes a supervisores antes de que el SLA se venza.
 17. **App Móvil Ligera para Ejecutivos (Responsividad -> PWA -> Tiendas):**
     Fase estructurada: 1) Adaptación responsiva total de la vista web actual para uso fluido en móviles/tablets. 2) Conversión a Progressive Web App (PWA) para instalación rápida sin tiendas. 3) Empaquetado futuro para publicación oficial en App Store y Google Play para mayor autoridad de marca.
-18. **Canal de Email Integrado:**
-    Incorporar el correo electrónico como un canal omnicanal adicional. La IA lee, clasifica, asigna y puede responder automáticamente emails frecuentes, unificando todo en la Vista 360°.
+18. ✅ **Canal de Email Integrado Bidireccionalmente (Vía n8n):**
+    **COMPLETADO:** Para evitar el costoso y burocrático proceso del "Google CASA Security Assessment" (Auditoría anual de $15,000 USD+ requerida por Google para leer bandejas de entrada directamente por API), la arquitectura Kuden utiliza **n8n como middleware puente**. 
+    *   **Flujo Inbound:** Un workflow en n8n escucha la bandeja de entrada del cliente (ej. vía IMAP o Gmail node). Al recibir un correo, extrae asunto, texto y Message-ID, y dispara un Webhook Inbound (`POST /api/webhook/n8n-email`) hacia el backend de Kuden. Kuden inserta o crea el contacto por su email, inicia una conversación en canal "email" y guarda la metadata para threading.
+    *   **Flujo Outbound:** El administrador del Tenant configura su propia URL de "Outbound Email Webhook" en el **Hub de Integraciones**. Cuando un ejecutivo (o la IA de Kuden) responde a un ticket de correo desde el CRM, Kuden dispara silenciosamente esta URL pasando el `tenantId`, `email destino`, `cuerpo del texto` y el `messageId` original. n8n recoge el webhook y lo despacha al cliente asegurando que la respuesta caiga en el mismo hilo (Threading correcto) y operando 100% bajo el paraguas de autenticación propia del cliente, manteniendo a Kuden IA totalmente "Stateless" frente a Google/Microsoft.
 19. **Formularios y Encuestas Personalizables Conversacionales:**
     La IA recopila datos específicos (presupuesto, tipo de propiedad) mediante conversación natural en lugar de formularios fríos, guardando todo estructurado en el CRM.
 20. **Portal de Autoservicio para Clientes Finales:**

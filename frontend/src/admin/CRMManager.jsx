@@ -1021,6 +1021,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     <option value="webchat">Web Chat</option>
                     <option value="whatsapp">WhatsApp</option>
                     <option value="instagram">Instagram</option>
+                    <option value="email">Email</option>
                   </select>
                   {campaigns.length > 0 && (
                     <select value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}
