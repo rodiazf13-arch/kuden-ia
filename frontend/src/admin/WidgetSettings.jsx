@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-export default function WidgetSettings({ tenantId, isDark = true }) {
+export default function WidgetSettings({ tenantId, isDark = true, inHub = false }) {
   const [widgets, setWidgets] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,8 +141,8 @@ export default function WidgetSettings({ tenantId, isDark = true }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>Panel de Widgets Web</h2>
-          <p style={{ margin: 0, fontSize: 14, color: c.subtitle }}>Configura y obtén el código para incrustar el chat en distintas páginas web.</p>
+          <h2 style={{ fontSize: inHub ? 18 : 24, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>{inHub ? 'Widgets Web' : 'Panel de Widgets Web'}</h2>
+          <p style={{ margin: 0, fontSize: inHub ? 13 : 14, color: c.subtitle }}>Configura y obtén el código para incrustar el chat en distintas páginas web.</p>
         </div>
         {!isEditing && (
           <button 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import EmailAccountsManager from './EmailAccountsManager';
+import WidgetSettings from './WidgetSettings';
 
 export default function IntegrationsHub({ isDark, tenantId }) {
   const [connectingId, setConnectingId] = useState(null);
@@ -174,6 +175,11 @@ export default function IntegrationsHub({ isDark, tenantId }) {
       {/* Sección especial para Webhook Email */}
       <div style={{ marginBottom: 40 }}>
         <EmailAccountsManager tenantId={tenantId} isDark={isDark} />
+      </div>
+
+      {/* Sección especial para el Widget Web */}
+      <div style={{ marginBottom: 40 }}>
+        <WidgetSettings tenantId={tenantId} isDark={isDark} inHub={true} />
       </div>
       
       <style>{`

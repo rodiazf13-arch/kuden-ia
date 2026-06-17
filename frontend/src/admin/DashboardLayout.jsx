@@ -58,8 +58,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Integraciones & Web',
       items: [
         { id: 'simulator', label: 'Simulador IA', icon: 'ti-message-chatbot', superAdminOnly: true },
-        { id: 'widget', label: 'Widget Web', icon: 'ti-world' },
-        { id: 'integrations', label: 'Hub Integraciones', icon: 'ti-plug', superAdminOnly: true }
+        { id: 'integrations', label: 'Hub Integraciones', icon: 'ti-plug', adminOnly: true }
       ]
     },
     {
@@ -244,7 +243,10 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         {/* Navegación */}
         <nav style={{ flex: 1, padding: isSidebarCollapsed ? '14px 10px' : '14px 10px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto', overflowX: 'hidden' }}>
           {tabGroups.map((group, idx) => {
-            const groupItems = group.items.filter(t => !t.superAdminOnly || isSuperAdmin);
+            const groupItems = group.items.filter(t => 
+              (!t.superAdminOnly || isSuperAdmin) && 
+              (!t.adminOnly || userRole === 'admin' || isSuperAdmin)
+            );
             if (groupItems.length === 0) return null;
             return (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

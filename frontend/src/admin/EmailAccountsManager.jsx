@@ -85,24 +85,31 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
         campaign_id: formData.campaign_id || null
       };
 
+      let res;
       if (currentAccount) {
-        await fetch(`${API_URL}/api/email_accounts/${currentAccount.id}`, {
+        res = await fetch(`${API_URL}/api/email_accounts/${currentAccount.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
       } else {
-        await fetch(`${API_URL}/api/email_accounts`, {
+        res = await fetch(`${API_URL}/api/email_accounts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
       }
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Error al guardar');
+      }
+
       setIsEditing(false);
       fetchData();
     } catch (e) {
       console.error('Error guardando cuenta de correo:', e);
-      alert('Error guardando configuración de la cuenta');
+      alert('Error guardando configuración de la cuenta: ' + e.message);
     }
   };
 
