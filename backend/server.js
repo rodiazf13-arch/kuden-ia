@@ -1864,6 +1864,62 @@ app.delete("/api/web_widgets/:id", async (req, res) => {
   }
 });
 
+// ─── EMAIL ACCOUNTS CRUD ────────────────────────────────────────────────────────
+app.get("/api/email_accounts", async (req, res) => {
+  const { tenantId } = req.query;
+  try {
+    let query = supabase.from("email_accounts").select("*");
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/email_accounts", async (req, res) => {
+  try {
+    const { tenant_id, email, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook } = req.body;
+    const { data, error } = await supabase.from("email_accounts").insert([{
+      tenant_id, email, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook
+    }]).select().single();
+    
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put("/api/email_accounts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook } = req.body;
+    const { data, error } = await supabase.from("email_accounts").update({
+      email, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook
+    }).eq("id", id).select().single();
+    
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete("/api/email_accounts/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { error } = await supabase.from("email_accounts").delete().eq("id", id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── GET /api/widget/config ───────────────────────────────────────────────────
 app.get("/api/widget/config", async (req, res) => {
   const { tenantId, widgetId } = req.query;
