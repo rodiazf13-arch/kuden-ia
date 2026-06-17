@@ -1,0 +1,115 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Inicializar Supabase para Vercel Serverless
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export default async function handler(req, res) {
+  // CORS Headers básicos si n8n o algo más los requiere
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  const { tenantId, senderEmail, senderName, subject, textBody, messageId } = req.body;
+  
+  if (!tenantId || !senderEmail) {
+    return res.status(400).json({ error: "Faltan datos obligatorios (tenantId, senderEmail)." });
+  }
+
+  try {
+    const now = new Date().toISOString();
+    
+    // 1. Buscar o crear el contacto por email
+    let { data: contact } = await supabase
+      .from('contacts')
+      .select('*')
+      .eq('email', senderEmail)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+      
+    if (!contact) {
+      const { data: newContact, error: errC } = await supabase
+        .from('contacts')
+        .insert({ 
+          tenant_id: tenantId, 
+          cliente_nombre: senderName || senderEmail.split('@')[0], 
+          email: senderEmail 
+        })
+        .select()
+        .single();
+      if (errC) throw errC;
+      contact = newContact;
+    }
+
+    // 2. Buscar conversación activa del contacto, si no existe, crear una nueva
+    let { data: conv } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('contact_id', contact.id)
+      .eq('status', 'active')
+      .maybeSingle();
+    
+    // Guardar el Message-ID y el Subject en metadata para threading y respuestas
+    const newMetadata = conv 
+      ? { ...(conv.metadata || {}), messageId, subject: subject || (conv.metadata?.subject || '') } 
+      : { messageId, subject: subject || '' };
+
+    if (!conv) {
+      const { data: newConv, error: errConv } = await supabase
+        .from('conversations')
+        .insert({ 
+          contact_id: contact.id, 
+          status: 'active', 
+          tenant_id: tenantId, 
+          last_message_at: now, 
+          canal: 'email', 
+          metadata: newMetadata 
+        })
+        .select()
+        .single();
+      if (errConv) throw errConv;
+      conv = newConv;
+    } else {
+      // Actualizamos el metadata con el último messageId
+      await supabase.from('conversations').update({ metadata: newMetadata }).eq('id', conv.id);
+    }
+
+    // 3. Insertar el mensaje
+    const messageContent = subject ? `Asunto: ${subject}\n\n${textBody}` : textBody;
+    
+    const { error: msgErr } = await supabase
+      .from("conversation_messages")
+      .insert({
+        conversation_id: conv.id,
+        tenant_id: tenantId,
+        sender_type: "customer",
+        sender_name: contact.cliente_nombre,
+        content: messageContent,
+        metadata: { messageId }
+      });
+      
+    if (msgErr) throw msgErr;
+
+    // 4. Actualizar preview
+    await supabase.from("conversations").update({
+      last_message_at: now,
+      last_message_preview: messageContent.slice(0, 100)
+    }).eq("id", conv.id);
+
+    return res.status(200).json({ success: true, conversationId: conv.id });
+    
+  } catch (error) {
+    console.error("[POST /api/webhook/n8n-email]", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+}
