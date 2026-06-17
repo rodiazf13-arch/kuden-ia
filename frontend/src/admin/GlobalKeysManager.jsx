@@ -6,7 +6,8 @@ export default function GlobalKeysManager({ isDark = true }) {
     anthropic_key: '',
     openai_key: '',
     gemini_key: '',
-    groq_key: ''
+    groq_key: '',
+    openrouter_key: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -92,6 +93,7 @@ export default function GlobalKeysManager({ isDark = true }) {
       {renderKeyRow("OpenAI (GPT)", "openai_key", "sk-...")}
       {renderKeyRow("Google (Gemini)", "gemini_key", "AIza...")}
       {renderKeyRow("Groq (Llama 3)", "groq_key", "gsk_...")}
+      {renderKeyRow("OpenRouter (Multi-LLM)", "openrouter_key", "sk-or-v1-...")}
     </div>
   );
 }

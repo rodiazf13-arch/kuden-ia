@@ -32,6 +32,8 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [openRouterModels, setOpenRouterModels] = useState([]);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   const c = {
     card: isDark ? '#111' : '#ffffff',
@@ -48,6 +50,25 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   };
 
   useEffect(() => { if (tenantId) fetchProfiles(); }, [tenantId]);
+
+  useEffect(() => {
+    if (llmProvider === 'openrouter' && openRouterModels.length === 0) {
+      setLoadingModels(true);
+      fetch('https://openrouter.ai/api/v1/models')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.data) {
+            const sortedModels = data.data.sort((a,b) => a.id.localeCompare(b.id));
+            setOpenRouterModels(sortedModels);
+            if (!llmModel || !sortedModels.find(m => m.id === llmModel)) {
+              setLlmModel(sortedModels[0].id);
+            }
+          }
+        })
+        .catch(err => console.error("Error fetching openrouter models:", err))
+        .finally(() => setLoadingModels(false));
+    }
+  }, [llmProvider]);
 
   const fetchProfiles = async () => {
     try {
@@ -303,16 +324,23 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                 else if (e.target.value === 'openai') setLlmModel('gpt-4o-mini');
                 else if (e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
                 else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
+                else if (e.target.value === 'openrouter') {
+                  if (openRouterModels.length > 0) setLlmModel(openRouterModels[0].id);
+                  else setLlmModel('');
+                }
               }} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
                 <option value="anthropic">Anthropic (Claude)</option>
                 <option value="openai">OpenAI (GPT)</option>
                 <option value="gemini">Google (Gemini)</option>
                 <option value="groq">Groq (Llama 3)</option>
+                <option value="openrouter">OpenRouter (Universal)</option>
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>Modelo Específico</label>
-              <select value={llmModel} onChange={e => setLlmModel(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>
+                Modelo Específico {loadingModels && <span style={{fontSize: 10, color: '#2563eb'}}>(Cargando...)</span>}
+              </label>
+              <select value={llmModel} onChange={e => setLlmModel(e.target.value)} disabled={loadingModels} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
                 {llmProvider === 'anthropic' && (
                   <>
                     <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Inteligente)</option>
@@ -337,6 +365,9 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                     <option value="llama-4-8b-8192">Llama 4 8B (Rápido)</option>
                   </>
                 )}
+                {llmProvider === 'openrouter' && openRouterModels.map(m => (
+                  <option key={m.id} value={m.id}>{m.id} ({m.pricing?.prompt ? `$${(m.pricing.prompt * 1000000).toFixed(2)}/1M` : 'Gratis'})</option>
+                ))}
               </select>
             </div>
           </div>

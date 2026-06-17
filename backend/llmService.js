@@ -26,7 +26,7 @@ let keysLastFetched = 0;
 async function getApiKey(supabase, provider) {
   // Simple cache for 5 mins
   if (!cachedKeys || Date.now() - keysLastFetched > 300000) {
-    const { data } = await supabase.from('global_settings').select('key, value').in('key', ['anthropic_key', 'openai_key', 'gemini_key', 'groq_key']);
+    const { data } = await supabase.from('global_settings').select('key, value').in('key', ['anthropic_key', 'openai_key', 'gemini_key', 'groq_key', 'openrouter_key']);
     cachedKeys = {};
     if (data) {
       data.forEach(d => { cachedKeys[d.key] = d.value?.api_key; });
@@ -42,6 +42,7 @@ async function getApiKey(supabase, provider) {
   if (provider === 'openai') return process.env.OPENAI_API_KEY;
   if (provider === 'gemini') return process.env.GEMINI_API_KEY;
   if (provider === 'groq') return process.env.GROQ_API_KEY;
+  if (provider === 'openrouter') return process.env.OPENROUTER_API_KEY;
   
   return null;
 }
@@ -73,13 +74,25 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
     responseText = data.content[0].text;
     usage = { prompt_tokens: data.usage?.input_tokens || 0, completion_tokens: data.usage?.output_tokens || 0 };
   } 
-  else if (provider === 'openai' || provider === 'groq') {
-    const openai = new OpenAI({ apiKey, baseURL: provider === 'groq' ? "https://api.groq.com/openai/v1" : undefined });
+  else if (provider === 'openai' || provider === 'groq' || provider === 'openrouter') {
+    let baseURL = undefined;
+    if (provider === 'groq') baseURL = "https://api.groq.com/openai/v1";
+    if (provider === 'openrouter') baseURL = "https://openrouter.ai/api/v1";
+
+    const openai = new OpenAI({ 
+      apiKey, 
+      baseURL,
+      defaultHeaders: provider === 'openrouter' ? {
+        "HTTP-Referer": "https://kuden.cl",
+        "X-Title": "Kuden IA"
+      } : undefined
+    });
+    
     let combinedMessages = [...messages];
     if (system) combinedMessages = [{ role: 'system', content: system }, ...messages];
     
     const completion = await openai.chat.completions.create({
-      model: model || (provider === 'groq' ? "llama3-8b-8192" : "gpt-4o-mini"),
+      model: model || (provider === 'groq' ? "llama3-8b-8192" : (provider === 'openrouter' ? "meta-llama/llama-3-8b-instruct" : "gpt-4o-mini")),
       messages: combinedMessages,
       max_tokens
     });

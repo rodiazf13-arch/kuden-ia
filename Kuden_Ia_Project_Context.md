@@ -85,9 +85,9 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 ### FASE 4: Atribución de Marketing y Automatización Social
 1.  **Atribución de Conversiones "Kuden Ads" (Offline Conversions):** Integrar la API de Conversiones de Meta (CAPI) y Google Ads para registrar como eventos offline las conversiones exitosas del chat (leads calificados, citas, ventas). Esto permite conectar el gasto publicitario con resultados reales en el CRM y optimizar el rendimiento del ad spend.
 2.  **Instagram Comments-to-DM (AI Comments):** Automatización de respuestas inteligentes en comentarios públicos de posts de Instagram, redirigiendo de forma inmediata al usuario a Direct Messages (DM) con un flujo de calificación personalizado operado por la IA.
-3.  **Hub de Conexión OAuth para Agendamientos (Delegación a n8n):**
-    *   **Regla de Arquitectura (Cero Reinvención):** Kuden NO construirá un motor de calendarios interno (manejo de zonas horarias, disponibilidad, etc.). Toda la carga transaccional y validación de fechas se delega exclusivamente a **n8n** interactuando con herramientas nativas del cliente (Google Calendar, Calendly, Cal.com).
-    *   **Frontend UI (Gestor de Credenciales):** En el roadmap se contempla crear botones limpios en el CRM (ej. `[Conectar Google Calendar]`, `[Vincular Calendly]`) cuyo único propósito sea automatizar el flujo OAuth. Kuden capturará el Token de seguridad y lo inyectará directamente en n8n para que las herramientas (`consultar_disponibilidad`, `agendar_cita`) operen de forma transparente bajo el modelo "Done-For-You".
+3.  **Hub de Conexión OAuth para Agendamientos e Integraciones (Delegación a n8n):**
+    *   **Regla de Arquitectura (Cero Reinvención):** Kuden NO construirá un motor de calendarios interno (manejo de zonas horarias, disponibilidad, etc.). Toda la carga transaccional y validación de fechas se delega exclusivamente a **n8n** interactuando con herramientas nativas del cliente.
+    *   ✅ **Frontend UI Completado (Hub de Integraciones):** Se construyó el componente visual premium (`IntegrationsHub.jsx`) en el panel de administración bajo la sección "Integraciones & Web". Incluye las interfaces de conexión para **Google Calendar, Outlook Calendar, Calendly, Cal.com, Meta WhatsApp Cloud e Instagram Direct**. Kuden capturará el Token de seguridad desde aquí y lo inyectará directamente en n8n. (Pendiente: Lógica OAuth backend).
 
 ---
 
@@ -101,12 +101,12 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Completado. Botón "Sugerencia IA" implementado en el CRM. Cuando el ejecutivo hace *Takeover*, la IA entra en acción sugiriendo un texto de respuesta a la conversación que el ejecutivo puede revisar y modificar antes de enviar, reduciendo el TMO drásticamente.
 3.  **Análisis Predictivo Proactivo de Fuga (Churn Prediction):**
     El sistema escanea la Vista 360° de los contactos. Si un cliente acumula interacciones frustradas en varios canales, el dashboard dispara una alerta roja y puede enviar automáticamente un correo/WhatsApp de retención *antes* de que el cliente decida irse.
-4.  **Entrenamiento RAG "Auto-Didacta":**
-    Si la IA escala un caso desconocido a un humano, se quedará "mirando" cómo el experto humano lo resuelve. Al final, propondrá automáticamente: *"¿Deseas agregar esta resolución a mi memoria para la próxima vez?"*.
-5.  **Agentes de Voz Outbound (Clonación y Realismo):**
-    Conectar el motor lógico a tecnologías tipo ElevenLabs. En lugar de solo procesar voz, Kuden podrá realizar llamadas telefónicas (Outbound) a listas de morosos o prospectos con una voz ultra-realista que adapta su empatía en vivo.
-6.  **A/B Testing Automático de "Perfiles IA":**
-    Para clientes de ventas, Kuden probará el perfil "Vendedor Consultivo" vs "Vendedor Urgencia". El panel reportará qué psicología convierte más ventas, basando nuestra asesoría en datos duros.
+4.  **Entrenamiento RAG "Auto-Didacta" (Requiere Human-in-the-loop):**
+    Si la IA escala un caso a un humano, observará la resolución y propondrá agregarla a su memoria. **Riesgo:** Alucinación inducida o aprendizaje de errores humanos. **Regla de Arquitectura:** Siempre debe existir validación asíncrona; un administrador debe aprobar la sugerencia en el panel antes de que se vectorice en Supabase, protegiendo la calidad de la Base de Conocimiento.
+5.  **Integración Asíncrona de Voz Outbound (VICIdial + AI):**
+    **Regla de Arquitectura (Desacoplamiento):** Kuden NO construirá un motor SIP/VoIP interno. La marcación y el diálogo en vivo se delegan a la infraestructura experta (ej. VICIdial conectado a Retell AI). Al finalizar la llamada, el sistema inyecta vía Webhook la transcripción y el resumen directamente en el CRM de Kuden como un evento de voz. Esto alimenta la **Vista 360°** sin heredar la latencia y complejidad del streaming de audio en tiempo real.
+6.  **A/B Testing de "Perfiles IA" (Basado en Recomendación, no Automático):**
+    Para clientes de ventas, Kuden probará el perfil "Vendedor Consultivo" vs "Vendedor Urgencia". **Riesgo:** Apagar perfiles automáticamente sin volumen estadístico significativo puede arruinar campañas (falsos positivos). **Regla de Arquitectura:** El sistema generará reportes vía Kimi Insights sugiriendo el perfil ganador, pero la decisión de cambio será siempre manual por parte del administrador.
 7.  **Traducción y Multilingüismo en Tiempo Real:**
     El cliente en Brasil escribe en portugués, el ejecutivo chileno de tu cliente lo lee en español y responde en español. Kuden se encarga de re-traducir a nivel sistémico de forma invisible.
 8.  ✅ **Agente Asesor IA Interno (Co-Piloto Corporativo):**
