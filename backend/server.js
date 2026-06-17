@@ -1378,6 +1378,66 @@ app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
   }
 });
 
+// ─── POST /api/webhook/n8n-email ───────────────────────────────────────────────
+// Webhook entrante desde n8n para correos electrónicos
+app.post("/api/webhook/n8n-email", async (req, res) => {
+  const { tenantId, senderEmail, senderName, subject, textBody, messageId } = req.body;
+  if (!tenantId || !senderEmail) return res.status(400).json({ error: "Faltan datos obligatorios (tenantId, senderEmail)." });
+  
+  try {
+    const now = new Date().toISOString();
+    // 1. Buscar o crear el contacto por email
+    let { data: contact } = await supabase.from('contacts').select('*').eq('email', senderEmail).eq('tenant_id', tenantId).maybeSingle();
+    if (!contact) {
+      const { data: newContact, error: errC } = await supabase.from('contacts')
+        .insert({ tenant_id: tenantId, cliente_nombre: senderName || senderEmail.split('@')[0], email: senderEmail })
+        .select().single();
+      if (errC) throw errC;
+      contact = newContact;
+    }
+
+    // 2. Buscar conversación activa del contacto, si no existe, crear una nueva
+    let { data: conv } = await supabase.from('conversations')
+      .select('*').eq('contact_id', contact.id).eq('status', 'active').maybeSingle();
+    
+    // Guardar el Message-ID en metadata para threading
+    const newMetadata = conv ? { ...(conv.metadata || {}), messageId } : { messageId };
+
+    if (!conv) {
+      const { data: newConv, error: errConv } = await supabase.from('conversations')
+        .insert({ contact_id: contact.id, status: 'active', tenant_id: tenantId, last_message_at: now, canal: 'email', metadata: newMetadata })
+        .select().single();
+      if (errConv) throw errConv;
+      conv = newConv;
+    } else {
+      // Actualizamos el metadata con el último messageId
+      await supabase.from('conversations').update({ metadata: newMetadata }).eq('id', conv.id);
+    }
+
+    // 3. Insertar el mensaje
+    const messageContent = subject ? `Asunto: ${subject}\n\n${textBody}` : textBody;
+    await insertConvMessage({
+      conversationId: conv.id,
+      tenantId,
+      senderType: 'customer',
+      senderName: contact.cliente_nombre,
+      content: messageContent,
+      metadata: { messageId }
+    });
+
+    // 4. Actualizar preview
+    await supabase.from("conversations").update({
+      last_message_at: now,
+      last_message_preview: messageContent.slice(0, 100)
+    }).eq("id", conv.id);
+
+    return res.json({ success: true, conversationId: conv.id });
+  } catch (e) {
+    console.error("[POST /api/webhook/n8n-email]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── POST /api/crm/conversations/:id/messages ─────────────────────────────────
 // Ejecutivo envía mensaje o nota interna
 // Body: { tenantId, userId, displayName, content, isInternalNote }
@@ -1387,6 +1447,11 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
   if (!content) return res.status(400).json({ error: "content requerido." });
   try {
     const now = new Date().toISOString();
+    
+    // Obtenemos la conversación primero
+    const { data: conv } = await supabase.from("conversations").select("*").eq("id", id).single();
+    if (!conv) return res.status(404).json({ error: "Conversación no encontrada" });
+
     // Insertar el mensaje del ejecutivo
     const { data: msg, error: msgErr } = await supabase
       .from("conversation_messages")
@@ -1408,7 +1473,29 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
         last_message_at: now,
         last_message_preview: `[Ejecutivo] ${content.slice(0, 100)}`,
       }).eq("id", id);
+      
+      // Disparar Webhook Outbound a n8n si el canal es email
+      if (conv.canal === 'email') {
+        const { data: tenant } = await supabase.from('tenants').select('n8n_outbound_email_webhook').eq('id', tenantId).single();
+        if (tenant && tenant.n8n_outbound_email_webhook) {
+          const { data: contact } = await supabase.from('contacts').select('email').eq('id', conv.contact_id).single();
+          const messageId = conv.metadata?.messageId || null;
+          
+          fetch(tenant.n8n_outbound_email_webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tenantId,
+              to: contact?.email,
+              content,
+              messageId,
+              conversationId: id
+            })
+          }).catch(err => console.error("[Outbound Email Webhook] Error:", err.message));
+        }
+      }
     }
+    
     return res.json(msg);
   } catch (e) {
     console.error("[POST /api/crm/conversations/:id/messages]", e.message);

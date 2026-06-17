@@ -573,6 +573,9 @@ function ConvRow({ conv, isSelected, onClick, c }) {
             {conv.last_message_preview || 'Sin mensajes aún'}
           </p>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            {conv.canal === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#3b82f6' }} title="Email" />}
+            {conv.canal === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
+            {conv.canal === 'web' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
             <StatusBadge status={conv.status} />
             {campaign && (
               <span style={{ fontSize: 9, fontWeight: 600, color: campaign.color, background: `${campaign.color}15`, border: `0.5px solid ${campaign.color}40`, borderRadius: 10, padding: '1px 5px' }}>

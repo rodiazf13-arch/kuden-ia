@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const CHANNELS = [
   { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
   { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
+  { id:"email",    label:"Email",     icon:"ti-mail",           color:"#3b82f6", bg:"#dbeafe" },
   { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#534AB7", bg:"#EEEDFE" },
   { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#D85A30", bg:"#FAECE7" },
   { id:"rrss",     label:"Redes Soc.",icon:"ti-share",          color:"#EF9F27", bg:"#FEF3E0" },
@@ -379,7 +380,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
                       style={{ padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', background: isExpanded ? c.inputBg : 'transparent' }}
                     >
                       <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#3b82f620', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                        <i className={`ti ${conv.canal === 'whatsapp' ? 'ti-brand-whatsapp' : 'ti-messages'}`}></i>
+                        <i className={`ti ${conv.canal === 'whatsapp' ? 'ti-brand-whatsapp' : conv.canal === 'email' ? 'ti-mail' : 'ti-messages'}`}></i>
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
