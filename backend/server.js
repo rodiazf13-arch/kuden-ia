@@ -1868,7 +1868,7 @@ app.delete("/api/web_widgets/:id", async (req, res) => {
 app.get("/api/email_accounts", async (req, res) => {
   const { tenantId } = req.query;
   try {
-    let query = supabase.from("email_accounts").select("*");
+    let query = supabase.from("email_accounts").select("*, campaigns(name)");
     if (tenantId) query = query.eq("tenant_id", tenantId);
     query = query.order("created_at", { ascending: false });
 
