@@ -275,16 +275,58 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
   }, [fetchDetail]);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() && attachments.length === 0) return;
     setSending(true);
     try {
       const res = await fetch(`${API_URL}/api/crm/conversations/${convId}/messages`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId, userId, displayName, content: input, isInternalNote: isNote }),
+        body: JSON.stringify({ tenantId, userId, displayName, content: input, isInternalNote: isNote, attachments }),
       });
-      if (res.ok) { setInput(''); await fetchDetail(); }
+      if (res.ok) { 
+        setInput(''); 
+        setAttachments([]);
+        await fetchDetail(); 
+      } else {
+        const err = await res.json();
+        alert('Error al enviar mensaje: ' + err.error);
+      }
     } catch (e) { console.error(e); }
     setSending(false);
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    setUploadingFiles(true);
+    const newAttachments = [];
+    
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${tenantId}/${convId}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('chat_attachments')
+          .upload(filePath, file);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data } = supabase.storage
+          .from('chat_attachments')
+          .getPublicUrl(filePath);
+          
+        newAttachments.push({ url: data.publicUrl, name: file.name, type: file.type });
+      }
+      setAttachments(prev => [...prev, ...newAttachments]);
+    } catch (err) {
+      console.error('Error subiendo adjunto:', err);
+      alert('Error al subir archivo. Asegúrate de haber creado el bucket "chat_attachments" en Supabase.');
+    } finally {
+      setUploadingFiles(false);
+      e.target.value = null;
+    }
   };
 
   const handleSuggestAI = async () => {
