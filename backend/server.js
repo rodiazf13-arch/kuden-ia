@@ -1882,9 +1882,9 @@ app.get("/api/email_accounts", async (req, res) => {
 
 app.post("/api/email_accounts", async (req, res) => {
   try {
-    const { tenant_id, email_address, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook } = req.body;
+    const { tenant_id, name, email_address, campaign_id, is_active, n8n_outbound_webhook } = req.body;
     const { data, error } = await supabase.from("email_accounts").insert([{
-      tenant_id, email_address, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook
+      tenant_id, name, email_address, campaign_id, is_active, n8n_outbound_webhook
     }]).select().single();
     
     if (error) throw error;
@@ -1897,9 +1897,9 @@ app.post("/api/email_accounts", async (req, res) => {
 app.put("/api/email_accounts/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { email_address, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook } = req.body;
+    const { name, email_address, campaign_id, is_active, n8n_outbound_webhook } = req.body;
     const { data, error } = await supabase.from("email_accounts").update({
-      email_address, password, host, port, is_secure, campaign_id, is_active, n8n_outbound_webhook
+      name, email_address, campaign_id, is_active, n8n_outbound_webhook
     }).eq("id", id).select().single();
     
     if (error) throw error;
