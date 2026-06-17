@@ -1400,8 +1400,8 @@ app.post("/api/webhook/n8n-email", async (req, res) => {
     let { data: conv } = await supabase.from('conversations')
       .select('*').eq('contact_id', contact.id).eq('status', 'active').maybeSingle();
     
-    // Guardar el Message-ID en metadata para threading
-    const newMetadata = conv ? { ...(conv.metadata || {}), messageId } : { messageId };
+    // Guardar el Message-ID y el Subject en metadata para threading y respuestas
+    const newMetadata = conv ? { ...(conv.metadata || {}), messageId, subject: subject || (conv.metadata?.subject || '') } : { messageId, subject: subject || '' };
 
     if (!conv) {
       const { data: newConv, error: errConv } = await supabase.from('conversations')
@@ -1480,6 +1480,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
         if (tenant && tenant.n8n_outbound_email_webhook) {
           const { data: contact } = await supabase.from('contacts').select('email').eq('id', conv.contact_id).single();
           const messageId = conv.metadata?.messageId || null;
+          const subject = conv.metadata?.subject || 'Respuesta a su consulta';
           
           fetch(tenant.n8n_outbound_email_webhook, {
             method: 'POST',
@@ -1489,6 +1490,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
               to: contact?.email,
               content,
               messageId,
+              subject,
               conversationId: id
             })
           }).catch(err => console.error("[Outbound Email Webhook] Error:", err.message));

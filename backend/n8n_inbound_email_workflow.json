@@ -1,0 +1,118 @@
+{
+  "name": "Kuden IA - Inbound Email",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "readStatus": "unread"
+        },
+        "options": {
+          "markAsRead": true
+        }
+      },
+      "id": "1",
+      "name": "Leer Correos (Gmail/IMAP)",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "tenantId",
+              "value": "REEMPLAZAR_CON_UUID_DEL_TENANT"
+            },
+            {
+              "name": "senderEmail",
+              "value": "={{ $json.from.value[0].address }}"
+            },
+            {
+              "name": "senderName",
+              "value": "={{ $json.from.value[0].name }}"
+            },
+            {
+              "name": "subject",
+              "value": "={{ $json.subject }}"
+            },
+            {
+              "name": "textBody",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "messageId",
+              "value": "={{ $json.messageId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2",
+      "name": "Mapear Payload a Kuden",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.kuden.cl/api/webhook/n8n-email",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Enviar a Webhook Kuden",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        650,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Leer Correos (Gmail/IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Mapear Payload a Kuden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear Payload a Kuden": {
+      "main": [
+        [
+          {
+            "node": "Enviar a Webhook Kuden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "Kuden IA - Outbound Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kuden-outbound-email",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook (Recibe de Kuden)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "generar-nuevo-id-aqui"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "subject": "={{ $json.body.subject }}",
+        "message": "={{ $json.body.content }}",
+        "toEmail": "={{ $json.body.to }}",
+        "appendAttribution": false,
+        "options": {
+          "customHeaders": {
+            "customHeaderValues": [
+              {
+                "name": "In-Reply-To",
+                "value": "={{ $json.body.messageId }}"
+              },
+              {
+                "name": "References",
+                "value": "={{ $json.body.messageId }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "2",
+      "name": "Responder Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        450,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook (Recibe de Kuden)": {
+      "main": [
+        [
+          {
+            "node": "Responder Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
