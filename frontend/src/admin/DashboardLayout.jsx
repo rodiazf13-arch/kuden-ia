@@ -58,7 +58,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Integraciones & Web',
       items: [
         { id: 'simulator', label: 'Simulador IA', icon: 'ti-message-chatbot', superAdminOnly: true },
-        { id: 'integrations', label: 'Hub Integraciones', icon: 'ti-plug', adminOnly: true }
+        { id: 'integrations', label: 'Hub Integraciones', icon: 'ti-plug', superAdminOnly: true }
       ]
     },
     {

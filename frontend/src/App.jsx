@@ -168,7 +168,7 @@ export default function App() {
         return <BillingDashboard isDark={isDark} />;
 
       case 'integrations':
-        if (userRole !== 'admin' && !isSuperAdmin) return <AccessDenied isDark={isDark} />;
+        if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
         return <IntegrationsHub isDark={isDark} tenantId={activeTenantId} />;
 
       case 'profile':
