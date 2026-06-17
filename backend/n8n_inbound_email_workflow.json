@@ -55,6 +55,10 @@
             {
               "name": "messageId",
               "value": "={{ $json.messageId }}"
+            },
+            {
+              "name": "receiverEmail",
+              "value": "={{ $json.to.value[0].address }}"
             }
           ]
         },

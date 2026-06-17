@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const { tenantId, senderEmail, senderName, subject, textBody, messageId } = req.body;
+  const { tenantId, senderEmail, senderName, subject, textBody, messageId, receiverEmail } = req.body;
   
   if (!tenantId || !senderEmail) {
     return res.status(400).json({ error: "Faltan datos obligatorios (tenantId, senderEmail)." });
@@ -51,6 +51,36 @@ export default async function handler(req, res) {
       contact = newContact;
     }
 
+    // 1.5 Obtener campaña asociada a la cuenta de correo (email_accounts)
+    let assignedCampaignId = null;
+    if (receiverEmail) {
+      const { data: emailAccount } = await supabase
+        .from('email_accounts')
+        .select('campaign_id')
+        .eq('tenant_id', tenantId)
+        .eq('email_address', receiverEmail)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (emailAccount && emailAccount.campaign_id) {
+        assignedCampaignId = emailAccount.campaign_id;
+      }
+    }
+
+    // Si no encontró campaña específica (o no se envió receiverEmail), cae a la por defecto
+    if (!assignedCampaignId) {
+      const { data: campaignData } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .limit(1)
+        .maybeSingle();
+        
+      if (campaignData) {
+        assignedCampaignId = campaignData.id;
+      }
+    }
+
     // 2. Buscar conversación activa del contacto, si no existe, crear una nueva
     let { data: conv } = await supabase
       .from('conversations')
@@ -61,8 +91,8 @@ export default async function handler(req, res) {
     
     // Guardar el Message-ID y el Subject en metadata para threading y respuestas
     const newMetadata = conv 
-      ? { ...(conv.metadata || {}), messageId, subject: subject || (conv.metadata?.subject || '') } 
-      : { messageId, subject: subject || '' };
+      ? { ...(conv.metadata || {}), messageId, subject: subject || (conv.metadata?.subject || ''), receiverEmail: receiverEmail || (conv.metadata?.receiverEmail || '') } 
+      : { messageId, subject: subject || '', receiverEmail: receiverEmail || '' };
 
     if (!conv) {
       const { data: newConv, error: errConv } = await supabase
@@ -71,6 +101,7 @@ export default async function handler(req, res) {
           contact_id: contact.id, 
           status: 'active', 
           tenant_id: tenantId, 
+          campaign_id: assignedCampaignId,
           last_message_at: now, 
           canal: 'email', 
           metadata: newMetadata 

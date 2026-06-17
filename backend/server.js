@@ -1476,13 +1476,26 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
       
       // Disparar Webhook Outbound a n8n si el canal es email
       if (conv.canal === 'email') {
-        const { data: tenant } = await supabase.from('tenants').select('n8n_outbound_email_webhook').eq('id', tenantId).single();
-        if (tenant && tenant.n8n_outbound_email_webhook) {
+        const receiverEmail = conv.metadata?.receiverEmail;
+        let webhookUrl = null;
+        
+        if (receiverEmail) {
+          const { data: emailAcc } = await supabase.from('email_accounts').select('n8n_outbound_webhook').eq('tenant_id', tenantId).eq('email_address', receiverEmail).single();
+          if (emailAcc && emailAcc.n8n_outbound_webhook) webhookUrl = emailAcc.n8n_outbound_webhook;
+        }
+        
+        // Fallback al webhook global si no hay cuenta específica
+        if (!webhookUrl) {
+          const { data: tenant } = await supabase.from('tenants').select('n8n_outbound_email_webhook').eq('id', tenantId).single();
+          if (tenant && tenant.n8n_outbound_email_webhook) webhookUrl = tenant.n8n_outbound_email_webhook;
+        }
+
+        if (webhookUrl) {
           const { data: contact } = await supabase.from('contacts').select('email').eq('id', conv.contact_id).single();
           const messageId = conv.metadata?.messageId || null;
           const subject = conv.metadata?.subject || 'Respuesta a su consulta';
           
-          fetch(tenant.n8n_outbound_email_webhook, {
+          fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

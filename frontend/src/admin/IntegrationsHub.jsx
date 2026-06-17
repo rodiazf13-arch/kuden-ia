@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import EmailAccountsManager from './EmailAccountsManager';
 
 export default function IntegrationsHub({ isDark, tenantId }) {
   const [connectingId, setConnectingId] = useState(null);
@@ -172,31 +173,7 @@ export default function IntegrationsHub({ isDark, tenantId }) {
 
       {/* Sección especial para Webhook Email */}
       <div style={{ marginBottom: 40 }}>
-        <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0', color: textMain, borderBottom: `1px solid ${borderCol}`, paddingBottom: 10 }}>
-          Email (n8n Bridge)
-        </h2>
-        <div style={{
-          background: cardBg, border: `1px solid ${borderCol}`, borderRadius: '16px', padding: '24px',
-          backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 8px 32px rgba(0,0,0,0.04)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${borderCol}` }}>
-              <i className="ti ti-mail" style={{ fontSize: '28px', color: '#3b82f6' }}></i>
-            </div>
-            <div>
-              <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '700', color: textMain }}>Outbound Email Webhook</h3>
-              <p style={{ margin: 0, fontSize: '13px', color: textSec }}>Conecta tu nodo de n8n para despachar correos desde el CRM.</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input type="url" value={emailWebhook} onChange={e => setEmailWebhook(e.target.value)} placeholder="Ej: https://n8n.kuden.cl/webhook/..." 
-              style={{ flex: 1, backgroundColor: isDark ? '#1a1a1a' : '#f9fafb', border: `1px solid ${borderCol}`, borderRadius: '8px', padding: '10px', color: textMain, outline: 'none', fontSize: '14px' }} />
-            <button onClick={saveEmailWebhook} disabled={savingEmail || !tenantId} style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: '600', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: (savingEmail || !tenantId) ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
-              {savingEmail ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </div>
+        <EmailAccountsManager tenantId={tenantId} isDark={isDark} />
       </div>
       
       <style>{`

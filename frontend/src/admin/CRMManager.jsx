@@ -181,6 +181,7 @@ function MessageBubble({ msg, c }) {
           background: isCustomer ? '#e5e7eb' : isAI ? '#1D9E7520' : '#2563eb20',
           color: isCustomer ? '#111' : isAI ? '#085041' : '#1e40af',
           border: isCustomer ? 'none' : `0.5px solid ${isAI ? '#1D9E7540' : '#2563eb40'}`,
+          whiteSpace: 'pre-wrap'
         }}>
           {msg.content}
         </div>
