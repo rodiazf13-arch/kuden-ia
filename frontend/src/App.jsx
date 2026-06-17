@@ -172,7 +172,7 @@ export default function App() {
         return <IntegrationsHub isDark={isDark} tenantId={activeTenantId} />;
 
       case 'profile':
-        return <UserProfile isDark={isDark} userEmail={session?.user?.email} />;
+        return <UserProfile isDark={isDark} userEmail={session?.user?.email} userId={session?.user?.id} />;
 
       case 'tenants':
         if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;

@@ -1,11 +1,47 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function UserProfile({ isDark, userEmail }) {
+export default function UserProfile({ isDark, userEmail, userId }) {
   const [loading, setLoading] = useState(false);
+  const [sigLoading, setSigLoading] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
+  const [sigMsg, setSigMsg] = useState({ type: '', text: '' });
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [signature, setSignature] = useState('');
+  
+  const API_URL = import.meta.env.VITE_API_URL || '';
+
+  React.useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_URL}/api/users/${userId}/signature`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.email_signature) setSignature(data.email_signature);
+      })
+      .catch(err => console.error('Error cargando firma', err));
+  }, [userId, API_URL]);
+
+  const handleUpdateSignature = async (e) => {
+    e.preventDefault();
+    if (!userId) return;
+    setSigLoading(true);
+    setSigMsg({ type: '', text: '' });
+    try {
+      const res = await fetch(`${API_URL}/api/users/${userId}/signature`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_signature: signature })
+      });
+      if (!res.ok) throw new Error('Error al guardar firma');
+      setSigMsg({ type: 'success', text: 'Firma guardada exitosamente.' });
+    } catch (error) {
+      console.error(error);
+      setSigMsg({ type: 'error', text: 'Error: ' + error.message });
+    } finally {
+      setSigLoading(false);
+    }
+  };
 
   const bgCard = isDark ? '#111111' : '#ffffff';
   const bgMain = isDark ? '#0a0a0a' : '#f3f4f6';
@@ -120,6 +156,47 @@ export default function UserProfile({ isDark, userEmail }) {
               }}
             >
               {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
+            </button>
+          </form>
+        </div>
+
+        {/* Firma de Correo */}
+        <div style={{ background: bgCard, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px', color: textMain }}>Firma de Correo</h3>
+          
+          {sigMsg.text && (
+            <div style={{ padding: '10px 12px', marginBottom: 16, borderRadius: 8, fontSize: 12, fontWeight: 500, 
+              background: sigMsg.type === 'error' ? '#FDECEA' : '#E1F5EE', 
+              color: sigMsg.type === 'error' ? '#E24B4A' : '#1D9E75',
+              border: `1px solid ${sigMsg.type === 'error' ? '#E24B4A40' : '#1D9E7540'}` }}>
+              {sigMsg.type === 'success' ? '✓ ' : '⚠️ '}{sigMsg.text}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdateSignature}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: textSec, marginBottom: 6 }}>
+                Firma para respuestas
+              </label>
+              <textarea
+                value={signature}
+                onChange={e => setSignature(e.target.value)}
+                placeholder={"Atentamente,\nTu Nombre\nCargo"}
+                rows={5}
+                style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 8, border: `1px solid ${borderCol}`, background: inputBg, color: textMain, outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={sigLoading}
+              style={{
+                padding: '10px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none',
+                background: '#1D9E75', color: '#fff', cursor: sigLoading ? 'wait' : 'pointer',
+                opacity: sigLoading ? 0.6 : 1,
+                width: '100%'
+              }}
+            >
+              {sigLoading ? 'Guardando...' : 'Guardar Firma'}
             </button>
           </form>
         </div>

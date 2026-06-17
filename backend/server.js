@@ -72,6 +72,42 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "20kb" }));
 
+// ── Firmas de Correo ───────────────────────────────────────────────────────────
+app.get("/api/users/:userId/signature", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { data, error } = await supabase
+      .from('tenant_users')
+      .select('email_signature')
+      .eq('user_id', userId)
+      .limit(1)
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116') return res.json({ email_signature: '' }); // No encontrado
+      throw error;
+    }
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put("/api/users/:userId/signature", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { email_signature } = req.body;
+    const { data, error } = await supabase
+      .from('tenant_users')
+      .update({ email_signature })
+      .eq('user_id', userId)
+      .select('email_signature');
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 const limiter = rateLimit({ windowMs: 60_000, max: 500, message: { error: "Demasiadas solicitudes." } });
 app.use("/api/", limiter);
 
@@ -1443,8 +1479,8 @@ app.post("/api/webhook/n8n-email", async (req, res) => {
 // Body: { tenantId, userId, displayName, content, isInternalNote }
 app.post("/api/crm/conversations/:id/messages", async (req, res) => {
   const { id } = req.params;
-  const { tenantId, userId, displayName, content, isInternalNote = false } = req.body;
-  if (!content) return res.status(400).json({ error: "content requerido." });
+  const { tenantId, userId, displayName, content, isInternalNote = false, attachments = [] } = req.body;
+  if (!content && attachments.length === 0) return res.status(400).json({ error: "content o attachments requerido." });
   try {
     const now = new Date().toISOString();
     
@@ -1461,8 +1497,9 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
         sender_type: "human_agent",
         sender_name: displayName || "Ejecutivo",
         sender_user_id: userId || null,
-        content,
+        content: content || "",
         is_internal_note: isInternalNote,
+        metadata: { attachments }
       })
       .select().single();
     if (msgErr) throw msgErr;
@@ -1471,7 +1508,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
     if (!isInternalNote) {
       await supabase.from("conversations").update({
         last_message_at: now,
-        last_message_preview: `[Ejecutivo] ${content.slice(0, 100)}`,
+        last_message_preview: content ? `[Ejecutivo] ${content.slice(0, 100)}` : `[Ejecutivo] 📎 ${attachments.length} adjuntos`,
       }).eq("id", id);
       
       // Disparar Webhook Outbound a n8n si el canal es email
@@ -1501,10 +1538,11 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
             body: JSON.stringify({
               tenantId,
               to: contact?.email,
-              content,
+              content: content || "",
               messageId,
               subject,
-              conversationId: id
+              conversationId: id,
+              attachments
             })
           }).catch(err => console.error("[Outbound Email Webhook] Error:", err.message));
         }

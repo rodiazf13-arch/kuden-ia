@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import EmojiPicker from 'emoji-picker-react';
 import Contact360View from './Contact360View';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -208,9 +209,13 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
   const [followUpDate, setFollowUpDate] = useState('');
   const [followUpTime, setFollowUpTime] = useState('');
   const [followUpNote, setFollowUpNote] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emailSignature, setEmailSignature] = useState('');
   const [typifications, setTypifications] = useState([]);
   const [selectedTyp, setSelectedTyp] = useState('');
   const [suggesting, setSuggesting] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const bottomRef = useRef(null);
   const lastMsgCountRef = useRef(0);
 
@@ -244,7 +249,17 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
-  // Cargar tipificaciones si la campaña está definida, para permitir cambio de etapa
+  // Cargar firma de correo
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_URL}/api/users/${userId}/signature`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.email_signature) setEmailSignature(data.email_signature);
+      })
+      .catch(err => console.error('Error cargando firma en CRM', err));
+  }, [userId]);
+
   useEffect(() => {
     if (data?.campaign_id) {
       fetch(`${API_URL}/api/crm/campaigns/${data.campaign_id}/typifications`)
@@ -254,7 +269,6 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
     }
   }, [data?.campaign_id]);
 
-  // Polling every 5s — smart update prevents unnecessary re-renders
   useEffect(() => {
     const t = setInterval(fetchDetail, 5000);
     return () => clearInterval(t);
@@ -459,14 +473,67 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                   style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid #1D9E75`, background: '#1D9E7515', color: '#1D9E75', cursor: suggesting ? 'wait' : 'pointer', opacity: suggesting ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}>
                   {suggesting ? <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }} /> : <i className="ti ti-sparkles" />} Sugerencia IA
                 </button>
+                {emailSignature && !isNote && (
+                  <button onClick={() => setInput(prev => prev + (prev.endsWith('\n') ? '' : '\n\n') + emailSignature)}
+                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <i className="ti ti-signature" /> Insertar Firma
+                  </button>
+                )}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input value={input} onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                  placeholder={isNote ? 'Nota interna (no visible al cliente)...' : 'Escribe un mensaje...'}
-                  style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: `1px solid ${isNote ? '#FDE047' : c.border}`, background: isNote ? '#FEF9C3' : c.inputBg, color: c.inputText, fontSize: 13, outline: 'none' }} />
-                <button onClick={sendMessage} disabled={sending || !input.trim()}
-                  style={{ padding: '8px 16px', background: isNote ? '#EF9F27' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: input.trim() ? 'pointer' : 'not-allowed', opacity: input.trim() ? 1 : 0.5 }}>
+              <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
+                <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  style={{ padding: '8px 12px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: 'pointer', fontSize: 16 }}
+                  title="Insertar Emoji"
+                >
+                  😀
+                </button>
+                <input 
+                  type="file" 
+                  multiple 
+                  id="chat-attachment-input" 
+                  style={{ display: 'none' }} 
+                  onChange={handleFileUpload} 
+                />
+                <button 
+                  onClick={() => document.getElementById('chat-attachment-input').click()}
+                  disabled={uploadingFiles}
+                  style={{ padding: '8px 12px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: uploadingFiles ? 'wait' : 'pointer', fontSize: 16, opacity: uploadingFiles ? 0.5 : 1 }}
+                  title="Adjuntar Archivo"
+                >
+                  <i className="ti ti-paperclip" />
+                </button>
+                
+                {showEmojiPicker && (
+                  <div style={{ position: 'absolute', bottom: '100%', left: 0, zIndex: 100, marginBottom: 8 }}>
+                    <EmojiPicker 
+                      onEmojiClick={(emojiObj) => {
+                        setInput(prev => prev + emojiObj.emoji);
+                        setShowEmojiPicker(false);
+                      }} 
+                    />
+                  </div>
+                )}
+                
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {attachments.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingBottom: 4 }}>
+                      {attachments.map((att, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, background: c.inputBg, border: `1px solid ${c.border}`, padding: '4px 8px', borderRadius: 4, fontSize: 11, color: c.subtitle }}>
+                          <i className="ti ti-file" /> {att.name}
+                          <i className="ti ti-x" style={{ cursor: 'pointer', marginLeft: 4 }} onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <textarea value={input} onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendMessage(); } }}
+                    placeholder={isNote ? 'Nota interna (no visible al cliente)...' : 'Escribe un mensaje... (Ctrl + Enter para enviar)'}
+                    rows={2}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isNote ? '#FDE047' : c.border}`, background: isNote ? '#FEF9C3' : c.inputBg, color: c.inputText, fontSize: 13, outline: 'none', resize: 'vertical', minHeight: '40px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                </div>
+                
+                <button onClick={sendMessage} disabled={sending || (!input.trim() && attachments.length === 0)}
+                  style={{ padding: '8px 16px', background: isNote ? '#EF9F27' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: (input.trim() || attachments.length > 0) ? 'pointer' : 'not-allowed', opacity: (input.trim() || attachments.length > 0) ? 1 : 0.5, height: 'fit-content' }}>
                   <i className="ti ti-send" style={{ fontSize: 14 }} />
                 </button>
               </div>
