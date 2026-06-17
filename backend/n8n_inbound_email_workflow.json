@@ -1,5 +1,5 @@
 {
-  "name": "Kuden IA - Inbound Email",
+  "name": "Kuden IA - Inbound Email (Con Adjuntos)",
   "nodes": [
     {
       "parameters": {
@@ -15,7 +15,8 @@
           "readStatus": "unread"
         },
         "options": {
-          "markAsRead": true
+          "markAsRead": true,
+          "downloadAttachments": true
         }
       },
       "id": "1",
@@ -29,44 +30,11 @@
     },
     {
       "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "tenantId",
-              "value": "REEMPLAZAR_CON_UUID_DEL_TENANT"
-            },
-            {
-              "name": "senderEmail",
-              "value": "={{ $json.from.value[0].address }}"
-            },
-            {
-              "name": "senderName",
-              "value": "={{ $json.from.value[0].name }}"
-            },
-            {
-              "name": "subject",
-              "value": "={{ $json.subject }}"
-            },
-            {
-              "name": "textBody",
-              "value": "={{ $json.text }}"
-            },
-            {
-              "name": "messageId",
-              "value": "={{ $json.messageId }}"
-            },
-            {
-              "name": "receiverEmail",
-              "value": "={{ $json.to.value[0].address }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const items = $input.all();\n\nfor (let item of items) {\n  item.json = {\n    tenantId: \"REEMPLAZAR_CON_UUID_DEL_TENANT\",\n    senderEmail: item.json.from.value[0].address,\n    senderName: item.json.from.value[0].name,\n    subject: item.json.subject,\n    textBody: item.json.text,\n    messageId: item.json.messageId,\n    receiverEmail: item.json.to.value[0].address,\n    attachments: []\n  };\n\n  if (item.binary) {\n    for (const key of Object.keys(item.binary)) {\n      const binaryData = item.binary[key];\n      item.json.attachments.push({\n        name: binaryData.fileName,\n        mimeType: binaryData.mimeType,\n        data: binaryData.data\n      });\n    }\n  }\n}\n\nreturn items;"
       },
       "id": "2",
-      "name": "Mapear Payload a Kuden",
-      "type": "n8n-nodes-base.set",
+      "name": "Mapear Payload y Adjuntos",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         450,
@@ -97,14 +65,14 @@
       "main": [
         [
           {
-            "node": "Mapear Payload a Kuden",
+            "node": "Mapear Payload y Adjuntos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Mapear Payload a Kuden": {
+    "Mapear Payload y Adjuntos": {
       "main": [
         [
           {

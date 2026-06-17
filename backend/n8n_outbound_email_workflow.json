@@ -20,22 +20,36 @@
     },
     {
       "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (let item of items) {\n  const attachments = item.json.attachments || [];\n  let binaryProperties = [];\n  \n  for (let i = 0; i < attachments.length; i++) {\n    const att = attachments[i];\n    if (att.url) {\n      try {\n        const response = await this.helpers.request({\n          url: att.url,\n          method: 'GET',\n          encoding: null,\n          resolveWithFullResponse: true\n        });\n        \n        const propName = `attachment_${i}`;\n        binaryProperties.push(propName);\n        \n        if (!item.binary) item.binary = {};\n        \n        item.binary[propName] = {\n          data: response.body.toString('base64'),\n          mimeType: att.type || 'application/octet-stream',\n          fileName: att.name || `file_${i}`\n        };\n      } catch (err) {\n        console.log('Error descargando adjunto:', err.message);\n      }\n    }\n  }\n  item.json.binaryAttachmentsList = binaryProperties.join(',');\n}\n\nreturn items;"
+      },
+      "id": "code_descargar_adjuntos",
+      "name": "Descargar Adjuntos a Binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "resource": "message",
         "operation": "send",
-        "subject": "={{ $json.body.subject }}",
-        "message": "={{ $json.body.content }}",
-        "toEmail": "={{ $json.body.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.content }}",
+        "toEmail": "={{ $json.to }}",
         "appendAttribution": false,
+        "attachments": "={{ $json.binaryAttachmentsList }}",
         "options": {
           "customHeaders": {
             "customHeaderValues": [
               {
                 "name": "In-Reply-To",
-                "value": "={{ $json.body.messageId }}"
+                "value": "={{ $json.messageId }}"
               },
               {
                 "name": "References",
-                "value": "={{ $json.body.messageId }}"
+                "value": "={{ $json.messageId }}"
               }
             ]
           }
@@ -46,13 +60,24 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        450,
+        650,
         300
       ]
     }
   ],
   "connections": {
     "Webhook (Recibe de Kuden)": {
+      "main": [
+        [
+          {
+            "node": "Descargar Adjuntos a Binario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar Adjuntos a Binario": {
       "main": [
         [
           {
