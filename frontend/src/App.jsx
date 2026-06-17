@@ -172,7 +172,7 @@ export default function App() {
 
       case 'integrations':
         if (!isSuperAdmin) return <AccessDenied isDark={isDark} />;
-        return <IntegrationsHub isDark={isDark} />;
+        return <IntegrationsHub isDark={isDark} tenantId={activeTenantId} />;
 
       case 'profile':
         return <UserProfile isDark={isDark} userEmail={session?.user?.email} />;
