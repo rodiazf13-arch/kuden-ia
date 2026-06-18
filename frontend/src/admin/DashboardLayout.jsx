@@ -11,6 +11,26 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('kuden_sidebar_collapsed') === 'true';
   });
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('kuden_theme', theme);
@@ -336,6 +356,17 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
               <p style={{ margin: '0 0 2px', fontSize: '10px', color: textSec }}>Conectado como</p>
               <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '500', wordBreak: 'break-all', color: textMain }}>{userEmail}</p>
             </>
+          )}
+
+          {/* Install PWA Button */}
+          {deferredPrompt && (
+            <button onClick={handleInstallClick} title="Instalar App Móvil"
+              style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid #1D9E7550`, background: '#1D9E7515', color: '#1D9E75', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px', fontWeight: '600' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#1D9E7530'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#1D9E7515'; }}
+            >
+              <i className="ti ti-download" /> {!isSidebarCollapsed && 'Instalar App'}
+            </button>
           )}
 
           {/* Theme toggle */}

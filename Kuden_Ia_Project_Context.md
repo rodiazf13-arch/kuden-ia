@@ -1,4 +1,4 @@
-# Kuden IA: Identidad Comercial, Bitácora Técnica y Roadmap Estratégico
+﻿# Kuden IA: Identidad Comercial, Bitácora Técnica y Roadmap Estratégico
 
 Este documento funciona como la **columna vertebral** de Kuden IA. Define quiénes somos, cuál es nuestro modelo de negocio real, detalla exhaustivamente todos los módulos técnicos ya desarrollados y traza el **Roadmap de Innovación** que nos separará del resto del mercado.
 
@@ -140,8 +140,9 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 21. **API Pública + Webhooks para Integraciones:**
     API REST para conectar Kuden con ERPs o sistemas contables legacy de grandes corporativos, disparando webhooks ante eventos clave (ej. "nuevo lead calificado").
 
-## Actualizaci�n PWA y M�vil (Punto 5.17 del Roadmap)
-- Se implement� \ite-plugin-pwa\ para convertir Kuden IA en una aplicaci�n instalable (Progressive Web App).
-- Se agregaron �conos PWA generados a partir del logo oficial en \rontend/public/\.
-- **Dise�o M�vil (UI/UX):** Se redise�� el \DashboardLayout.jsx\ integrando un overlay y un men� tipo Hamburguesa (?) para pantallas chicas.
-- El CRM (\CRMManager.jsx\) ahora maneja estado adaptativo: muestra por defecto la lista de contactos, y al seleccionar un chat, la caja de mensajes ocupa toda la pantalla para asegurar una experiencia tipo aplicaci�n nativa en m�viles.
+
+## Actualización PWA y Móvil (Punto 5.17 del Roadmap)
+- **COMPLETADO:** Se implementó ite-plugin-pwa para convertir Kuden IA en una aplicación instalable (Progressive Web App).
+- Se agregaron íconos PWA generados a partir del logo oficial en rontend/public/.
+- **Diseño Móvil (UI/UX):** Se rediseñó el DashboardLayout.jsx integrando un overlay y un menú tipo Hamburguesa (☰) para pantallas chicas.
+- El CRM (CRMManager.jsx) ahora maneja estado adaptativo: muestra por defecto la lista de contactos, y al seleccionar un chat, la caja de mensajes ocupa toda la pantalla para asegurar una experiencia tipo aplicación nativa en móviles. Esto logra el Efecto WOW inmediato.
