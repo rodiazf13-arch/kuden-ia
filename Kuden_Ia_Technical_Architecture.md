@@ -35,7 +35,7 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 ### 2.2. Componentes y Módulos Principales
 *   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. 
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
-*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen" para la conversación.
+*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen" para la conversación. Incorpora helpers visuales robustos (`normalizeCanal`, `getChannelBg`, `getChannelBorder`) para aplicar estilos y bordes dinámicos de canal (Webchat, WhatsApp, Email, Instagram) a las tarjetas de los contactos, con opacidades calculadas de forma responsiva para mantener un look and feel premium.
 *   `KnowledgeBase.jsx`: UI para la carga de documentos. Convierte PDFs/TXTs en chunks y los envía al backend para su vectorización (RAG).
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
 *   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers).

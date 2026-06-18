@@ -1,4 +1,4 @@
-﻿# Kuden IA: Identidad Comercial, Bitácora Técnica y Roadmap Estratégico
+# Kuden IA: Identidad Comercial, Bitácora Técnica y Roadmap Estratégico
 
 Este documento funciona como la **columna vertebral** de Kuden IA. Define quiénes somos, cuál es nuestro modelo de negocio real, detalla exhaustivamente todos los módulos técnicos ya desarrollados y traza el **Roadmap de Innovación** que nos separará del resto del mercado.
 
@@ -45,7 +45,7 @@ La plataforma interna de Kuden ya cuenta con un motor potente listo para operar 
 
 *   ✅ **Arquitectura Avanzada de Agentes Maestros (Routing Multi-perfil):** Evolución del motor de orquestación. El sistema permite crear **múltiples Agentes Maestros (Routers) por empresa** configurables directamente desde `ProfilesManager`. Cada Agente Maestro posee una lista específica de sub-perfiles permitidos. Esta arquitectura depreca la antigua pantalla global, permitiendo asignar routers de IA específicos a cada Campaña (`CampaignsManager`) inyectándolos dinámicamente en el prompt del LLM.
 *   **Extracción de Datos (El CRM Invisible):** La IA inyecta silenciosamente etiquetas `[METADATOS]` que el servidor intercepta para crear registros en `ContactsManager` automáticamente.
-*   **Bandeja de Ejecutivos (`CRMManager`) y Pipeline Kanban:** Interfaz para humanos con *Takeover* (Toma de control del bot), vista de columnas Kanban colapsables con ordenamiento persistente, paneles de sentimiento en tiempo real e indicadores de riesgo de fuga. **(Actualizado)**: El chat ahora incluye un editor de texto multilínea enriquecido (textarea) con atajos (Ctrl+Enter), soporte nativo para **Emojis**, subida de **Archivos Adjuntos** directamente a Supabase Storage y gestión de **Firmas de Correo** personalizables por usuario.
+*   **Bandeja de Ejecutivos (`CRMManager`) y Pipeline Kanban:** Interfaz para humanos con *Takeover* (Toma de control del bot), vista de columnas Kanban colapsables con ordenamiento persistente, paneles de sentimiento en tiempo real e indicadores de riesgo de fuga. **(Actualizado)**: El chat ahora incluye un editor de texto multilínea enriquecido (textarea) con atajos (Ctrl+Enter), soporte nativo para **Emojis**, subida de **Archivos Adjuntos** directamente a Supabase Storage y gestión de **Firmas de Correo** personalizables por usuario. Además, las tarjetas de conversación (tanto en lista como en Kanban) cuentan con **fondos y bordes dinámicos semitransparentes (colores pastel) según el canal de origen** (WhatsApp, Email, Instagram, Webchat), normalizando variantes de texto (ej. "Web Chat" vs "webchat") para una identificación visual rápida y premium.
 *   ✅ **Gatillos de Automatización y Webhooks (n8n):** Sistema de eventos de fondo (background events) que intercepta los cambios de etapa en la conversación y emite un payload estructurado hacia flujos específicos de n8n, actuando como puente entre las decisiones de la IA y el ecosistema operativo del cliente.
 *   **Web Chat Automático:** Script embebible (`kuden-widget.js`) con interfaz resiliente, que maneja estados de sesión y cierra activando la encuesta CSAT automáticamente.
 *   **Multi-Tenancy Genuino:** Gestión de clientes respaldada por PostgreSQL/Supabase, blindada con Row Level Security (RLS) para aislamiento de datos.
@@ -146,3 +146,25 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 - Se agregaron íconos PWA generados a partir del logo oficial en rontend/public/.
 - **Diseño Móvil (UI/UX):** Se rediseñó el DashboardLayout.jsx integrando un overlay y un menú tipo Hamburguesa (☰) para pantallas chicas.
 - El CRM (CRMManager.jsx) ahora maneja estado adaptativo: muestra por defecto la lista de contactos, y al seleccionar un chat, la caja de mensajes ocupa toda la pantalla para asegurar una experiencia tipo aplicación nativa en móviles. Esto logra el Efecto WOW inmediato.
+
+---
+
+## 6. Alertas y Riesgos Arquitectónicos (Consideraciones a Futuro)
+
+> **Nota del Asesor Técnico (Antigravity):** Las siguientes alertas identifican posibles cuellos de botella arquitectónicos a medida que el sistema escala, y deben ser consideradas en futuras iteraciones del Roadmap para garantizar la estabilidad operativa.
+
+1.  **El Cuello de Botella de n8n (Riesgo Crítico de Arquitectura):**
+    *   **El Riesgo:** Delegar toda la lógica transaccional, webhooks e emails a n8n lo convierte en nuestro Punto Único de Fallo (SPOF). Su modelo *stateless* manejando adjuntos en memoria puede consumir recursos agresivamente bajo cargas altas (ej. picos de tráfico en clientes corporativos).
+    *   **Consideración a Futuro:** Mantener n8n como "Laboratorio de Integraciones" y para canales long-tail. Sin embargo, para canales troncales (WhatsApp, Instagram, Email Inbound), se debe planificar la migración gradual a **microservicios serverless nativos** (ej. Vercel/AWS Lambda) a medida que el volumen lo justifique.
+
+2.  **La Latencia del Modelo "Stateless" con el LLM:**
+    *   **El Riesgo:** Siendo Node.js stateless, recuperar el contexto de la conversación (Vista 360) para cada nuevo mensaje implica hacer consultas pesadas (`SELECT`) a PostgreSQL antes de enviarlo al LLM. Esto incrementa la latencia y el tiempo de respuesta (TTFB).
+    *   **Consideración a Futuro:** Planificar la implementación de una capa de **caché efímera (como Redis)**. Los últimos mensajes de una sesión activa deben vivir en RAM para que el LLM reciba el contexto en milisegundos y responda fluidamente.
+
+3.  **Vectorización (pgvector) y RLS a Gran Escala:**
+    *   **El Riesgo:** Realizar búsquedas vectoriales (cosine similarity) sobre tablas filtradas por Row Level Security (RLS) puede volverse un cuello de botella severo cuando los clientes acumulen miles de documentos en su RAG.
+    *   **Consideración a Futuro:** Monitorear rigurosamente los tiempos de query del motor RAG. Preparar la base de datos para utilizar **índices HNSW (Hierarchical Navigable Small World)** optimizados para `pgvector` en lugar de búsquedas secuenciales, garantizando la velocidad de recuperación.
+
+4.  **Action Agents: La Seguridad de la Ejecución Automática:**
+    *   **El Riesgo:** Confiar en "Safety Rules" en el Prompt Maestro para evitar acciones duplicadas (ej. procesar dos veces un pago o agendar la misma cita) es inseguro. Los LLMs, por su naturaleza, pueden alucinar y saltarse la regla.
+    *   **Consideración a Futuro:** Implementar al backend de Kuden (Node.js) como el **Guardían Transaccional (Gatekeeper)** absoluto. Antes de que el sistema dispare el webhook hacia n8n, debe validar obligatoriamente en la base de datos (ej. un campo `action_status`) que la operación es legítima y no ha sido ejecutada previamente.

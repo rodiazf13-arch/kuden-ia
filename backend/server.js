@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { callLLM, logLLMUsage } from "./llmService.js";
 import multer from "multer";
 import { processAndStoreKnowledge, retrieveKnowledge } from "./ragService.js";
+import { initRedis, getCachedHistory, setCachedHistory, invalidateHistory } from "./redisClient.js";
 import "./queueWorker.js"; // Inicia el worker asíncrono para WhatsApp
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -28,6 +29,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
+
+initRedis().then(() => console.log("Redis cache initialization attempted"));
 
 // ─── Express ───────────────────────────────────────────────────────────────────
 const app = express();
@@ -473,6 +476,7 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
       .update(updatePayload)
       .eq("id", existing.id);
     if (updateErr) throw updateErr;
+    await setCachedHistory(existing.id, history);
     return existing.id;
   }
 
@@ -497,6 +501,7 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
     .single();
 
   if (insertErr) throw insertErr;
+  await setCachedHistory(created.id, history);
   return created.id;
 }
 
@@ -634,13 +639,52 @@ app.post("/api/chat", async (req, res) => {
             _kuden_contact_phone: contactData?.telefono || null,
           };
 
-          // Llamar a n8n
-          const n8nResult = await callN8nTool(
-            activeCampaignN8n.url,
-            activeCampaignN8n.token,
-            toolDef.n8n_workflow_id,
-            enrichedParams
-          );
+          // --- GATEKEEPER TRANSACCIONAL ---
+          let shouldExecute = true;
+          let contactIdForGatekeeper = null;
+          if (contactData?.tenantId && contactData?.clienteNombre) {
+            try {
+              contactIdForGatekeeper = await upsertContact(contactData);
+              const actionHashStr = JSON.stringify(enrichedParams);
+              const { data: locks } = await supabase
+                .from('agent_action_locks')
+                .select('id')
+                .eq('tenant_id', contactData.tenantId)
+                .eq('contact_id', contactIdForGatekeeper)
+                .eq('tool_name', toolName)
+                .eq('action_hash', actionHashStr)
+                .limit(1);
+              
+              if (locks && locks.length > 0) {
+                 shouldExecute = false;
+                 console.warn(`[GATEKEEPER] Herramienta ${toolName} bloqueada por ejecución duplicada.`);
+                 await insertAuditLog('warning', 'agent_tool_call', `[GATEKEEPER] Ejecución bloqueada por duplicidad.`, { toolName, params: toolParams }, contactData.tenantId);
+              } else {
+                 await supabase.from('agent_action_locks').insert({
+                    tenant_id: contactData.tenantId,
+                    contact_id: contactIdForGatekeeper,
+                    tool_name: toolName,
+                    action_hash: actionHashStr
+                 });
+              }
+            } catch (err) {
+               console.error("[GATEKEEPER ERROR]", err);
+            }
+          }
+          // --------------------------------
+
+          let n8nResult;
+          if (shouldExecute) {
+            // Llamar a n8n
+            n8nResult = await callN8nTool(
+              activeCampaignN8n.url,
+              activeCampaignN8n.token,
+              toolDef.n8n_workflow_id,
+              enrichedParams
+            );
+          } else {
+            n8nResult = { status: "blocked", message: "Esta acción ya fue ejecutada exitosamente de forma reciente. Informa al cliente que ya está listo y no repitas la acción." };
+          }
 
           // Registrar en audit log
           await insertAuditLog('info', 'agent_tool_call', `Tool "${toolName}" ejecutada exitosamente.`, {
@@ -2089,7 +2133,10 @@ app.post("/api/widget/chat", async (req, res) => {
       }
 
     } else {
-      // Recuperar historial existente (usamos maybeSingle para no fallar si no existe)
+      // Intentar recuperar de Redis primero
+      const cachedHistory = await getCachedHistory(convId);
+      
+      // Recuperar de la base de datos para validar estado (y obtener historia si falló el caché)
       const { data: existing, error: errSel } = await supabase
         .from("conversations")
         .select("history, is_ai_active, status, contact_id")
@@ -2123,7 +2170,7 @@ app.post("/api/widget/chat", async (req, res) => {
         await supabase.from("conversations").update({ last_message_at: now, last_message_preview: content.slice(0, 100), unread_count: 1 }).eq("id", convId);
         return res.json({ conversationId: convId, ai_response: null, info: "Humano en control" });
       } else {
-        history = existing.history || [];
+        history = cachedHistory || existing.history || [];
       }
     }
 
