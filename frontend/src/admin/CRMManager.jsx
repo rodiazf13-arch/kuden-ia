@@ -57,8 +57,14 @@ const getChannelBg = (canal, c, state = 'normal') => {
     if (state === 'kanban-normal') return c.inputBg;
     return 'transparent';
   }
-  if (state === 'hover') return `rgba(${color.rgb}, 0.09)`;
-  return `rgba(${color.rgb}, 0.05)`;
+  if (state === 'hover') return `rgba(${color.rgb}, 0.3)`;
+  return `rgba(${color.rgb}, 0.2)`;
+};
+
+const getChannelBorder = (canal, c) => {
+  const color = CHANNEL_COLORS[canal];
+  if (!color) return c.border;
+  return `rgba(${color.rgb}, 0.5)`;
 };
 
 function StatusBadge({ status }) {
@@ -678,7 +684,7 @@ function ConvRow({ conv, isSelected, onClick, c }) {
 
   return (
     <div onClick={onClick} style={{
-      padding: '10px 12px', borderBottom: `1px solid ${c.border}`, cursor: 'pointer',
+      padding: '10px 12px', borderBottom: `1px solid ${getChannelBorder(conv.canal, c)}`, cursor: 'pointer',
       background: getChannelBg(conv.canal, c, isSelected ? 'selected' : 'normal'),
       borderLeft: isSelected ? '3px solid #2563eb' : '3px solid transparent',
       transition: 'background 0.1s',
@@ -933,7 +939,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
             <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {grouped[col.id].map(conv => (
                 <div key={conv.id} onClick={() => onClick(conv.id)}
-                  style={{ background: getChannelBg(conv.canal, c, 'kanban-normal'), border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s, background 0.1s' }}
+                  style={{ background: getChannelBg(conv.canal, c, 'kanban-normal'), border: `1px solid ${getChannelBorder(conv.canal, c)}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s, background 0.1s' }}
                   onMouseEnter={e => { 
                     e.currentTarget.style.transform = 'translateY(-2px)'; 
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; 
