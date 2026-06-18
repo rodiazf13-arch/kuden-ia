@@ -11,6 +11,8 @@ export default function KimiInsights({ tenantId, isDark = true }) {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState('all');
 
   const c = {
     bg: isDark ? '#0a0a0a' : '#f9fafb',
@@ -26,14 +28,26 @@ export default function KimiInsights({ tenantId, isDark = true }) {
   };
 
   useEffect(() => {
-    if (tenantId) fetchInsights(false);
+    if (tenantId) {
+      fetch(`${API_URL}/api/crm/campaigns?tenantId=${tenantId}`)
+        .then(r => r.json())
+        .then(d => setCampaigns(Array.isArray(d) ? d : []))
+        .catch(console.error);
+      fetchInsights(false, 'all');
+    }
   }, [tenantId]);
 
-  const fetchInsights = async (generateReport = false) => {
+  const handleCampaignChange = (e) => {
+    const val = e.target.value;
+    setSelectedCampaign(val);
+    fetchInsights(false, val);
+  };
+
+  const fetchInsights = async (generateReport = false, campaignOverride = selectedCampaign) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/insights/macro?tenantId=${tenantId}&generate=${generateReport}`);
+      const res = await fetch(`${API_URL}/api/insights/macro?tenantId=${tenantId}&generate=${generateReport}&campaignId=${campaignOverride}`);
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Error al cargar datos');
       
@@ -62,6 +76,23 @@ export default function KimiInsights({ tenantId, isDark = true }) {
     return null;
   };
 
+  const downloadReport = () => {
+    if (!report) return;
+    const reportHtml = document.getElementById('kimi-report-content').innerHTML;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Reporte Kimi</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + reportHtml + footer;
+    
+    const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Reporte_Ejecutivo_Kimi_${new Date().toLocaleDateString()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: c.bg, color: c.textMain, overflowY: 'auto' }}>
       
@@ -72,7 +103,7 @@ export default function KimiInsights({ tenantId, isDark = true }) {
       <div style={{ padding: '32px', position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto' }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', letterSpacing: '-0.03em', background: `linear-gradient(90deg, ${c.textMain}, ${c.textSec})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Tablero Directivo
@@ -82,20 +113,45 @@ export default function KimiInsights({ tenantId, isDark = true }) {
             </p>
           </div>
           
-          <button 
-            onClick={() => fetchInsights(true)}
-            disabled={loading}
-            style={{
-              padding: '12px 24px', background: `linear-gradient(135deg, ${c.primary}, #2563eb)`, color: '#fff', border: 'none', borderRadius: '12px',
-              fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1,
-              display: 'flex', alignItems: 'center', gap: '8px', boxShadow: `0 8px 20px ${c.primaryGlow}`, transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
-            onMouseLeave={e => { if(!loading) e.currentTarget.style.transform = 'translateY(0)' }}
-          >
-            <i className={`ti ti-${loading ? 'loader ti-spin' : 'sparkles'}`} style={{ fontSize: '18px' }}></i>
-            {loading ? 'Kimi está procesando...' : 'Generar Análisis con Kimi'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {campaigns && campaigns.length > 0 && (
+              <select value={selectedCampaign} onChange={handleCampaignChange}
+                style={{ padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c.cardBorder}`, background: c.cardBg, color: c.textMain, outline: 'none', backdropFilter: 'blur(10px)', fontSize: '14px', cursor: 'pointer' }}>
+                <option value="all">Todas las Campañas</option>
+                {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+              </select>
+            )}
+
+            {report && (
+              <button 
+                onClick={downloadReport}
+                style={{
+                  padding: '12px 20px', background: 'transparent', color: c.primary, border: `1px solid ${c.primary}`, borderRadius: '12px',
+                  fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <i className="ti ti-download" style={{ fontSize: '18px' }}></i>
+                Descargar .doc
+              </button>
+            )}
+
+            <button 
+              onClick={() => fetchInsights(true)}
+              disabled={loading}
+              style={{
+                padding: '12px 24px', background: `linear-gradient(135deg, ${c.primary}, #2563eb)`, color: '#fff', border: 'none', borderRadius: '12px',
+                fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1,
+                display: 'flex', alignItems: 'center', gap: '8px', boxShadow: `0 8px 20px ${c.primaryGlow}`, transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { if(!loading) e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              <i className={`ti ti-${loading ? 'loader ti-spin' : 'sparkles'}`} style={{ fontSize: '18px' }}></i>
+              {loading ? 'Kimi está procesando...' : 'Generar Análisis con Kimi'}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -208,7 +264,7 @@ export default function KimiInsights({ tenantId, isDark = true }) {
             </div>
             
             {report ? (
-              <div className="markdown-body" style={{ color: c.textSec, fontSize: '15px', lineHeight: 1.7 }}>
+              <div id="kimi-report-content" className="markdown-body" style={{ color: c.textSec, fontSize: '15px', lineHeight: 1.7 }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
               </div>
             ) : loading ? (

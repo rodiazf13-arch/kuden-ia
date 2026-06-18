@@ -2726,7 +2726,7 @@ app.delete("/api/documents/:documentId", async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get("/api/insights/macro", async (req, res) => {
-  const { tenantId, generate } = req.query;
+  const { tenantId, generate, campaignId } = req.query;
   if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
 
   try {
@@ -2735,11 +2735,17 @@ app.get("/api/insights/macro", async (req, res) => {
     const startDateStr = thirtyDaysAgo.toISOString();
 
     // 1. Obtener conversaciones de los últimos 30 días
-    const { data: convs, error: convsErr } = await supabase
+    let query = supabase
       .from('conversations')
-      .select('id, status, duracion, csat_final, fuga_final, total_mensajes, assigned_to')
+      .select('id, status, duracion, csat_final, fuga_final, total_mensajes, assigned_to, campaign_id')
       .eq('tenant_id', tenantId)
       .gte('updated_at', startDateStr);
+      
+    if (campaignId && campaignId !== 'all') {
+      query = query.eq('campaign_id', campaignId);
+    }
+
+    const { data: convs, error: convsErr } = await query;
 
     if (convsErr) throw convsErr;
 
