@@ -6,7 +6,9 @@ import helmet from "helmet";
 import { createClient } from "@supabase/supabase-js";
 import { callLLM, logLLMUsage } from "./llmService.js";
 import multer from "multer";
-import pdfParse from "pdf-parse";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 import { processAndStoreKnowledge, retrieveKnowledge } from "./ragService.js";
 import { initRedis, getCachedHistory, setCachedHistory, invalidateHistory } from "./redisClient.js";
 import "./queueWorker.js"; // Inicia el worker asíncrono para WhatsApp
