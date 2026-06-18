@@ -669,6 +669,17 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                 )}
               </div>
             </div>
+            {/* Resumen Ejecutivo */}
+            {conv.resumen_ejecutivo && (
+              <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}` }}>
+                <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resumen Ejecutivo</p>
+                <div style={{ background: '#f8fafc', border: `1px solid #e2e8f0`, borderRadius: 8, padding: '10px' }}>
+                  <p style={{ margin: 0, fontSize: 11, color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                    {conv.resumen_ejecutivo}
+                  </p>
+                </div>
+              </div>
+            )}
             {/* Panel de Inteligencia IA */}
             <div style={{ padding: '10px 12px' }}>
               <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inteligencia IA</p>

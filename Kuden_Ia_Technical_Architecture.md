@@ -10,8 +10,8 @@ Este documento describe la arquitectura interna, stack tecnológico y flujos de 
 Kuden IA emplea una arquitectura moderna, modular y **Stateless** (Sin estado en memoria), lo que garantiza escalabilidad horizontal.
 
 *   **Frontend:** React 18 + Vite (Empaquetado PWA). SPA (Single Page Application).
-*   **Backend:** Node.js + Express.js. API RESTful.
-*   **Base de Datos & Auth:** Supabase (PostgreSQL + PgVector para RAG + Storage).
+*   **Backend:** Node.js + Express.js. API RESTful. Caché de alta velocidad en Redis.
+*   **Base de Datos & Auth:** Supabase (PostgreSQL + PgVector con HNSW para RAG + Storage).
 *   **Middleware & Orquestación:** n8n (Manejo de Webhooks, OAuth, Integraciones).
 *   **LLM Provider:** Anthropic Claude (Sonnet 3.5 / Haiku) o genéricos, inyectados vía Prompt System dinámico.
 
@@ -51,9 +51,10 @@ Se utiliza CSS Vanilla puro en `index.css`. Se basa en variables CSS (`--bg-main
 Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corriendo en el puerto 3001.
 
 ### 3.1. Servicios Core (`/backend/*.js`)
-*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase.
+*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase. Implementa el **Gatekeeper Transaccional** para validar action locks antes de invocar herramientas en n8n.
+*   `redisClient.js`: Capa de caché efímera conectada a una instancia de Redis. Administra el estado en memoria de las conversaciones (`conv_history:*`) para inyectar el contexto al LLM en milisegundos sin sobrecargar PostgreSQL.
 *   `llmService.js`: Encargado de hablar con la API del LLM. Posee la lógica para inyectar el RAG (Contexto de la empresa), el Tono del Asistente y decidir las herramientas (Tools) a usar. **Soporta modelos disociados** (ej. Sonnet para el copiloto, Haiku para resúmenes).
-*   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (vía OpenAI o modelo local) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
+*   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (fijado en 768 dimensiones) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
 *   `queueWorker.js` *(Opcional)*: Encargado de procesar tareas asíncronas pesadas (ej. vectorización masiva) usando `supabase_queue` si se activa la persistencia asíncrona.
 
 ### 3.2. Webhooks Estratégicos (Ingesta de Datos)
@@ -86,7 +87,8 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
 *   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `lead_phone` (o email), `status` (Etapa del Kanban), `source` (whatsapp, email, web).
 *   `messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
-*   `knowledge_documents`: Base RAG. Campos: `tenant_id`, `title`, `content_chunk`, `embedding` (Tipo *vector*).
+*   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
+*   `agent_action_locks`: Tabla de control transaccional (Gatekeeper) que registra un hash único por cada herramienta invocada por el LLM para el inquilino/contacto, previniendo acciones duplicadas.
 *   `audit_logs`: Trazabilidad técnica. Usado por el System Health Dashboard.
 
 ### 5.2. Almacenamiento de Archivos (Supabase Storage)

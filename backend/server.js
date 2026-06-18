@@ -799,6 +799,68 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
+// ─── HELPER: Generar Resumen Ejecutivo Automático ─────────────────────────────
+async function generateExecutiveSummary(convId, tenantId) {
+  try {
+    const { data: convData, error: convErr } = await supabase
+      .from('conversations')
+      .select('*, contacts(*)')
+      .eq('id', convId)
+      .single();
+    
+    if (convErr || !convData) throw new Error('No se pudo obtener la conversación');
+    if (convData.resumen_ejecutivo) return; // Ya existe
+
+    const { data: msgs, error: msgErr } = await supabase
+      .from('messages')
+      .select('content, sender_type, sender_name')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+      
+    if (msgErr || !msgs || msgs.length === 0) return;
+
+    const conversacionStr = msgs.map(m => {
+      const actor = m.sender_type === 'customer' ? 'Cliente' : m.sender_type === 'ai' ? 'IA' : (m.sender_name || 'Ejecutivo');
+      return `[${actor}]: ${m.content}`;
+    }).join('\n');
+
+    const contact = convData.contacts || {};
+    const prompt =
+      "Genera un resumen ejecutivo en exactamente 4 líneas con este formato:\n" +
+      "1. Problema: ...\n2. Acciones: ...\n3. Resultado: ...\n4. Recomendación: ...\n\n" +
+      `Cliente: ${contact.cliente_nombre || 'Desconocido'} | Plan: ${contact.plan || 'N/A'} | Canal: ${convData.canal || 'N/A'} | Cierre: ${convData.motivo_label || 'N/A'}\n\n` +
+      conversacionStr;
+
+    let summaryProvider = 'anthropic';
+    let summaryModel = 'claude-haiku-4-5-20251001';
+    const { data: configData } = await supabase.from('tenant_ai_config').select('summary_llm_provider, summary_llm_model').eq('tenant_id', tenantId).maybeSingle();
+    if (configData) {
+      if (configData.summary_llm_provider) summaryProvider = configData.summary_llm_provider;
+      if (configData.summary_llm_model) summaryModel = configData.summary_llm_model;
+    }
+
+    const { text: resumenEjecutivo, usage } = await callLLM(supabase, {
+      provider: summaryProvider,
+      model: summaryModel,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 300,
+    });
+
+    if (usage) {
+      logLLMUsage(supabase, {
+        tenantId, aiProfileId: null,
+        provider: summaryProvider, model: summaryModel, usage
+      }).catch(e => console.error("Error logging llm usage:", e));
+    }
+
+    await supabase.from("conversations").update({ resumen_ejecutivo: resumenEjecutivo }).eq("id", convId);
+    console.log(`[Resumen Ejecutivo] Generado para conv ${convId}`);
+
+  } catch (err) {
+    console.error("[generateExecutiveSummary] Error:", err.message);
+  }
+}
+
 // ─── POST /api/summarize ───────────────────────────────────────────────────────
 // Body: { tenantId, clienteNombre, rut, telefono, direccion, plan, canal, motivoLabel,
 //         conversacion, ticketId, perfilCliente, duracion, csatFinal,
@@ -1780,6 +1842,11 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
 
     await supabase.from("conversations").update(updatePayload).eq("id", id);
 
+    // Gatillar generación de resumen en segundo plano si se cierra realmente
+    if (!isPending) {
+      generateExecutiveSummary(id, tenantId).catch(console.error);
+    }
+
     let sysContent = "";
     if (isPending) {
       sysContent = `${displayName || "El ejecutivo"} dejó la conversación pendiente para seguimiento.${followUpNote ? ` Nota: ${followUpNote}` : ''}`;
@@ -2465,6 +2532,11 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     console.log("AI Parsed metadata:", metadata);
 
     await supabase.from("conversations").update(updateFields).eq("id", convId);
+
+    // Si la IA dio por finalizada la conversación, generar resumen en segundo plano
+    if (isFinished && existingConv.status !== "pending_csat") {
+      generateExecutiveSummary(convId, tenantId).catch(console.error);
+    }
 
     // Gatillo n8n (Fase 3)
     if (metadata.etapa && metadata.etapa !== oldStage && activeCampaignN8n && activeCampaignN8n.stage_webhook_id) {

@@ -168,3 +168,12 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 4.  **Action Agents: La Seguridad de la Ejecución Automática:**
     *   **El Riesgo:** Confiar en "Safety Rules" en el Prompt Maestro para evitar acciones duplicadas (ej. procesar dos veces un pago o agendar la misma cita) es inseguro. Los LLMs, por su naturaleza, pueden alucinar y saltarse la regla.
     *   **Consideración a Futuro:** Implementar al backend de Kuden (Node.js) como el **Guardían Transaccional (Gatekeeper)** absoluto. Antes de que el sistema dispare el webhook hacia n8n, debe validar obligatoriamente en la base de datos (ej. un campo `action_status`) que la operación es legítima y no ha sido ejecutada previamente.
+
+---
+
+## 7. Hitos Recientes: Blindaje Arquitectónico (Junio 2026)
+
+Se ejecutó un plan de robustecimiento de infraestructura para mitigar los riesgos arquitectónicos (mencionados en la sección 6):
+- **Caché Efímera (Redis):** Se implementó una capa de Redis en el backend (`redisClient.js`) que almacena el historial activo de las conversaciones. El endpoint de chat del widget y la lógica de recuperación del contexto ahora leen desde Redis, reduciendo el TTFB y minimizando las consultas pesadas a PostgreSQL.
+- **Gatekeeper Transaccional:** Se introdujo una barrera de seguridad estricta en la intercepción de herramientas (`[TOOL_CALL]`) dentro de `server.js`. Se creó la tabla `agent_action_locks` en Supabase para registrar y validar un hash transaccional antes de invocar a n8n, previniendo ejecuciones duplicadas en caso de alucinaciones del LLM.
+- **Optimización de RAG (HNSW):** Se implementó el índice `hnsw` con la métrica `vector_cosine_ops` en la tabla `document_chunks` (fijando la dimensión a 768), asegurando un rendimiento O(log N) para futuras bases de conocimientos a gran escala.
