@@ -2909,7 +2909,7 @@ app.delete("/api/copilot/history", async (req, res) => {
 });
 
 app.post("/api/copilot/chat", async (req, res) => {
-  const { tenantId, userId, message } = req.body;
+  const { tenantId, userId, message, appContext } = req.body;
   if (!tenantId || !userId || !message) return res.status(400).json({ error: "Faltan parámetros." });
 
   try {
@@ -3052,6 +3052,7 @@ Tu objetivo es ayudar a los ejecutivos de la empresa con información analítica
 Eres muy inteligente, amable, analítica y proactiva. 
 Usa formato Markdown enriquecido de GitHub (ej. tablas, listas, negritas, código) para que tus respuestas sean fáciles de leer y estructuradas.
 NUNCA asumas que eres un bot de atención a clientes externos. Eres una colega interna y consultora para el equipo.
+${appContext ? `\n[CONTEXTO ACTUAL DE LA APLICACIÓN]\nEl usuario te está hablando desde la pantalla: **${appContext}**. Usa este contexto para darle respuestas extremadamente relevantes sobre la configuración o los datos que probablemente está viendo.` : ''}
 ${advancedMetricsPrompt}`;
 
     if (retrievedText) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import KimiWidget from './KimiWidget';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function DashboardLayout({ userEmail, tenantName, tenantId, tenantLogo, tenantColor, isSuperAdmin, userRole, copilotAccess, currentTab, setTab, handleLogout, allTenants, impersonatedTenantId, setImpersonatedTenantId, originalTenantName, children }) {
@@ -413,6 +414,11 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         <div className="mobile-p-0" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1640px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
           {typeof children === 'function' ? children(isDark) : children}
         </div>
+
+        {/* Floating Contextual Kimi */}
+        {copilotAccess && currentTab !== 'copilot' && (
+          <KimiWidget tenantId={tenantId} isDark={isDark} currentTab={currentTab} />
+        )}
       </main>
     </div>
   );
