@@ -128,6 +128,15 @@ export default function CopilotManager({ tenantId, isDark = true }) {
     if (!window.confirm("¿Estás seguro de que deseas crear estos perfiles en tu base de datos?")) return;
     setLoading(true);
     try {
+      // Obtener modelo por defecto (Opción B: Herencia)
+      let defaultProv = 'anthropic';
+      let defaultMod = 'claude-sonnet-4-6';
+      const { data: config } = await supabase.from('tenant_ai_config').select('kimi_llm_provider, kimi_llm_model').eq('tenant_id', tenantId).maybeSingle();
+      if (config && config.kimi_llm_provider) {
+        defaultProv = config.kimi_llm_provider;
+        defaultMod = config.kimi_llm_model;
+      }
+
       const nonRouters = profiles.filter(p => !p.is_router);
       const routers = profiles.filter(p => p.is_router);
       const labelToIdMap = {};
@@ -136,7 +145,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         const payload = {
           tenant_id: tenantId, label: p.label, description: p.description, persona_prompt: p.persona_prompt,
           hint_text: p.hint_text, color: p.color || '#2563eb', bg: p.bg || '#eff6ff', icon: p.icon || 'ti-robot',
-          is_global: false, llm_provider: 'anthropic', llm_model: 'claude-3-5-sonnet-20240620',
+          is_global: false, llm_provider: defaultProv, llm_model: defaultMod,
           is_router: false, sub_profile_ids: []
         };
         const { data, error } = await supabase.from('ai_profiles').insert([payload]).select().single();
@@ -149,7 +158,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         const payload = {
           tenant_id: tenantId, label: p.label, description: p.description, persona_prompt: p.persona_prompt,
           hint_text: p.hint_text, color: p.color || '#f59e0b', bg: p.bg || '#fffbeb', icon: p.icon || 'ti-share',
-          is_global: false, llm_provider: 'anthropic', llm_model: 'claude-3-5-sonnet-20240620',
+          is_global: false, llm_provider: defaultProv, llm_model: defaultMod,
           is_router: true, sub_profile_ids: subIds
         };
         const { error } = await supabase.from('ai_profiles').insert([payload]);

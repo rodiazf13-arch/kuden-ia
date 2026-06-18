@@ -13,7 +13,7 @@ Kuden IA emplea una arquitectura moderna, modular y **Stateless** (Sin estado en
 *   **Backend:** Node.js + Express.js. API RESTful. Caché de alta velocidad en Redis.
 *   **Base de Datos & Auth:** Supabase (PostgreSQL + PgVector con HNSW para RAG + Storage).
 *   **Middleware & Orquestación:** n8n (Manejo de Webhooks, OAuth, Integraciones).
-*   **LLM Provider:** Anthropic Claude (Sonnet 3.5 / Haiku) o genéricos, inyectados vía Prompt System dinámico.
+*   **LLM Provider:** Anthropic Claude (Sonnet 4.6 / Haiku 4.5) o genéricos, inyectados vía Prompt System dinámico.
 
 ### 1.1. Patrón Arquitectónico: El "Hub Central"
 El Backend (`server.js`) actúa como la única fuente de verdad y enrutador maestro. 
