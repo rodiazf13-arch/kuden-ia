@@ -2611,6 +2611,15 @@ app.post("/api/widget/csat", async (req, res) => {
   if (!tenantId || !conversationId || !score) return res.status(400).json({ error: "Faltan datos" });
 
   try {
+    await logLLMUsage(supabase, {
+      tenantId,
+      campaignId: null, // Opcional: obtener de la conversación
+      aiProfileId: null,
+      provider: 'system',
+      model: 'csat_event',
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+    });
+
     await supabase.from("conversations").update({
       csat_final: parseInt(score),
       status: "closed",
@@ -2739,7 +2748,17 @@ app.get("/api/insights/macro", async (req, res) => {
     let fugaRisk = { alto: 0, medio: 0, bajo: 0, sin_riesgo: 0 };
     const agentsMap = {};
 
+    // Agrupar por día para gráfico de área
+    const convsPorDiaMap = {};
+    const hoyStr = new Date().toISOString().split('T')[0];
+
     convs.forEach(c => {
+      // Calcular conversaciones por día
+      if (c.updated_at || c.created_at) {
+        const dia = (c.updated_at || c.created_at).split('T')[0];
+        convsPorDiaMap[dia] = (convsPorDiaMap[dia] || 0) + 1;
+      }
+
       if (c.csat_final) {
         totalCsat += c.csat_final;
         csatCount++;
@@ -2758,6 +2777,14 @@ app.get("/api/insights/macro", async (req, res) => {
         agentsMap[c.assigned_to].messagesSum += (c.total_mensajes || 0);
       }
     });
+
+    // Ordenar y formatear conversaciones por día
+    const conversaciones_por_dia = Object.keys(convsPorDiaMap)
+      .sort()
+      .map(fecha => ({
+        fecha,
+        volumen: convsPorDiaMap[fecha]
+      }));
 
     const agentIds = Object.keys(agentsMap);
     let agentsInfo = [];
@@ -2790,7 +2817,9 @@ app.get("/api/insights/macro", async (req, res) => {
       total_conversaciones: totalConvs,
       csat_global: csatCount > 0 ? (totalCsat / csatCount).toFixed(1) : 'N/A',
       riesgo_fuga_distribucion: fugaRisk,
-      ranking_ejecutivos: agentsInfo
+      ranking_ejecutivos: agentsInfo,
+      conversaciones_por_dia
+
     };
 
     // Si solo piden datos crudos, retornar el payload
@@ -2830,12 +2859,12 @@ ${JSON.stringify(payload, null, 2)}`;
     if (llmResponse.error) throw new Error(llmResponse.error);
 
     // Facturación (Asignamos source: 'insights')
-    await supabase.from('llm_usage_logs').insert({
-      tenant_id: tenantId, provider, model, source: 'insights',
-      prompt_tokens: llmResponse.usage.prompt_tokens,
-      completion_tokens: llmResponse.usage.completion_tokens,
-      api_cost_usd: llmResponse.cost.api_cost,
-      billed_usd: llmResponse.cost.billed_cost
+    await logLLMUsage(supabase, {
+      tenantId,
+      provider,
+      model,
+      usage: llmResponse.usage,
+      source: 'insights'
     });
 
     return res.json({ 
