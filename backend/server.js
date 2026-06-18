@@ -812,7 +812,7 @@ async function generateExecutiveSummary(convId, tenantId) {
     if (convData.resumen_ejecutivo) return; // Ya existe
 
     const { data: msgs, error: msgErr } = await supabase
-      .from('messages')
+      .from('conversation_messages')
       .select('content, sender_type, sender_name')
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true });
