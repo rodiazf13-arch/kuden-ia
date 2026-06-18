@@ -35,7 +35,8 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 ### 2.2. Componentes y Módulos Principales
 *   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. 
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
-*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen" para la conversación. Incorpora helpers visuales robustos (`normalizeCanal`, `getChannelBg`, `getChannelBorder`) para aplicar estilos y bordes dinámicos de canal (Webchat, WhatsApp, Email, Instagram) a las tarjetas de los contactos, con opacidades calculadas de forma responsiva para mantener un look and feel premium.
+*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen".
+*   `CopilotManager.jsx`: Interfaz de chat con Kimi.
 *   `KnowledgeBase.jsx`: UI para la carga de documentos. Convierte PDFs/TXTs en chunks y los envía al backend para su vectorización (RAG).
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
 *   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers).
@@ -51,7 +52,7 @@ Se utiliza CSS Vanilla puro en `index.css`. Se basa en variables CSS (`--bg-main
 Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corriendo en el puerto 3001.
 
 ### 3.1. Servicios Core (`/backend/*.js`)
-*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase. Implementa el **Gatekeeper Transaccional** para validar action locks antes de invocar herramientas en n8n.
+*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase. Implementa el **Gatekeeper Transaccional** para validar action locks antes de invocar herramientas en n8n. Contiene hooks asíncronos como `generateExecutiveSummary` para operaciones post-cierre.
 *   `redisClient.js`: Capa de caché efímera conectada a una instancia de Redis. Administra el estado en memoria de las conversaciones (`conv_history:*`) para inyectar el contexto al LLM en milisegundos sin sobrecargar PostgreSQL.
 *   `llmService.js`: Encargado de hablar con la API del LLM. Posee la lógica para inyectar el RAG (Contexto de la empresa), el Tono del Asistente y decidir las herramientas (Tools) a usar. **Soporta modelos disociados** (ej. Sonnet para el copiloto, Haiku para resúmenes).
 *   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (fijado en 768 dimensiones) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
@@ -85,8 +86,8 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 ### 5.1. Esquema Relacional Principal
 *   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n.
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
-*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `lead_phone` (o email), `status` (Etapa del Kanban), `source` (whatsapp, email, web).
-*   `messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
+*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `lead_phone` (o email), `status` (Etapa del Kanban), `source` (whatsapp, email, web), `resumen_ejecutivo`.
+*   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
 *   `agent_action_locks`: Tabla de control transaccional (Gatekeeper) que registra un hash único por cada herramienta invocada por el LLM para el inquilino/contacto, previniendo acciones duplicadas.
 *   `audit_logs`: Trazabilidad técnica. Usado por el System Health Dashboard.

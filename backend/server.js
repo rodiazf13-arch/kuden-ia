@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { createClient } from "@supabase/supabase-js";
 import { callLLM, logLLMUsage } from "./llmService.js";
 import multer from "multer";
+import pdfParse from "pdf-parse";
 import { processAndStoreKnowledge, retrieveKnowledge } from "./ragService.js";
 import { initRedis, getCachedHistory, setCachedHistory, invalidateHistory } from "./redisClient.js";
 import "./queueWorker.js"; // Inicia el worker asíncrono para WhatsApp
@@ -3096,6 +3097,80 @@ ${advancedMetricsPrompt}`;
     return res.json({ message: aiMsg });
   } catch (e) {
     console.error("[POST /api/copilot/chat]", e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── POST /api/copilot/onboarding/pdf ───────────────────────────────────────
+// Recibe un PDF y genera la estructura JSON de perfiles IA
+app.post("/api/copilot/onboarding/pdf", upload.single("file"), async (req, res) => {
+  try {
+    const { tenantId } = req.body;
+    if (!req.file || !tenantId) return res.status(400).json({ error: "Faltan datos" });
+
+    // 1. Extraer texto del PDF
+    const pdfData = await pdfParse(req.file.buffer);
+    const pdfText = pdfData.text.substring(0, 20000); // Limitar a ~20k caracteres por si es muy largo
+
+    // 2. Obtener config de Kimi
+    let kimiProvider = 'anthropic';
+    let kimiModel = 'claude-3-5-sonnet-20240620';
+    const { data: tenantData } = await supabase.from('tenant_ai_config').select('kimi_llm_provider, kimi_llm_model').eq('tenant_id', tenantId).maybeSingle();
+    if (tenantData) {
+      if (tenantData.kimi_llm_provider) kimiProvider = tenantData.kimi_llm_provider;
+      if (tenantData.kimi_llm_model) kimiModel = tenantData.kimi_llm_model;
+    }
+
+    // 3. Crear el prompt
+    const systemPrompt = `Eres un Ingeniero de Prompts Experto y Arquitecto de IA. 
+He subido el manual/información de mi empresa. Quiero que diseñes la estructura de Agentes (Perfiles IA) ideal para atender a mis clientes.
+Reglas:
+1. Analiza si la empresa necesita un solo perfil o múltiples departamentos (ej: Ventas, Soporte, Finanzas).
+2. Si necesita múltiples, DEBES incluir un perfil 'Router' (is_router: true) que enrute a los demás, y los demás perfiles.
+3. Si es simple, devuelve un solo perfil (is_router: false).
+4. DEVUELVE EXCLUSIVAMENTE UN ARREGLO JSON válido (sin markdown, sin \`\`\`, solo el JSON crudo).
+
+Formato esperado del arreglo JSON:
+[
+  {
+    "label": "Nombre del perfil (ej: Agente Maestro, Especialista Ventas)",
+    "description": "Breve descripción de su rol",
+    "persona_prompt": "El SYSTEM PROMPT detallado para este agente (tono, personalidad, reglas, restricciones, qué hacer, qué no hacer). Mínimo 100 palabras.",
+    "hint_text": "Ejemplo de lo que diría el cliente para hablar con él",
+    "color": "Código HEX representativo (ej: #2563eb)",
+    "bg": "Color de fondo tenue (ej: #eff6ff)",
+    "icon": "Nombre de icono Tabler (ej: ti-robot, ti-headset, ti-shopping-cart)",
+    "is_router": boolean,
+    "sub_profiles": ["Nombre de los labels a los que este router puede derivar" // solo si is_router es true]
+  }
+]
+
+Información de la empresa (Manual):
+${pdfText}`;
+
+    const { text, usage } = await callLLM(supabase, {
+      provider: kimiProvider,
+      model: kimiModel,
+      messages: [{ role: "user", content: systemPrompt }],
+      max_tokens: 3000,
+    });
+
+    if (usage) {
+      logLLMUsage(supabase, { tenantId, aiProfileId: null, provider: kimiProvider, model: kimiModel, usage, source: 'copilot' }).catch(e=>console.error(e));
+    }
+
+    // Extraer JSON
+    let cleanText = text.trim();
+    if (cleanText.startsWith('\`\`\`json')) cleanText = cleanText.substring(7);
+    if (cleanText.startsWith('\`\`\`')) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith('\`\`\`')) cleanText = cleanText.substring(0, cleanText.length - 3);
+
+    const profiles = JSON.parse(cleanText.trim());
+
+    return res.json({ profiles });
+
+  } catch (e) {
+    console.error("[POST /api/copilot/onboarding/pdf]", e);
     return res.status(500).json({ error: e.message });
   }
 });

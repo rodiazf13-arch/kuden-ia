@@ -10,6 +10,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [userId, setUserId] = useState(null);
 
   const c = {
@@ -81,6 +82,83 @@ export default function CopilotManager({ tenantId, isDark = true }) {
       }
     } catch (e) {
       setMessages(prev => [...prev, { sender_type: 'ai', content: `**Error de conexión:** ${e.message}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const userMessage = { sender_type: 'user', content: `📎 Subió el documento: **${file.name}**\n\nPor favor, diseña la estructura de agentes IA para mi empresa basándote en este documento.` };
+    setMessages(prev => [...prev, userMessage]);
+    setLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tenantId', tenantId);
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${API_URL}/api/copilot/onboarding/pdf`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      
+      if (data.profiles) {
+        setMessages(prev => [...prev, { 
+          sender_type: 'ai', 
+          content: `He analizado tu documento y diseñado la siguiente estructura de agentes IA para tu negocio. Revisa la propuesta y haz clic en "Autorizar y Crear Perfiles" si estás de acuerdo.`,
+          proposedProfiles: data.profiles
+        }]);
+      } else if (data.error) {
+        setMessages(prev => [...prev, { sender_type: 'ai', content: `**Error:** ${data.error}` }]);
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { sender_type: 'ai', content: `**Error de conexión:** ${err.message}` }]);
+    } finally {
+      setLoading(false);
+      e.target.value = ''; 
+    }
+  };
+
+  const handleCreateProfiles = async (profiles) => {
+    if (!window.confirm("¿Estás seguro de que deseas crear estos perfiles en tu base de datos?")) return;
+    setLoading(true);
+    try {
+      const nonRouters = profiles.filter(p => !p.is_router);
+      const routers = profiles.filter(p => p.is_router);
+      const labelToIdMap = {};
+      
+      for (const p of nonRouters) {
+        const payload = {
+          tenant_id: tenantId, label: p.label, description: p.description, persona_prompt: p.persona_prompt,
+          hint_text: p.hint_text, color: p.color || '#2563eb', bg: p.bg || '#eff6ff', icon: p.icon || 'ti-robot',
+          is_global: false, llm_provider: 'anthropic', llm_model: 'claude-3-5-sonnet-20240620',
+          is_router: false, sub_profile_ids: []
+        };
+        const { data, error } = await supabase.from('ai_profiles').insert([payload]).select().single();
+        if (error) throw error;
+        labelToIdMap[p.label] = data.id;
+      }
+      
+      for (const p of routers) {
+        const subIds = (p.sub_profiles || []).map(lbl => labelToIdMap[lbl]).filter(Boolean);
+        const payload = {
+          tenant_id: tenantId, label: p.label, description: p.description, persona_prompt: p.persona_prompt,
+          hint_text: p.hint_text, color: p.color || '#f59e0b', bg: p.bg || '#fffbeb', icon: p.icon || 'ti-share',
+          is_global: false, llm_provider: 'anthropic', llm_model: 'claude-3-5-sonnet-20240620',
+          is_router: true, sub_profile_ids: subIds
+        };
+        const { error } = await supabase.from('ai_profiles').insert([payload]);
+        if (error) throw error;
+      }
+      
+      setMessages(prev => [...prev, { sender_type: 'ai', content: `✅ ¡Listo! Los perfiles han sido creados con éxito. Puedes ir a "Perfiles del Agente IA" en el menú para verlos y editarlos.` }]);
+    } catch (err) {
+      alert("Error al crear perfiles: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -168,6 +246,31 @@ export default function CopilotManager({ tenantId, isDark = true }) {
                     >
                       {m.content}
                     </ReactMarkdown>
+                    {m.proposedProfiles && (
+                      <div style={{ marginTop: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginBottom: '16px' }}>
+                          {m.proposedProfiles.map((p, idx) => (
+                            <div key={idx} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '12px' }}>
+                              <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 'bold', color: c.textMain }}>
+                                <i className={`ti ${p.icon || 'ti-robot'}`} style={{ color: p.color || c.primary, marginRight: '6px' }}></i>
+                                {p.label}
+                                {p.is_router && <span style={{ marginLeft: 8, fontSize: 10, background: '#2563eb20', color: '#2563eb', padding: '2px 6px', borderRadius: 10 }}>ROUTER</span>}
+                              </p>
+                              <p style={{ margin: '0 0 8px', fontSize: 12, color: c.textSec }}>{p.description}</p>
+                              {p.is_router && p.sub_profiles && (
+                                <p style={{ margin: 0, fontSize: 11, color: '#f59e0b' }}>Deriva a: {p.sub_profiles.join(', ')}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <button 
+                          onClick={() => handleCreateProfiles(m.proposedProfiles)}
+                          style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        >
+                          <i className="ti ti-wand"></i> Autorizar y Crear Perfiles
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -197,6 +300,29 @@ export default function CopilotManager({ tenantId, isDark = true }) {
 
         <div style={{ padding: '20px', borderTop: `1px solid ${c.border}`, background: c.card }}>
           <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', maxWidth: '900px', margin: '0 auto' }}>
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="application/pdf" onChange={handleFileUpload} />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current.click()}
+              disabled={loading || fetching}
+              title="Adjuntar PDF Onboarding"
+              style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
+                background: c.bg,
+                color: c.textSec,
+                border: `1px solid ${c.border}`,
+                cursor: loading || fetching ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <i className="ti ti-paperclip"></i>
+            </button>
             <input
               type="text"
               placeholder="Escribe tu consulta a Kimi..."

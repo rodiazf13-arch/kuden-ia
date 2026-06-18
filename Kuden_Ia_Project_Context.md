@@ -177,3 +177,14 @@ Se ejecutó un plan de robustecimiento de infraestructura para mitigar los riesg
 - **Caché Efímera (Redis):** Se implementó una capa de Redis en el backend (`redisClient.js`) que almacena el historial activo de las conversaciones. El endpoint de chat del widget y la lógica de recuperación del contexto ahora leen desde Redis, reduciendo el TTFB y minimizando las consultas pesadas a PostgreSQL.
 - **Gatekeeper Transaccional:** Se introdujo una barrera de seguridad estricta en la intercepción de herramientas (`[TOOL_CALL]`) dentro de `server.js`. Se creó la tabla `agent_action_locks` en Supabase para registrar y validar un hash transaccional antes de invocar a n8n, previniendo ejecuciones duplicadas en caso de alucinaciones del LLM.
 - **Optimización de RAG (HNSW):** Se implementó el índice `hnsw` con la métrica `vector_cosine_ops` en la tabla `document_chunks` (fijando la dimensión a 768), asegurando un rendimiento O(log N) para futuras bases de conocimientos a gran escala.
+
+---
+
+## 8. Funcionalidades Core: Eficiencia Operativa (Junio 2026)
+
+- **Ruta B: Onboarding Mágico (Kimi's Tool)**
+  - **Estado:** ✅ COMPLETADO
+  - **Descripción:** Se implementó una función dentro del chat de la mascota "Kimi" (Co-Piloto) que permite al usuario subir un manual de marca en formato PDF. Kimi analiza el documento y genera, en un formato JSON estructurado, una propuesta arquitectónica de "Perfiles IA" (Agentes), decidiendo automáticamente si se requiere un agente simple o un ecosistema complejo (Agente Maestro Router + Sub-perfiles departamentales). El cliente puede autorizar la creación masiva de estos perfiles con un solo clic.
+
+- **Ruta C: Kimi Insights (Dashboard):** Se implementó una función asíncrona (`generateExecutiveSummary`) que se dispara automáticamente cada vez que una conversación se cierra o se marca como resuelta por acción manual del ejecutivo o porque la IA dio por terminada la interacción. El sistema utiliza el modelo LLM configurado en "Identidad Maestra" (`summary_llm_model`) para leer el historial de `conversation_messages` y redactar un resumen estricto de 4 líneas (Problema, Acciones, Resultado, Recomendación), mostrándolo instantáneamente en la interfaz de `CRMManager.jsx`.
+- **Actualización Retroactiva:** Se creó y ejecutó exitosamente un script (`retroactiveSummary.js`) que generó resúmenes históricos para tickets cerrados previamente, depurando y unificando el formato de los datos de la plataforma. (Se aprovechó de corregir la nomenclatura de la tabla de mensajes en la documentación técnica, siendo la correcta `conversation_messages`).
