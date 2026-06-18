@@ -7,6 +7,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   });
   const [alertCount, setAlertCount] = useState(0);
   const [impersonateOpen, setImpersonateOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('kuden_sidebar_collapsed') === 'true';
   });
@@ -97,8 +98,14 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       data-theme={theme}
       style={{ display: 'flex', minHeight: '100vh', background: mainBg, color: textMain, transition: 'background 0.4s, color 0.3s' }}
     >
+      {/* ── Mobile Sidebar Overlay ── */}
+      <div 
+        className={`sidebar-overlay ${isMobileSidebarOpen ? 'open' : ''}`} 
+        onClick={() => setIsMobileSidebarOpen(false)}
+      ></div>
+
       {/* ── Sidebar ── */}
-      <aside style={{
+      <aside className={`sidebar-container ${isMobileSidebarOpen ? 'open' : ''}`} style={{
         width: isSidebarCollapsed ? '80px' : '250px',
         background: sidebarBg,
         backdropFilter: 'blur(20px)',
@@ -109,7 +116,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         flexDirection: 'column',
         transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s, border-color 0.3s',
         position: 'relative',
-        zIndex: 10,
+        zIndex: 1000,
       }}>
 
         {/* Botón para colapsar/expandir */}
@@ -356,11 +363,26 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       </aside>
 
       {/* ── Contenido principal ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1640px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
+      <main className="mobile-full-width" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
+        
+        {/* Mobile Header (Solo visible en móvil) */}
+        <div className="mobile-only-flex mobile-header" style={{ display: 'none', alignItems: 'center', padding: '12px 16px', background: sidebarBg, borderBottom: `1px solid ${borderCol}`, zIndex: 90 }}>
+          <button 
+            onClick={() => setIsMobileSidebarOpen(true)}
+            style={{ background: 'transparent', border: 'none', color: textMain, fontSize: 24, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+          >
+            <i className="ti ti-menu-2"></i>
+          </button>
+          <div style={{ flex: 1, textAlign: 'center', fontWeight: 600, color: brandColor, fontSize: 16 }}>
+            {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
+          </div>
+          <div style={{ width: 24 }}></div> {/* Spacer para centrar título */}
+        </div>
+
+        <div className="mobile-p-0" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1640px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
           {typeof children === 'function' ? children(isDark) : children}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -301,3 +301,67 @@ button:disabled {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(107, 114, 128, 0.7);
 }
+/* -- Responsive Utils ------------------------------ */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+  .mobile-only-flex {
+    display: flex !important;
+  }
+  .mobile-full-width {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .mobile-p-0 {
+    padding: 0 !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .mobile-only-flex {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000 !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebar-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .mobile-header {
+    display: flex !important;
+  }
+}

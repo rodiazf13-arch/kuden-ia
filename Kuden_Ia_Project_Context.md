@@ -139,3 +139,9 @@ AquÃ­ es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Mini-portal donde el cliente final ingresa con su RUT/email para ver el estado de sus tickets, historial y documentos compartidos, reduciendo la carga operativa en un 30-50%.
 21. **API PÃºblica + Webhooks para Integraciones:**
     API REST para conectar Kuden con ERPs o sistemas contables legacy de grandes corporativos, disparando webhooks ante eventos clave (ej. "nuevo lead calificado").
+
+## Actualización PWA y Móvil (Punto 5.17 del Roadmap)
+- Se implementó \ite-plugin-pwa\ para convertir Kuden IA en una aplicación instalable (Progressive Web App).
+- Se agregaron íconos PWA generados a partir del logo oficial en \rontend/public/\.
+- **Diseño Móvil (UI/UX):** Se rediseñó el \DashboardLayout.jsx\ integrando un overlay y un menú tipo Hamburguesa (?) para pantallas chicas.
+- El CRM (\CRMManager.jsx\) ahora maneja estado adaptativo: muestra por defecto la lista de contactos, y al seleccionar un chat, la caja de mensajes ocupa toda la pantalla para asegurar una experiencia tipo aplicación nativa en móviles.

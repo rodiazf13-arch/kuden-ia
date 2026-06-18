@@ -1095,7 +1095,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
           ) : (
             <div style={{ display: 'flex', gap: 0, background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 170px)' }}>
             {/* Columna izquierda: Bandeja */}
-            <div style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <div className={`crm-list-col ${selectedId ? 'hide-on-mobile' : 'mobile-full-width'}`} style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               {/* Filtros */}
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
@@ -1167,7 +1167,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
 
             {/* Columna derecha: Detalle */}
             {selectedId && (
-              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div className="crm-detail-col mobile-full-width" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <ConversationDetail
                   convId={selectedId}
                   tenantId={tenantId}
