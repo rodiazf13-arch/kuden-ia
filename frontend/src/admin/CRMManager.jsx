@@ -49,9 +49,16 @@ const CHANNEL_COLORS = {
   web:       { rgb: '234, 179, 8'  }  // Amarillo
 };
 
+const normalizeCanal = (canal) => {
+  if (!canal) return null;
+  const c = canal.toLowerCase().replace(/\s/g, '');
+  if (c === 'web' || c === 'webchat') return 'web';
+  return c;
+};
+
 const getChannelBg = (canal, c, state = 'normal') => {
   if (state === 'selected') return '#2563eb15';
-  const color = CHANNEL_COLORS[canal];
+  const color = CHANNEL_COLORS[normalizeCanal(canal)];
   if (!color) {
     if (state === 'hover') return c.inputBg;
     if (state === 'kanban-normal') return c.inputBg;
@@ -62,7 +69,7 @@ const getChannelBg = (canal, c, state = 'normal') => {
 };
 
 const getChannelBorder = (canal, c) => {
-  const color = CHANNEL_COLORS[canal];
+  const color = CHANNEL_COLORS[normalizeCanal(canal)];
   if (!color) return c.border;
   return `rgba(${color.rgb}, 0.5)`;
 };
@@ -708,9 +715,10 @@ function ConvRow({ conv, isSelected, onClick, c }) {
             {conv.last_message_preview || 'Sin mensajes aún'}
           </p>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-            {conv.canal === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#3b82f6' }} title="Email" />}
-            {conv.canal === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
-            {conv.canal === 'web' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
+            {normalizeCanal(conv.canal) === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#3b82f6' }} title="Email" />}
+            {normalizeCanal(conv.canal) === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
+            {normalizeCanal(conv.canal) === 'web' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
+            {normalizeCanal(conv.canal) === 'instagram' && <i className="ti ti-brand-instagram" style={{ fontSize: 13, color: '#E1306C' }} title="Instagram" />}
             <StatusBadge status={conv.status} />
             {campaign && (
               <span style={{ fontSize: 9, fontWeight: 600, color: campaign.color, background: `${campaign.color}15`, border: `0.5px solid ${campaign.color}40`, borderRadius: 10, padding: '1px 5px' }}>
