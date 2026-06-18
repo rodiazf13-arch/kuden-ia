@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../lib/supabaseClient';
+import KimiMascot from '../KimiMascot.jsx';
 
 export default function KimiWidget({ tenantId, isDark, currentTab }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +41,18 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
       }]);
     }
   }, [isOpen]);
+
+  // Mensaje dinámico si el usuario cambia de pestaña mientras Kimi está abierta o vuelve a abrirla
+  useEffect(() => {
+    if (messages.length > 0) {
+      const newMsg = `*(Cambiaste a la pantalla de **${getTabName(currentTab)}**. Pregúntame sobre esta vista si necesitas ayuda)*`;
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.content === newMsg) return prev;
+        return [...prev, { sender_type: 'ai', content: newMsg }];
+      });
+    }
+  }, [currentTab]);
 
   const getTabName = (tabId) => {
     const map = {
@@ -119,8 +132,8 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           {/* Header */}
           <div style={{ background: c.primary, padding: '16px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', color: c.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-                <i className="ti ti-bulb"></i>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <KimiMascot size={32} state={loading ? 'thinking' : 'happy'} />
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 14, fontWeight: 'bold' }}>Kimi Co-Piloto</h3>
@@ -198,7 +211,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: c.primary,
+          background: isOpen ? '#e11d48' : c.primary,
           color: '#fff',
           border: 'none',
           boxShadow: '0 8px 24px rgba(37, 99, 235, 0.4)',
@@ -207,13 +220,15 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           justifyContent: 'center',
           fontSize: '28px',
           cursor: 'pointer',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          zIndex: 1000
+          transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
+          zIndex: 1000,
+          overflow: 'hidden',
+          padding: isOpen ? '0' : '2px'
         }}
         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
-        <i className={isOpen ? "ti ti-x" : "ti ti-bulb"}></i>
+        {isOpen ? <i className="ti ti-x"></i> : <KimiMascot size={52} state="happy" />}
       </button>
 
     </div>
