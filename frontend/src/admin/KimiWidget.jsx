@@ -99,7 +99,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
       
       const data = await res.json();
       if (data.message) {
-        setMessages(prev => [...prev, { sender_type: 'ai', content: data.message }]);
+        setMessages(prev => [...prev, { sender_type: 'ai', content: data.message.content || data.message }]);
       } else if (data.error) {
         setMessages(prev => [...prev, { sender_type: 'ai', content: `Error: ${data.error}` }]);
       }
