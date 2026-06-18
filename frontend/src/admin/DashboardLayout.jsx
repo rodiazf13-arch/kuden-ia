@@ -95,7 +95,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Motor IA',
       items: [
         { id: 'ai_config', label: 'Identidad Maestra', icon: 'ti-brain', superAdminOnly: true },
-        { id: 'profiles', label: 'Perfiles IA', icon: 'ti-robot' },
+        { id: 'profiles', label: 'Perfiles IA', icon: 'ti-robot', superAdminOnly: true },
         ...(copilotAccess ? [
           { id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' },
           { id: 'insights', label: 'Kimi Insights (BI)', icon: 'ti-chart-bar' }

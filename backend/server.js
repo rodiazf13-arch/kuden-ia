@@ -864,6 +864,94 @@ async function generateExecutiveSummary(convId, tenantId) {
   }
 }
 
+// ─── HELPER: Generar Sugerencia RAG Auto-Didacta ─────────────────────────────
+async function generateRAGSuggestion(convId, tenantId) {
+  try {
+    const { data: convData, error: convErr } = await supabase
+      .from('conversations')
+      .select('campaign_id, status')
+      .eq('id', convId)
+      .single();
+    
+    if (convErr || !convData || !convData.campaign_id) return;
+
+    // Obtener el perfil IA asociado a la campaña
+    const { data: campData } = await supabase.from('campaigns').select('ai_profile_id').eq('id', convData.campaign_id).single();
+    if (!campData || !campData.ai_profile_id) return;
+    const aiProfileId = campData.ai_profile_id;
+
+    // Buscar todos los mensajes de la conversación
+    const { data: msgs, error: msgErr } = await supabase
+      .from('conversation_messages')
+      .select('content, sender_type, sender_name')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+      
+    if (msgErr || !msgs || msgs.length === 0) return;
+
+    // Validar si hubo intervención humana
+    const hasHumanIntervention = msgs.some(m => m.sender_type !== 'customer' && m.sender_type !== 'ai' && m.sender_type !== 'system');
+    if (!hasHumanIntervention) return; // Solo aprendemos si un humano intervino
+
+    const conversacionStr = msgs.map(m => {
+      const actor = m.sender_type === 'customer' ? 'Cliente' : m.sender_type === 'ai' ? 'IA' : (m.sender_name || 'Ejecutivo Humano');
+      return `[${actor}]: ${m.content}`;
+    }).join('\n');
+
+    const prompt = 
+      "Eres un analista de calidad. Analiza la siguiente transcripción de un ticket cerrado. " +
+      "Busca si el 'Ejecutivo Humano' proporcionó alguna instrucción, política, precio, o solución técnica novedosa que sea útil como conocimiento para entrenar a una IA (Base de Conocimientos).\n" +
+      "Si NO hay nada valioso, o solo es conversación genérica, responde exactamente con la palabra: NONE\n" +
+      "Si SÍ hay información valiosa que valga la pena memorizar, extrae ese conocimiento en formato JSON estricto con esta estructura:\n" +
+      '{"question": "Pregunta inferida del cliente", "answer": "La respuesta o política explicada por el humano"}\n\n' +
+      "Transcripción:\n" + conversacionStr;
+
+    let summaryProvider = 'anthropic';
+    let summaryModel = 'claude-haiku-4-5-20251001';
+    const { data: configData } = await supabase.from('tenant_ai_config').select('summary_llm_provider, summary_llm_model').eq('tenant_id', tenantId).maybeSingle();
+    if (configData) {
+      if (configData.summary_llm_provider) summaryProvider = configData.summary_llm_provider;
+      if (configData.summary_llm_model) summaryModel = configData.summary_llm_model;
+    }
+
+    const { text: responseText, usage } = await callLLM(supabase, {
+      provider: summaryProvider,
+      model: summaryModel,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 300,
+    });
+
+    if (usage) {
+      logLLMUsage(supabase, { tenantId, aiProfileId: null, provider: summaryProvider, model: summaryModel, usage }).catch(e => console.error("Error logging llm usage:", e));
+    }
+
+    const cleanRes = responseText.trim();
+    if (cleanRes === 'NONE' || cleanRes.includes('NONE')) return;
+
+    try {
+      const parsed = JSON.parse(cleanRes);
+      if (parsed.question && parsed.answer) {
+        // Insertar la sugerencia RAG
+        await supabase.from('rag_suggestions').insert({
+          tenant_id: tenantId,
+          ai_profile_id: aiProfileId,
+          conversation_id: convId,
+          suggested_question: parsed.question,
+          suggested_answer: parsed.answer,
+          status: 'pending'
+        });
+        console.log(`[RAG Auto-Didacta] Nueva sugerencia detectada para conv ${convId}`);
+      }
+    } catch (e) {
+      // JSON inválido, no hacemos nada
+    }
+
+  } catch (err) {
+    console.error("[generateRAGSuggestion] Error:", err.message);
+  }
+}
+
+
 // ─── POST /api/summarize ───────────────────────────────────────────────────────
 // Body: { tenantId, clienteNombre, rut, telefono, direccion, plan, canal, motivoLabel,
 //         conversacion, ticketId, perfilCliente, duracion, csatFinal,
@@ -1751,6 +1839,22 @@ app.post("/api/crm/conversations/:id/suggest", async (req, res) => {
   }
 });
 
+// ─── GET /api/crm/conversations/:id/rag_suggestions ───────────────────────────
+app.get("/api/crm/conversations/:id/rag_suggestions", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { data } = await supabase
+      .from("rag_suggestions")
+      .select("suggestion, metadata, created_at")
+      .eq("conversation_id", id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    return res.json(data || []);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── POST /api/crm/conversations/:id/takeover ─────────────────────────────────
 // Body: { userId, displayName }
 app.post("/api/crm/conversations/:id/takeover", async (req, res) => {
@@ -1848,6 +1952,7 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
     // Gatillar generación de resumen en segundo plano si se cierra realmente
     if (!isPending) {
       generateExecutiveSummary(id, tenantId).catch(console.error);
+      generateRAGSuggestion(id, tenantId).catch(console.error);
     }
 
     let sysContent = "";
@@ -2538,7 +2643,9 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
 
     // Si la IA dio por finalizada la conversación, generar resumen en segundo plano
     if (isFinished && existingConv.status !== "pending_csat") {
+      // Disparar hook de resumen asíncrono y sugerencia RAG
       generateExecutiveSummary(convId, tenantId).catch(console.error);
+      generateRAGSuggestion(convId, tenantId).catch(console.error);
     }
 
     // Gatillo n8n (Fase 3)
@@ -3210,6 +3317,50 @@ ${pdfText}`;
   } catch (e) {
     console.error("[POST /api/copilot/onboarding/pdf]", e);
     return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── ENDPOINTS PARA RAG AUTO-DIDACTA ──────────────────────────────────────────
+
+app.get("/api/rag-suggestions", async (req, res) => {
+  const { tenantId, status } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido" });
+  let query = supabase.from('rag_suggestions').select('*, ai_profiles(label)').eq('tenant_id', tenantId).order('created_at', { ascending: false });
+  if (status) query = query.eq('status', status);
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.post("/api/rag-suggestions/:id/approve", async (req, res) => {
+  const { tenantId, aiProfileId, question, answer } = req.body;
+  const { id } = req.params;
+  try {
+    if (!aiProfileId || !question || !answer) throw new Error("Faltan datos");
+    
+    // Convertir a Markdown
+    const content = `# Sugerencia Auto-Didacta (Humano)\n\n**Pregunta Detectada:**\n${question}\n\n**Solución:**\n${answer}`;
+    
+    // Procesar Documento RAG (importando ragService)
+    const ragService = require('./ragService');
+    const sourceUrl = await ragService.processDocument(aiProfileId, tenantId, content, 'md', `Sugerencia_Auto_${new Date().getTime()}.md`, supabase);
+    
+    // Actualizar base de datos
+    await supabase.from('rag_suggestions').update({ status: 'approved', ai_profile_id: aiProfileId, suggested_question: question, suggested_answer: answer }).eq('id', id);
+    
+    res.json({ success: true, url: sourceUrl });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/rag-suggestions/:id/reject", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await supabase.from('rag_suggestions').update({ status: 'rejected' }).eq('id', id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

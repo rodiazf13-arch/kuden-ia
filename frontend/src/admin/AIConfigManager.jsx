@@ -23,6 +23,11 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   const [openRouterModels, setOpenRouterModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
+  // RAG Suggestions
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [suggestionAiProfile, setSuggestionAiProfile] = useState({});
+
   const c = {
     card:      isDark ? '#111'    : '#ffffff',
     border:    isDark ? '#222'    : '#e5e7eb',
@@ -35,8 +40,60 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   };
 
   useEffect(() => {
-    if (tenantId) fetchConfig();
+    if (tenantId) {
+      fetchConfig();
+      fetchSuggestions();
+    }
   }, [tenantId]);
+
+  const fetchSuggestions = async () => {
+    setLoadingSuggestions(true);
+    try {
+      const res = await fetch(`${API_URL}/api/rag-suggestions?tenantId=${tenantId}&status=pending`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuggestions(data || []);
+      
+      // Init default profile mapping
+      const mapping = {};
+      (data || []).forEach(s => {
+        mapping[s.id] = s.ai_profile_id || '';
+      });
+      setSuggestionAiProfile(mapping);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleApproveSuggestion = async (sug) => {
+    const profId = suggestionAiProfile[sug.id];
+    if (!profId) return alert('Debes seleccionar un perfil IA de destino');
+    try {
+      const res = await fetch(`${API_URL}/api/rag-suggestions/${sug.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, aiProfileId: profId, question: sug.suggested_question, answer: sug.suggested_answer })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert('¡Sugerencia vectorizada exitosamente!');
+      setSuggestions(prev => prev.filter(s => s.id !== sug.id));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleRejectSuggestion = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/rag-suggestions/${id}/reject`, { method: 'POST' });
+      if (!res.ok) throw new Error('Error al rechazar');
+      setSuggestions(prev => prev.filter(s => s.id !== id));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
 
   useEffect(() => {
     if ((kimiProvider === 'openrouter' || summaryProvider === 'openrouter') && openRouterModels.length === 0) {
@@ -255,6 +312,71 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* BUZÓN RAG AUTO-DIDACTA */}
+      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginTop: '24px' }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: '16px', color: c.sectionHd, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="ti ti-bulb" style={{ color: '#eab308', fontSize: '18px' }}></i>
+          Buzón de Entrenamiento Auto-Didacta (RAG)
+        </h3>
+        <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
+          Kimi analiza las conversaciones de los humanos e identifica soluciones nuevas que no estaban en su base de datos. Aprueba las sugerencias y asígnalas a un perfil para que las memorice automáticamente.
+        </p>
+
+        {loadingSuggestions ? (
+          <p style={{ fontSize: '13px', color: c.subtitle }}>Buscando sugerencias...</p>
+        ) : suggestions.length === 0 ? (
+          <p style={{ fontSize: '13px', color: c.subtitle, fontStyle: 'italic', background: c.inputBg, padding: '16px', borderRadius: '8px', border: `1px dashed ${c.border}` }}>
+            No hay sugerencias nuevas. La IA sigue analizando tickets.
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {suggestions.map(sug => (
+              <div key={sug.id} style={{ background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '16px' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '12px', color: c.label, fontWeight: 'bold' }}>Pregunta Detectada (Cliente):</label>
+                  <p style={{ margin: '4px 0 0', fontSize: '14px', color: c.title }}>{sug.suggested_question}</p>
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ fontSize: '12px', color: c.label, fontWeight: 'bold' }}>Solución Dada (Humano):</label>
+                  <p style={{ margin: '4px 0 0', fontSize: '14px', color: c.title, background: isDark ? '#262626' : '#e5e7eb', padding: '10px', borderRadius: '6px' }}>{sug.suggested_answer}</p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderTop: `1px solid ${c.border}`, paddingTop: '16px' }}>
+                  <div style={{ flex: '1 1 200px' }}>
+                    <label style={{ fontSize: '11px', color: c.label, display: 'block', marginBottom: '4px' }}>Asignar conocimiento a:</label>
+                    <select 
+                      value={suggestionAiProfile[sug.id] || ''}
+                      onChange={e => setSuggestionAiProfile({...suggestionAiProfile, [sug.id]: e.target.value})}
+                      style={{ ...inputStyle, padding: '8px' }}
+                    >
+                      <option value="">-- Seleccionar Perfil IA --</option>
+                      {dbProfiles.map(p => (
+                        <option key={p.id} value={p.id}>{p.label} {p.is_global ? '(Plantilla Global)' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                    <button 
+                      onClick={() => handleRejectSuggestion(sug.id)}
+                      style={{ background: 'transparent', border: `1px solid #ef4444`, color: '#ef4444', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+                    >
+                      Descartar
+                    </button>
+                    <button 
+                      onClick={() => handleApproveSuggestion(sug)}
+                      style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                    >
+                      Aprobar e Inyectar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

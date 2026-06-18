@@ -39,8 +39,9 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 *   `CopilotManager.jsx`: Interfaz de chat con Kimi.
 *   `KnowledgeBase.jsx`: UI para la carga de documentos. Convierte PDFs/TXTs en chunks y los envía al backend para su vectorización (RAG).
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
-*   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers).
+*   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers). KimiInsights utiliza `recharts` para curvas de área y soporta exportación de reportes a Word (.doc).
 *   `KimiMascot.jsx`: Componente global persistente en la UI que interactúa visualmente con el usuario, simulando el "cerebro" de la plataforma.
+*   `KimiWidget.jsx`: Widget global flotante de asistencia (Agent Assist interno). Mantiene estado de apertura y tiene consciencia espacial al detectar cambios de pestaña (`currentTab`) para inyectar este `appContext` al LLM en `server.js` de forma invisible.
 
 ### 2.3. Estilos y Diseño Responsivo
 Se utiliza CSS Vanilla puro en `index.css`. Se basa en variables CSS (`--bg-main`, `--text-main`) para inyectar dinámicamente colores de Tenant (Marca blanca) y soportar Dark Mode. Usa Flexbox/Grid y `@media queries` para la adaptabilidad a dispositivos móviles.
@@ -57,6 +58,10 @@ Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corr
 *   `llmService.js`: Encargado de hablar con la API del LLM. Posee la lógica para inyectar el RAG (Contexto de la empresa), el Tono del Asistente y decidir las herramientas (Tools) a usar. **Soporta modelos disociados** (ej. Sonnet para el copiloto, Haiku para resúmenes).
 *   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (fijado en 768 dimensiones) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
 *   `queueWorker.js` *(Opcional)*: Encargado de procesar tareas asíncronas pesadas (ej. vectorización masiva) usando `supabase_queue` si se activa la persistencia asíncrona.
+
+### 3.1.1 Endpoints Destacados y de Orquestación
+*   `/api/setup/magic-onboarding`: Extrae texto de PDFs (usando `pdf-parse` mediante `createRequire` para soporte ESM), genera un JSON arquitectónico vía LLM y crea iterativamente los sub-perfiles en base de datos.
+*   `/api/insights/macro`: Agrupa matemáticamente las conversaciones por `campaign_id` y por fecha (para gráficos de series de tiempo), evalúa los CSAT y genera métricas de retención sin depender del LLM para el cálculo matemático.
 
 ### 3.2. Webhooks Estratégicos (Ingesta de Datos)
 El sistema expone Endpoints públicos protegidos por Tokens internos para que n8n inyecte datos:
