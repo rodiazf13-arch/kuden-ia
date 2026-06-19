@@ -256,6 +256,33 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
     }
   };
 
+  const handleStartConversation = async (canal) => {
+    try {
+      // 1. Crear conversacion
+      const { data, error } = await supabase.from('conversations').insert({
+        tenant_id: tenantId,
+        contact_id: contact.id,
+        status: 'human_active',
+        canal: canal,
+        motivo_label: 'Conversación Saliente',
+        last_message_at: new Date().toISOString()
+      }).select();
+
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const newConvId = data[0].id;
+        // 2. Guardar en localStorage
+        localStorage.setItem('kuden_open_conv_id', newConvId);
+        // 3. Emitir evento para cambiar al CRM
+        window.dispatchEvent(new CustomEvent('changeTab', { detail: 'crm' }));
+      }
+    } catch (err) {
+      console.error('Error iniciando conversación:', err);
+      alert('Hubo un error al iniciar la conversación.');
+    }
+  };
+
   const generateGlobalSummary = async () => {
     try {
       setGenerating(true);
@@ -303,6 +330,23 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
         <button onClick={onEdit} style={{ width: '100%', padding: '10px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.title, cursor: 'pointer', fontWeight: 500 }}>
           <i className="ti ti-edit"></i> Editar Contacto
         </button>
+
+        <div style={{ background: c.sectionBg, padding: '15px', borderRadius: '8px', border: `1px solid ${c.border}` }}>
+          <h3 style={{ margin: '0 0 10px', color: c.title, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <i className="ti ti-message-share" style={{ color: '#2563eb' }}></i> Iniciar Conversación
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button onClick={() => handleStartConversation('whatsapp')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#25D36620', border: '1px solid #25D366', borderRadius: '6px', color: isDark ? '#fff' : '#085041', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
+              <i className="ti ti-brand-whatsapp" style={{ fontSize: '16px', color: '#25D366' }}></i> Enviar un WhatsApp
+            </button>
+            <button onClick={() => handleStartConversation('email')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#3B82F620', border: '1px solid #3B82F6', borderRadius: '6px', color: isDark ? '#fff' : '#1e40af', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
+              <i className="ti ti-mail" style={{ fontSize: '16px', color: '#3B82F6' }}></i> Enviar un Email
+            </button>
+            <button onClick={() => handleStartConversation('instagram')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#E1306C20', border: '1px solid #E1306C', borderRadius: '6px', color: isDark ? '#fff' : '#831843', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
+              <i className="ti ti-brand-instagram" style={{ fontSize: '16px', color: '#E1306C' }}></i> Enviar DM Instagram
+            </button>
+          </div>
+        </div>
 
         <div style={{ background: c.sectionBg, padding: '15px', borderRadius: '8px', border: `1px solid ${c.border}` }}>
           <h3 style={{ margin: '0 0 10px', color: c.title, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>

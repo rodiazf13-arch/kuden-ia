@@ -57,7 +57,17 @@ export default function App() {
       else { setTenantId(null); setTenantName(null); setTenantLogo(null); setTenantColor(null); setUserRole(null); setLoading(false); }
     });
 
-    return () => subscription.unsubscribe();
+    const handleTabChange = (e) => {
+      if (e.detail && typeof e.detail === 'string') {
+        setCurrentTab(e.detail);
+      }
+    };
+    window.addEventListener('changeTab', handleTabChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('changeTab', handleTabChange);
+    };
   }, []);
 
   const fetchTenantInfo = async (userId) => {

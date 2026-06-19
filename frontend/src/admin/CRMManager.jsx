@@ -1043,6 +1043,13 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       ]);
       if (Array.isArray(convRes)) {
         setConversations(convRes);
+        // Verificar si hay una conversacion que abrir desde ContactsManager
+        const pendingConvId = localStorage.getItem('kuden_open_conv_id');
+        if (pendingConvId) {
+          setSelectedId(pendingConvId);
+          setTab('inbox');
+          localStorage.removeItem('kuden_open_conv_id');
+        }
       }
       if (alertRes && !alertRes.error) {
         setAlerts(alertRes);

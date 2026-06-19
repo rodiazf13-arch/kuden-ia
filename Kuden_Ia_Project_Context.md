@@ -139,13 +139,15 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Mini-portal donde el cliente final ingresa con su RUT/email para ver el estado de sus tickets, historial y documentos compartidos, reduciendo la carga operativa en un 30-50%.
 21. **API Pública + Webhooks para Integraciones:**
     API REST para conectar Kuden con ERPs o sistemas contables legacy de grandes corporativos, disparando webhooks ante eventos clave (ej. "nuevo lead calificado").
-22. **Simulador Kimi "Red Team" (Entrenamiento de Perfiles IA):**
+22. **Canal SMS (Notificaciones y Marketing Outbound):**
+    Adición futura de SMS como canal oficial, delegando la conectividad de los carriers a n8n, y manejando la interacción de respuesta desde la bandeja central unificada para campañas masivas de recordatorios y cobranza.
+23. **Simulador Kimi "Red Team" (Entrenamiento de Perfiles IA):**
     Entorno de simulación donde Kimi adopta personalidades desafiantes (ej. "Cliente Furioso", "Indeciso", "Troll") y chatea automáticamente contra un Perfil IA recién creado. Entrega un reporte de estrés para validar que el agente responde correctamente a casos borde antes de salir a producción.
-23. **"Shadow Kimi" (Auditoría de Calidad - QA Ciega al 100%):**
+24. **"Shadow Kimi" (Auditoría de Calidad - QA Ciega al 100%):**
     Un hook asíncrono evaluará cada conversación cerrada por un humano (no bot) usando un LLM rápido. Comparará la atención dada contra el Manual de Procedimientos (RAG) y el Tono de Marca, generando un "QA Score" automático. Detectará si el humano fue cortés, resolutivo o si ofreció el upsell correcto, creando un Dashboard de Calidad total para los gerentes.
-24. **Generación de Leads Outbound Autónomo (Escucha Social Activa):**
+25. **Generación de Leads Outbound Autónomo (Escucha Social Activa):**
     Mediante n8n, Kuden escuchará en tiempo real APIs de redes sociales (ej. grupos de Facebook, Instagram, Reddit) buscando palabras clave o intenciones de compra relacionadas al negocio del cliente. Al detectar un lead potencial, Kuden enviará un DM automático y consultivo, transformando la plataforma de un centro reactivo a un motor activo de generación de ingresos.
-25. **Módulo Autónomo de Marketing y Publicaciones en Redes Sociales (Social Media Engine):**
+26. **Módulo Autónomo de Marketing y Publicaciones en Redes Sociales (Social Media Engine):**
     Integración proactiva con Instagram, Facebook, LinkedIn y TikTok. Kimi ayudará a los dueños de PyMEs a redactar posts atractivos y publicar promociones directamente desde la plataforma. Además, la IA leerá los comentarios e interacciones de las publicaciones en tiempo real para generar un **Análisis de Sentimiento de Producto**, y creará formularios de prospección automáticos. Si un cliente comenta interesado en una promoción, Kuden IA o los ejecutivos humanos podrán continuar la atención en el CRM, unificando marketing y ventas bajo un mismo techo.
 
 
