@@ -1579,23 +1579,6 @@ app.get("/api/crm/groups", async (req, res) => {
   }
 });
 
-// ─── GET /api/crm/users ───────────────────────────────────────────────────────
-app.get("/api/crm/users", async (req, res) => {
-  const { tenantId } = req.query;
-  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
-  try {
-    const { data, error } = await supabase
-      .from("tenant_users")
-      .select("id, name, email")
-      .eq("tenant_id", tenantId)
-      .order("name");
-    if (error) throw error;
-    return res.json(data || []);
-  } catch (e) {
-    console.error("[GET /api/crm/users]", e.message);
-    return res.status(500).json({ error: e.message });
-  }
-});
 
 // ─── PUT /api/crm/conversations/:id/assign ────────────────────────────────────
 app.put("/api/crm/conversations/:id/assign", async (req, res) => {

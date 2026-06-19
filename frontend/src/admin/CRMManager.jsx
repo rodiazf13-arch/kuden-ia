@@ -541,7 +541,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                 disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
               >
                 <option value="">No asignado</option>
-                {tenantUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                {tenantUsers.map(u => <option key={u.user_id} value={u.user_id}>{u.display_name}</option>)}
               </select>
             )}
           </div>
@@ -742,9 +742,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
 }
 
 // ── Fila de la bandeja ────────────────────────────────────────────────────────
-function ConvRow({ conv, isSelected, onClick, c }) {
+function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }) {
   const contact  = conv.contacts || {};
   const campaign = conv.campaigns;
+  const group = groups.find(g => g.id === conv.assigned_group_id);
+  const user = tenantUsers.find(u => u.user_id === conv.assigned_to);
   const sent     = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
   const fuga     = FUGA_CONFIG[conv.fuga_final]               || FUGA_CONFIG.sin_riesgo;
   const initials = (n) => n ? n.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?';
@@ -783,6 +785,16 @@ function ConvRow({ conv, isSelected, onClick, c }) {
             {campaign && (
               <span style={{ fontSize: 9, fontWeight: 600, color: campaign.color, background: `${campaign.color}15`, border: `0.5px solid ${campaign.color}40`, borderRadius: 10, padding: '1px 5px' }}>
                 {campaign.name}
+              </span>
+            )}
+            {group && (
+              <span style={{ fontSize: 9, fontWeight: 600, color: c.title, background: c.card, border: `0.5px solid ${c.border}`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Grupo asignado">
+                <i className="ti ti-users" style={{fontSize: 10}}/> {group.name}
+              </span>
+            )}
+            {user && (
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#2563eb', background: '#2563eb15', border: `0.5px solid #2563eb40`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Ejecutivo asignado">
+                <i className="ti ti-user" style={{fontSize: 10}}/> {user.display_name.split(' ')[0]}
               </span>
             )}
             <span title={sent.label} style={{ fontSize: 12 }}>{sent.emoji}</span>
@@ -1303,7 +1315,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                 ) : (
                   conversations.map(conv => (
                     <ConvRow key={conv.id} conv={conv} isSelected={selectedId === conv.id}
-                      onClick={() => setSelectedId(conv.id)} c={c} />
+                      onClick={() => setSelectedId(conv.id)} c={c} groups={groups} tenantUsers={tenantUsers} />
                   ))
                 )}
               </div>
