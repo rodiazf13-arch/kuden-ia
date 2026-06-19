@@ -748,7 +748,7 @@ function ConvRow({ conv, isSelected, onClick, c }) {
 }
 
 // ── Panel de Reportería ───────────────────────────────────────────────────────
-function ReportPanel({ tenantId, c, campaigns }) {
+function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
   const [stats,   setStats]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [period,  setPeriod]  = useState('month');
@@ -782,14 +782,15 @@ function ReportPanel({ tenantId, c, campaigns }) {
   if (!stats)  return null;
 
   const kpis = [
-    { l: 'Total conversaciones', v: stats.total,          color: '#534AB7', icon: 'ti-messages'     },
+    { l: 'Total conversaciones', v: stats.total,          color: '#534AB7', icon: 'ti-messages', action: () => onNavigate && onNavigate('all') },
     { l: 'Tasa FCR (IA)',        v: stats.fcrRate + '%',  color: '#1D9E75', icon: 'ti-robot'        },
     { l: 'Tasa escalación',      v: stats.escalationRate + '%', color: '#D85A30', icon: 'ti-user-check' },
     { l: 'CSAT promedio',        v: stats.csatAvg ? stats.csatAvg + ' ★' : '—', color: '#EF9F27', icon: 'ti-star' },
   ];
 
-  const renderRechartsBar = (obj, colorMap, label) => {
+  const renderRechartsBar = (obj, colorMap, label, onBarClick) => {
     const data = Object.entries(obj).map(([k, v]) => ({
+      id: k,
       name: colorMap?.[k]?.label || k,
       value: v,
       fill: colorMap?.[k]?.color || '#2563eb'
@@ -804,7 +805,7 @@ function ReportPanel({ tenantId, c, campaigns }) {
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: c.subtitle }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: c.subtitle }} axisLine={false} tickLine={false} />
               <RechartsTooltip contentStyle={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 8, color: c.inputText }} cursor={{ fill: c.inputBg }} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} onClick={onBarClick ? (entry) => onBarClick(entry.id) : undefined} style={{ cursor: onBarClick ? 'pointer' : 'default' }}>
                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
               </Bar>
             </BarChart>
@@ -814,8 +815,9 @@ function ReportPanel({ tenantId, c, campaigns }) {
     );
   };
 
-  const renderRechartsPie = (obj, colorMap, label) => {
+  const renderRechartsPie = (obj, colorMap, label, onPieClick) => {
     const data = Object.entries(obj).map(([k, v]) => ({
+      id: k,
       name: colorMap?.[k]?.label || k,
       value: v,
       color: colorMap?.[k]?.color || '#2563eb'
@@ -826,7 +828,7 @@ function ReportPanel({ tenantId, c, campaigns }) {
         <div style={{ flex: 1, minHeight: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
+              <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none" onClick={onPieClick ? (entry) => onPieClick(entry.id || entry.payload.id || entry.name) : undefined} style={{ cursor: onPieClick ? 'pointer' : 'default' }}>
                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
               <RechartsTooltip contentStyle={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 8, color: c.inputText }} itemStyle={{ color: c.inputText }} />
@@ -857,7 +859,7 @@ function ReportPanel({ tenantId, c, campaigns }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
         {kpis.map(k => (
-          <div key={k.l} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div key={k.l} onClick={k.action ? k.action : undefined} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center', cursor: k.action ? 'pointer' : 'default', transition: 'transform 0.1s', ...(k.action && { '&:active': { transform: 'scale(0.98)' } }) }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <i className={`ti ${k.icon}`} style={{ fontSize: 14, color: k.color }} />
               <p style={{ margin: 0, fontSize: 11, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{k.l}</p>
@@ -867,10 +869,10 @@ function ReportPanel({ tenantId, c, campaigns }) {
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {Object.keys(stats.byStatus).length > 0      && renderRechartsBar(stats.byStatus,      STATUS_CONFIG,      '📊 Por estado')}
-        {Object.keys(stats.bySentimiento).length > 0 && renderRechartsPie(stats.bySentimiento, SENTIMIENTO_CONFIG, '😊 Sentimiento al cierre')}
-        {Object.keys(stats.byFuga).length > 0        && renderRechartsPie(stats.byFuga,        FUGA_CONFIG,        '🚨 Riesgo de fuga')}
-        {Object.keys(stats.byCanal).length > 0       && renderRechartsBar(stats.byCanal,       null,               '📡 Por canal')}
+        {Object.keys(stats.byStatus).length > 0      && renderRechartsBar(stats.byStatus,      STATUS_CONFIG,      '📊 Por estado', (id) => onNavigate && onNavigate('status', id))}
+        {Object.keys(stats.bySentimiento).length > 0 && renderRechartsPie(stats.bySentimiento, SENTIMIENTO_CONFIG, '😊 Sentimiento al cierre', (id) => onNavigate && onNavigate('sentimiento', id))}
+        {Object.keys(stats.byFuga).length > 0        && renderRechartsPie(stats.byFuga,        FUGA_CONFIG,        '🚨 Riesgo de fuga', (id) => onNavigate && onNavigate('fuga', id))}
+        {Object.keys(stats.byCanal).length > 0       && renderRechartsBar(stats.byCanal,       null,               '📡 Por canal', (id) => onNavigate && onNavigate('canal', id))}
       </div>
     </div>
   );
@@ -1006,6 +1008,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [campaigns,     setCampaigns]     = useState([]);
   const [filterStatus,  setFilterStatus]  = useState('open');
   const [filterCanal,   setFilterCanal]   = useState('all');
+  const [filterFuga,    setFilterFuga]    = useState('all');
+  const [filterSentimiento, setFilterSentimiento] = useState('all');
   const [filterCampaign,setFilterCampaign]= useState('');
   const [search,        setSearch]        = useState('');
   const [loading,       setLoading]       = useState(true);
@@ -1029,6 +1033,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       const params = new URLSearchParams({ tenantId, limit: '100' });
       if (filterStatus && filterStatus !== 'all') params.set('status', filterStatus);
       if (filterCanal && filterCanal !== 'all') params.set('canal', filterCanal);
+      if (filterFuga && filterFuga !== 'all') params.set('fuga', filterFuga);
+      if (filterSentimiento && filterSentimiento !== 'all') params.set('sentimiento', filterSentimiento);
       if (filterCampaign) params.set('campaignId', filterCampaign);
       if (search) params.set('search', search);
       const [convRes, alertRes] = await Promise.all([
@@ -1043,7 +1049,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [tenantId, filterStatus, filterCanal, filterCampaign, search]);
+  }, [tenantId, filterStatus, filterCanal, filterFuga, filterSentimiento, filterCampaign, search]);
 
   // Carga inicial y polling cada 5 segundos
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
@@ -1104,7 +1110,14 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       </div>
 
       {tab === 'reports' ? (
-        <ReportPanel tenantId={tenantId} c={c} campaigns={campaigns} />
+        <ReportPanel tenantId={tenantId} c={c} campaigns={campaigns} onNavigate={(type, val) => {
+          setTab('inbox');
+          if (type === 'status') setFilterStatus(val);
+          else if (type === 'canal') setFilterCanal(val);
+          else if (type === 'fuga') setFilterFuga(val);
+          else if (type === 'sentimiento') setFilterSentimiento(val);
+          else if (type === 'all') setFilterStatus('all'); // Fallback para "Total conversaciones"
+        }} />
       ) : (
         <>
           {/* Panel de alertas */}
@@ -1176,19 +1189,33 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
                   <select value={filterCanal} onChange={e => setFilterCanal(e.target.value)}
-                    style={{ flex: 1, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                    <option value="all">Todos los canales</option>
+                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                    <option value="all">Canales (Todos)</option>
                     <option value="webchat">Web Chat</option>
                     <option value="whatsapp">WhatsApp</option>
                     <option value="instagram">Instagram</option>
                     <option value="email">Email</option>
                   </select>
+                  <select value={filterFuga} onChange={e => setFilterFuga(e.target.value)}
+                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                    <option value="all">Riesgo (Todos)</option>
+                    <option value="bajo">Riesgo Bajo</option>
+                    <option value="medio">Riesgo Medio</option>
+                    <option value="alto">Riesgo Alto</option>
+                  </select>
+                  <select value={filterSentimiento} onChange={e => setFilterSentimiento(e.target.value)}
+                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                    <option value="all">Sentimiento (Todos)</option>
+                    <option value="positivo">Positivo</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="negativo">Negativo</option>
+                  </select>
                   {campaigns.length > 0 && (
                     <select value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}
-                      style={{ flex: 1, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                      <option value="">Todas las campañas</option>
+                      style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                      <option value="">Campañas (Todas)</option>
                       {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
                     </select>
                   )}

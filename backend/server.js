@@ -1238,9 +1238,9 @@ app.put("/api/admin/users/:userId", async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── GET /api/crm/conversations ───────────────────────────────────────────────
-// Query: tenantId, status, campaignId, search, limit, offset
+// Query: tenantId, status, canal, campaignId, fuga, sentimiento, search, limit, offset
 app.get("/api/crm/conversations", async (req, res) => {
-  const { tenantId, status, canal, campaignId, search, limit = 50, offset = 0, userId, userRole, isSuperAdmin } = req.query;
+  const { tenantId, status, canal, campaignId, fuga, sentimiento, search, limit = 50, offset = 0, userId, userRole, isSuperAdmin } = req.query;
   if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
   try {
     let query = supabase
@@ -1262,6 +1262,8 @@ app.get("/api/crm/conversations", async (req, res) => {
       else query = query.eq("status", status);
     }
     if (canal && canal !== "all") query = query.eq("canal", canal);
+    if (fuga && fuga !== "all") query = query.eq("fuga_final", fuga);
+    if (sentimiento && sentimiento !== "all") query = query.eq("sentimiento_final", sentimiento);
     if (campaignId) query = query.eq("campaign_id", campaignId);
     if (search) {
       query = query.or(
