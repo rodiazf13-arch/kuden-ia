@@ -64,8 +64,13 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
       if (tRes.error) throw tRes.error;
       setTenants(tRes.data || []);
 
-      const finalTenantId = (!isSuperAdmin && filterTenantId) ? filterTenantId : (tRes.data && tRes.data.length > 0 ? tRes.data[0].id : null);
-      if (!selectedTenant && finalTenantId) setSelectedTenant(finalTenantId);
+      // Determine the tenantId to filter users and groups
+      // For SuperAdmins not impersonating, it should be null (so they see all users/groups).
+      const finalTenantId = isSuperAdmin ? filterTenantId : (filterTenantId || (tRes.data?.[0]?.id || null));
+      
+      if (!selectedTenant && (tRes.data && tRes.data.length > 0)) {
+        setSelectedTenant(finalTenantId || tRes.data[0].id);
+      }
       
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       let url = `${apiUrl}/api/admin/users`;
@@ -79,14 +84,16 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
       const uData = await uRes.json();
       setTenantUsers(uData || []);
 
-      if (finalTenantId) {
-        const [gRes, cRes] = await Promise.all([
-          fetch(`${apiUrl}/api/crm/groups?tenantId=${finalTenantId}`),
-          fetch(`${apiUrl}/api/crm/campaigns?tenantId=${finalTenantId}`)
-        ]);
-        if (gRes.ok) setGroups(await gRes.json());
-        if (cRes.ok) setCampaigns(await cRes.json());
-      }
+      // Fetch Groups and Campaigns
+      const groupsUrl = finalTenantId ? `${apiUrl}/api/crm/groups?tenantId=${finalTenantId}` : `${apiUrl}/api/crm/groups`;
+      const campaignsUrl = finalTenantId ? `${apiUrl}/api/crm/campaigns?tenantId=${finalTenantId}` : `${apiUrl}/api/crm/campaigns`;
+
+      const [gRes, cRes] = await Promise.all([
+        fetch(groupsUrl),
+        fetch(campaignsUrl)
+      ]);
+      if (gRes.ok) setGroups(await gRes.json());
+      if (cRes.ok) setCampaigns(await cRes.json());
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   };
@@ -161,11 +168,14 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
     e.preventDefault();
     setCreating(true); setError(null);
     try {
-      const finalTenantId = isSuperAdmin ? selectedTenant : filterTenantId;
+      // Para superadmin crearemos el grupo en la empresa que haya seleccionado en el dropdown de crear, o finalTenantId
+      const targetTenantId = isSuperAdmin ? selectedTenant : filterTenantId;
+      if (!targetTenantId) throw new Error("Debe seleccionar una empresa para crear el grupo");
+      
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(`${apiUrl}/api/crm/groups`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId: finalTenantId, name: groupName, description: groupDesc, color: groupColor, users: groupUsers, campaigns: groupCampaigns })
+        body: JSON.stringify({ tenantId: targetTenantId, name: groupName, description: groupDesc, color: groupColor, users: groupUsers, campaigns: groupCampaigns })
       });
       if (!res.ok) throw new Error('Error al crear grupo');
       setGroupName(''); setGroupDesc(''); setGroupColor('#2563eb'); setGroupUsers([]); setGroupCampaigns([]);
@@ -404,9 +414,20 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
                   <input type="color" value={groupColor} onChange={e => setGroupColor(e.target.value)} style={{ ...inputStyle, padding: 0, height: '40px' }} />
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '12px', color: c.label }}>Descripción</label>
-                <input type="text" value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Descripción breve" style={inputStyle} />
+              <div style={{ display: 'grid', gridTemplateColumns: isSuperAdmin && !editingGroup ? '1fr 1fr' : '1fr', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '12px', color: c.label }}>Descripción</label>
+                  <input type="text" value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Descripción breve" style={inputStyle} />
+                </div>
+                {isSuperAdmin && !editingGroup && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: c.label }}>Empresa</label>
+                    <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} style={inputStyle}>
+                      <option value="">-- Seleccionar --</option>
+                      {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

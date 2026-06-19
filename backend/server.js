@@ -1331,9 +1331,11 @@ app.put("/api/admin/users/:userId", async (req, res) => {
 // ─── GET /api/crm/users ───────────────────────────────────────────────────────
 app.get("/api/crm/users", async (req, res) => {
   const { tenantId } = req.query;
-  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
   try {
-    const { data, error } = await supabase.from("tenant_users").select("id, name, email, role").eq("tenant_id", tenantId);
+    let query = supabase.from("tenant_users").select("user_id, display_name, email, role, is_active");
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    
+    const { data, error } = await query;
     if (error) throw error;
     return res.json(data || []);
   } catch (e) {
@@ -1345,17 +1347,19 @@ app.get("/api/crm/users", async (req, res) => {
 // ─── ENDPOINTS DE GRUPOS DE AGENTES ───────────────────────────────────────────
 app.get("/api/crm/groups", async (req, res) => {
   const { tenantId } = req.query;
-  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("agent_groups")
       .select(`
-        id, name, description, color, icon, is_active,
+        id, tenant_id, name, description, color, icon, is_active,
         agent_group_users(user_id),
         campaign_groups(campaign_id, is_default)
       `)
-      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: true });
+      
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    
+    const { data, error } = await query;
     if (error) throw error;
     return res.json(data || []);
   } catch (e) {
@@ -1365,7 +1369,8 @@ app.get("/api/crm/groups", async (req, res) => {
 });
 
 app.post("/api/crm/groups", async (req, res) => {
-  const { tenantId, name, description, color, icon, users = [], campaigns = [] } = bodySanitize(req.body);
+  const { tenantId, name, description, color, icon, users = [], campaigns = [] } = req.body;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido para crear grupo." });
   try {
     const { data: grp, error: grpErr } = await supabase.from("agent_groups")
       .insert([{ tenant_id: tenantId, name, description, color, icon }]).select().single();
@@ -1386,7 +1391,7 @@ app.post("/api/crm/groups", async (req, res) => {
 
 app.put("/api/crm/groups/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, description, color, icon, users = [], campaigns = [] } = bodySanitize(req.body);
+  const { name, description, color, icon, users = [], campaigns = [] } = req.body;
   try {
     await supabase.from("agent_groups").update({ name, description, color, icon }).eq("id", id);
     
