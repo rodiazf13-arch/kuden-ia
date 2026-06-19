@@ -1133,7 +1133,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
 
   const forgottenTickets = useMemo(() => {
     return conversations.filter(c => {
-      if (c.status !== 'human_active' || c.assigned_to !== userId) return false;
+      const isActive = c.status === 'active' || c.status === 'human_active' || c.status === 'pending_followup';
+      if (!isActive || c.assigned_to !== userId) return false;
       const lastUpdate = new Date(c.updated_at || c.created_at);
       const hoursSinceUpdate = (new Date() - lastUpdate) / (1000 * 60 * 60);
       return hoursSinceUpdate >= forgottenThreshold;
