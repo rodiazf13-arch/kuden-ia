@@ -1093,7 +1093,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const fetchConversations = useCallback(async () => {
     if (!tenantId) return;
     try {
-      const params = new URLSearchParams({ tenantId, limit: '100' });
+      const params = new URLSearchParams({ tenantId, limit: '100', userId });
       if (filterStatus && filterStatus !== 'all') params.set('status', filterStatus);
       if (filterCanal && filterCanal !== 'all') params.set('canal', filterCanal);
       if (filterFuga && filterFuga !== 'all') params.set('fuga', filterFuga);
