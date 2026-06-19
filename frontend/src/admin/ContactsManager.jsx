@@ -93,6 +93,24 @@ export default function ContactsManager({ tenantId, isDark = true }) {
   const [editingContact, setEditingContact] = useState(null);
   const [selectedContacts, setSelectedContacts] = useState([]);
 
+  // NUEVOS FILTROS Y COLUMNAS DINÁMICAS
+  const DEFAULT_COLS = ['Nombre', 'RUT', 'Teléfono', 'Email', 'Estado', 'NPS Histórico', 'Riesgo Fuga'];
+  const AVAILABLE_COLS = ['Nombre', 'RUT', 'Teléfono', 'Email', 'Empresa', 'Estado', 'NPS Histórico', 'Riesgo Fuga'];
+  const [visibleCols, setVisibleCols] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`kuden_contacts_cols_${tenantId}`);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return DEFAULT_COLS;
+  });
+  const [showColDropdown, setShowColDropdown] = useState(false);
+  const [fugaFilter, setFugaFilter] = useState('all');
+  const [npsFilter, setNpsFilter] = useState('all');
+
+  useEffect(() => {
+    localStorage.setItem(`kuden_contacts_cols_${tenantId}`, JSON.stringify(visibleCols));
+  }, [visibleCols, tenantId]);
+
   // CSV
   const [csvHeaders,   setCsvHeaders]   = useState([]);
   const [csvRows,      setCsvRows]      = useState([]);
@@ -344,13 +362,32 @@ export default function ContactsManager({ tenantId, isDark = true }) {
     reader.readAsText(csvFile);
   };
 
-  const filtered = contacts.filter(c =>
-    !search ||
-    (c.cliente_nombre || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.rut            || '').includes(search) ||
-    (c.telefono       || '').includes(search) ||
-    (c.email          || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = contacts.filter(c => {
+    let match = true;
+    if (search) {
+      match = (c.cliente_nombre || '').toLowerCase().includes(search.toLowerCase()) ||
+              (c.rut            || '').includes(search) ||
+              (c.telefono       || '').includes(search) ||
+              (c.email          || '').toLowerCase().includes(search.toLowerCase());
+    }
+    if (!match) return false;
+
+    if (fugaFilter !== 'all') {
+      const f = c.riesgo_fuga || 0;
+      if (fugaFilter === 'alto') { if (f < 70) return false; }
+      else if (fugaFilter === 'medio') { if (f < 40 || f >= 70) return false; }
+      else if (fugaFilter === 'bajo') { if (f < 15 || f >= 40) return false; }
+      else if (fugaFilter === 'sin_riesgo') { if (f >= 15) return false; }
+    }
+
+    if (npsFilter !== 'all') {
+      const nps = c.nps_historico;
+      if (npsFilter === 'promotor') { if (nps === null || nps < 50) return false; }
+      else if (npsFilter === 'pasivo') { if (nps === null || nps < 0 || nps >= 50) return false; }
+      else if (npsFilter === 'detractor') { if (nps === null || nps >= 0) return false; }
+    }
+    return true;
+  });
 
   // Avatar inicial
   const initials = (nombre) => {
@@ -391,10 +428,46 @@ export default function ContactsManager({ tenantId, isDark = true }) {
         </div>
       </div>
 
-      <div style={{ position: 'relative', marginBottom: '20px' }}>
-        <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: c.subtitle, pointerEvents: 'none' }}></i>
-        <input type="text" placeholder="Buscar por nombre, RUT, teléfono o email..." value={search} onChange={e => setSearch(e.target.value)}
-          style={{ ...inputStyle, paddingLeft: '38px' }} />
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '250px' }}>
+          <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: c.subtitle, pointerEvents: 'none' }}></i>
+          <input type="text" placeholder="Buscar por nombre, RUT, teléfono o email..." value={search} onChange={e => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingLeft: '38px', width: '100%' }} />
+        </div>
+        <select value={fugaFilter} onChange={e => setFugaFilter(e.target.value)} style={{ ...inputStyle, width: 'auto', flex: '0 1 180px' }}>
+          <option value="all">Fuga: Todos</option>
+          <option value="alto">Alto Riesgo</option>
+          <option value="medio">Riesgo Medio</option>
+          <option value="bajo">Riesgo Bajo</option>
+          <option value="sin_riesgo">Sin Riesgo</option>
+        </select>
+        <select value={npsFilter} onChange={e => setNpsFilter(e.target.value)} style={{ ...inputStyle, width: 'auto', flex: '0 1 180px' }}>
+          <option value="all">NPS: Todos</option>
+          <option value="promotor">Promotores</option>
+          <option value="pasivo">Pasivos</option>
+          <option value="detractor">Detractores</option>
+        </select>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setShowColDropdown(!showColDropdown)} style={{ ...inputStyle, width: 'auto', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="ti ti-columns"></i> Columnas
+          </button>
+          {showColDropdown && (
+            <div style={{ position: 'absolute', right: 0, top: '45px', background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '10px', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', minWidth: '200px' }}>
+              <div style={{ fontWeight: '600', fontSize: '12px', color: c.subtitle, marginBottom: '8px', textTransform: 'uppercase' }}>Columnas Visibles</div>
+              {AVAILABLE_COLS.map(col => (
+                <label key={col} style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '6px 0', fontSize: '13px', color: c.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={visibleCols.includes(col)}
+                    onChange={(e) => {
+                      if (e.target.checked) setVisibleCols([...visibleCols, col]);
+                      else setVisibleCols(visibleCols.filter(v => v !== col));
+                    }}
+                  />
+                  {col}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
@@ -406,38 +479,57 @@ export default function ContactsManager({ tenantId, isDark = true }) {
               <th style={{ padding: '12px 16px', width: '40px' }}>
                 <input type="checkbox" checked={filtered.length > 0 && selectedContacts.length === filtered.length} onChange={toggleSelectAll} style={{ accentColor: '#2563eb', cursor: 'pointer', width: '16px', height: '16px' }} />
               </th>
-              {['Nombre', 'RUT', 'Teléfono', 'Email', 'Empresa', 'Estado'].map(h => (
+              {AVAILABLE_COLS.filter(h => visibleCols.includes(h)).map(h => (
                 <th key={h} style={{ padding: '12px 16px', color: c.subtitle, fontWeight: '500', fontSize: '12px', textTransform: 'uppercase' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" style={{ padding: '32px', textAlign: 'center', color: c.subtitle }}>Cargando contactos...</td></tr>
+              <tr><td colSpan={visibleCols.length + 1} style={{ padding: '32px', textAlign: 'center', color: c.subtitle }}>Cargando contactos...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: c.subtitle }}>
+              <tr><td colSpan={visibleCols.length + 1} style={{ padding: '40px', textAlign: 'center', color: c.subtitle }}>
                 <i className="ti ti-address-book-off" style={{ fontSize: '36px', display: 'block', marginBottom: '10px' }}></i>
-                {search ? `Sin resultados para "${search}"` : '¡Crea tu primer contacto o importa desde CSV!'}
+                {search || fugaFilter !== 'all' || npsFilter !== 'all' ? `Sin resultados para los filtros actuales` : '¡Crea tu primer contacto o importa desde CSV!'}
               </td></tr>
-            ) : filtered.map(ct => (
+            ) : filtered.map(ct => {
+              
+              // Variables NPS y Fuga
+              const nps = ct.nps_historico;
+              const npsColor = nps === null ? "#aaa" : nps >= 50 ? "#1D9E75" : nps >= 0 ? "#EF9F27" : "#E24B4A";
+              
+              const f = ct.riesgo_fuga || 0;
+              const fColor  = f >= 70 ? "#E24B4A" : f >= 40 ? "#D85A30" : f >= 15 ? "#EF9F27" : "#1D9E75";
+              const fLabel  = f >= 70 ? "Alto Riesgo" : f >= 40 ? "Riesgo Medio" : f >= 15 ? "Riesgo Bajo" : "Sin Riesgo";
+
+              return (
               <tr key={ct.id} onClick={() => handleEditClick(ct)} style={{ borderBottom: `1px solid ${c.border}`, cursor: 'pointer', transition: 'background-color 0.15s', backgroundColor: selectedContacts.includes(ct.id) ? c.hover : 'transparent' }}
                   onMouseEnter={(e) => { if (!selectedContacts.includes(ct.id)) e.currentTarget.style.backgroundColor = c.hover; }}
                   onMouseLeave={(e) => { if (!selectedContacts.includes(ct.id)) e.currentTarget.style.backgroundColor = 'transparent'; }}>
                 <td style={{ padding: '12px 16px', width: '40px' }} onClick={e => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedContacts.includes(ct.id)} onChange={() => toggleSelect(ct.id)} style={{ accentColor: '#2563eb', cursor: 'pointer', width: '16px', height: '16px' }} />
                 </td>
+                
+                {visibleCols.includes('Nombre') && (
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '13px', flexShrink: 0, letterSpacing: '-0.02em' }}>
                       {initials(ct.cliente_nombre)}
                     </div>
-                    <span style={{ fontSize: '14px', fontWeight: '500', color: c.rowText }}>{ct.cliente_nombre || '—'}</span>
+                    <div>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: c.rowText, display: 'block' }}>{ct.cliente_nombre || '—'}</span>
+                      {ct.plan && <span style={{ fontSize: '10px', color: c.subtitle, backgroundColor: isDark?'#333':'#f1f5f9', padding: '2px 6px', borderRadius: '4px', marginTop: '3px', display: 'inline-block' }}>{ct.plan}</span>}
+                    </div>
                   </div>
                 </td>
-                <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px', fontFamily: 'monospace' }}>{ct.rut || '—'}</td>
-                <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.telefono || '—'}</td>
-                <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.email || '—'}</td>
-                <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.empresa || '—'}</td>
+                )}
+                
+                {visibleCols.includes('RUT') && <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px', fontFamily: 'monospace' }}>{ct.rut || '—'}</td>}
+                {visibleCols.includes('Teléfono') && <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.telefono || '—'}</td>}
+                {visibleCols.includes('Email') && <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.email || '—'}</td>}
+                {visibleCols.includes('Empresa') && <td style={{ padding: '12px 16px', color: c.rowSub, fontSize: '13px' }}>{ct.empresa || '—'}</td>}
+                
+                {visibleCols.includes('Estado') && (
                 <td style={{ padding: '12px 16px' }}>
                   <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', fontWeight: '600',
                     background: ct.status === 'activo' ? '#1D9E7520' : '#ef444420',
@@ -445,8 +537,30 @@ export default function ContactsManager({ tenantId, isDark = true }) {
                     {ct.status || 'activo'}
                   </span>
                 </td>
+                )}
+
+                {visibleCols.includes('NPS Histórico') && (
+                <td style={{ padding: '12px 16px' }}>
+                  {nps !== null ? (
+                    <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '20px', fontWeight: '600', background: npsColor + "20", color: npsColor, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {nps >= 50 ? <i className="ti ti-mood-smile"></i> : nps >= 0 ? <i className="ti ti-mood-empty"></i> : <i className="ti ti-mood-sad"></i>}
+                      {nps}
+                    </span>
+                  ) : <span style={{ color: c.subtitle, fontSize: '12px' }}>—</span>}
+                </td>
+                )}
+
+                {visibleCols.includes('Riesgo Fuga') && (
+                <td style={{ padding: '12px 16px' }}>
+                  <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '20px', fontWeight: '600', background: fColor + "20", color: fColor, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <i className={f >= 70 ? "ti ti-flame" : f >= 40 ? "ti ti-alert-triangle" : "ti ti-shield-check"}></i>
+                    {fLabel}
+                  </span>
+                </td>
+                )}
+
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

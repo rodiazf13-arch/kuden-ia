@@ -35,6 +35,50 @@ const supabase = createClient(
 
 initRedis().then(() => console.log("Redis cache initialization attempted"));
 
+// ─── HELPER: ACTUALIZAR MÉTRICAS DEL CONTACTO ─────────────────────────────
+async function updateContactMetricsByConversation(conversationId, tenantId) {
+  try {
+    const { data: conv, error: errConv } = await supabase
+      .from('conversations')
+      .select('contact_id')
+      .eq('id', conversationId)
+      .eq('tenant_id', tenantId)
+      .single();
+    if (errConv || !conv || !conv.contact_id) return;
+    
+    const contactId = conv.contact_id;
+    const { data: convs, error: errConvs } = await supabase
+      .from('conversations')
+      .select('csat_final, fuga_final')
+      .eq('contact_id', contactId)
+      .eq('tenant_id', tenantId);
+      
+    if (errConvs || !convs) return;
+
+    let nps = null;
+    let csats = convs.filter(c => c.csat_final !== null).map(c => parseFloat(c.csat_final));
+    if (csats.length > 0) {
+      const prom = csats.filter(c => c >= 5).length;
+      const det = csats.filter(c => c <= 2).length;
+      nps = Math.round(((prom - det) / csats.length) * 100);
+    }
+
+    const fScores = { sin_riesgo: 0, bajo: 25, medio: 60, alto: 100 };
+    let riesgoFuga = null;
+    let fugas = convs.filter(c => c.fuga_final).map(c => fScores[c.fuga_final] || 0);
+    if (fugas.length > 0) {
+      riesgoFuga = Math.round(fugas.reduce((a,b) => a+b, 0) / fugas.length);
+    }
+
+    await supabase.from('contacts').update({
+      nps_historico: nps,
+      riesgo_fuga: riesgoFuga
+    }).eq('id', contactId).eq('tenant_id', tenantId);
+  } catch (e) {
+    console.error("Error updateContactMetricsByConversation:", e);
+  }
+}
+
 // ─── Express ───────────────────────────────────────────────────────────────────
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -1955,6 +1999,7 @@ app.post("/api/crm/conversations/:id/close", async (req, res) => {
     if (!isPending) {
       generateExecutiveSummary(id, tenantId).catch(console.error);
       generateRAGSuggestion(id, tenantId).catch(console.error);
+      updateContactMetricsByConversation(id, tenantId).catch(console.error);
     }
 
     let sysContent = "";
@@ -2734,6 +2779,9 @@ app.post("/api/widget/csat", async (req, res) => {
       status: "closed",
       closed_at: new Date().toISOString()
     }).eq("id", conversationId).eq("tenant_id", tenantId);
+    
+    updateContactMetricsByConversation(conversationId, tenantId).catch(console.error);
+    
     return res.json({ success: true });
   } catch (e) {
     console.error("[POST /api/widget/csat]", e.message);
