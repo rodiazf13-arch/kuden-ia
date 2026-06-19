@@ -1152,6 +1152,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   }, [filterCampaign]);
 
   const FILTER_TABS = [
+    { id: 'my',            label: '🙋 Asignadas a mí' },
     { id: 'open',          label: 'Activas'        },
     { id: 'all',           label: 'Todas'          },
     { id: 'waiting_human', label: '⚡ Necesitan Atención', badge: alerts.count },
