@@ -1189,11 +1189,20 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       {tab === 'reports' ? (
         <ReportPanel tenantId={tenantId} c={c} campaigns={campaigns} onNavigate={(type, val) => {
           setTab('inbox');
+          setViewMode('list'); // Switch to list view as requested
+          
+          // Reset other filters to avoid conflicts when coming from reports
+          setFilterStatus('all');
+          setFilterCanal('all');
+          setFilterFuga('all');
+          setFilterSentimiento('all');
+          setFilterCampaign('');
+
+          // Set the specific filter clicked
           if (type === 'status') setFilterStatus(val);
           else if (type === 'canal') setFilterCanal(val);
           else if (type === 'fuga') setFilterFuga(val);
           else if (type === 'sentimiento') setFilterSentimiento(val);
-          else if (type === 'all') setFilterStatus('all'); // Fallback para "Total conversaciones"
         }} />
       ) : (
         <>
