@@ -1364,6 +1364,7 @@ app.get("/api/crm/groups", async (req, res) => {
     return res.json(data || []);
   } catch (e) {
     console.error("[GET /api/crm/groups]", e.message);
+    try { await insertAuditLog('error', 'api_crm_groups_get', e.message, { stack: e.stack, tenantId: req.query.tenantId }, req.query.tenantId); } catch(err){}
     return res.status(500).json({ error: e.message });
   }
 });
@@ -1385,6 +1386,7 @@ app.post("/api/crm/groups", async (req, res) => {
     return res.json({ success: true, group: grp });
   } catch (e) {
     console.error("[POST /api/crm/groups]", e.message);
+    try { await insertAuditLog('error', 'api_crm_groups_post', e.message, { stack: e.stack, reqBody: req.body }, tenantId); } catch(err){}
     return res.status(500).json({ error: e.message });
   }
 });
@@ -1409,6 +1411,7 @@ app.put("/api/crm/groups/:id", async (req, res) => {
     return res.json({ success: true });
   } catch (e) {
     console.error("[PUT /api/crm/groups/:id]", e.message);
+    try { await insertAuditLog('error', 'api_crm_groups_put', e.message, { stack: e.stack, reqBody: req.body }, null); } catch(err){}
     return res.status(500).json({ error: e.message });
   }
 });
@@ -1636,17 +1639,20 @@ app.put("/api/crm/conversations/:id/assign", async (req, res) => {
 // ─── GET /api/crm/campaigns ───────────────────────────────────────────────────
 app.get("/api/crm/campaigns", async (req, res) => {
   const { tenantId } = req.query;
-  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("campaigns")
       .select("*, campaign_agents(user_id, can_takeover, can_close, is_supervisor)")
-      .eq("tenant_id", tenantId)
       .order("created_at");
+      
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    
+    const { data, error } = await query;
     if (error) throw error;
     return res.json(data || []);
   } catch (e) {
     console.error("[GET /api/crm/campaigns]", e.message);
+    try { await insertAuditLog('error', 'api_crm_campaigns_get', e.message, { stack: e.stack, tenantId: req.query.tenantId }, req.query.tenantId); } catch(err){}
     return res.status(500).json({ error: e.message });
   }
 });

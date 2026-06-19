@@ -9,11 +9,16 @@ CREATE TABLE IF NOT EXISTS public.agent_groups (
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
+    color TEXT DEFAULT '#2563eb',
+    icon TEXT DEFAULT 'ti-users',
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Habilitar RLS
 ALTER TABLE public.agent_groups ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.agent_groups;
+DROP POLICY IF EXISTS "Enable all access for tenant users" ON public.agent_groups;
 CREATE POLICY "Enable read access for all users" ON public.agent_groups FOR SELECT USING (true);
 CREATE POLICY "Enable all access for tenant users" ON public.agent_groups FOR ALL USING (true);
 
@@ -21,7 +26,7 @@ CREATE POLICY "Enable all access for tenant users" ON public.agent_groups FOR AL
 CREATE TABLE IF NOT EXISTS public.agent_group_users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     group_id UUID NOT NULL REFERENCES public.agent_groups(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.tenant_users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.tenant_users(user_id) ON DELETE CASCADE,
     role_in_group TEXT DEFAULT 'member', -- member, supervisor
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(group_id, user_id)
@@ -29,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.agent_group_users (
 
 -- Habilitar RLS
 ALTER TABLE public.agent_group_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.agent_group_users;
+DROP POLICY IF EXISTS "Enable all access for tenant users" ON public.agent_group_users;
 CREATE POLICY "Enable read access for all users" ON public.agent_group_users FOR SELECT USING (true);
 CREATE POLICY "Enable all access for tenant users" ON public.agent_group_users FOR ALL USING (true);
 
@@ -44,9 +51,25 @@ CREATE TABLE IF NOT EXISTS public.campaign_groups (
 
 -- Habilitar RLS
 ALTER TABLE public.campaign_groups ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.campaign_groups;
+DROP POLICY IF EXISTS "Enable all access for tenant users" ON public.campaign_groups;
 CREATE POLICY "Enable read access for all users" ON public.campaign_groups FOR SELECT USING (true);
 CREATE POLICY "Enable all access for tenant users" ON public.campaign_groups FOR ALL USING (true);
 
 -- 4. Modificar la tabla conversations para agregar assigned_group_id
 ALTER TABLE public.conversations 
 ADD COLUMN IF NOT EXISTS assigned_group_id UUID REFERENCES public.agent_groups(id) ON DELETE SET NULL;
+
+-- ==========================================
+-- SCRIPT DE CORRECCIÓN (Ejecutar si las tablas ya existían)
+-- ==========================================
+-- Agregar columnas faltantes a agent_groups:
+ALTER TABLE public.agent_groups
+ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#2563eb',
+ADD COLUMN IF NOT EXISTS icon TEXT DEFAULT 'ti-users',
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+
+-- IMPORTANTE: Asegurarse de que tenant_users utiliza user_id y no id
+-- Si la restricción original de agent_group_users apuntaba a id y daba error, ejecutar:
+-- ALTER TABLE public.agent_group_users DROP CONSTRAINT IF EXISTS agent_group_users_user_id_fkey;
+-- ALTER TABLE public.agent_group_users ADD CONSTRAINT agent_group_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.tenant_users(user_id) ON DELETE CASCADE;
