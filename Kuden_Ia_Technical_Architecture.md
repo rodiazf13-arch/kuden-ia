@@ -79,7 +79,7 @@ Se optó por no sobrecargar a Kuden con la complejidad técnica de APIs de terce
 ### 4.1. Filosofía del Puente "n8n"
 Todos los flujos JSON de automatización viven en un servidor n8n dedicado.
 *   **Ejemplo Inbound (Email):** El nodo IMAP de n8n escucha correos > Un nodo código extrae PDF/Imágenes y las convierte a texto/Base64 > Un nodo HTTP Request envía un POST a Kuden.
-*   **Ejemplo Outbound (Email):** Kuden recibe la respuesta del ejecutivo > El backend dispara un Webhook Inbound de n8n (`/webhook/kuden-outbound`) con el texto y las URLs de adjuntos > n8n descarga en memoria los binarios de esas URLs > n8n usa el nodo nativo de Gmail para enviar el correo y evitar bloqueos de Spam.
+*   **Ejemplo Outbound (Email):** Kuden genera un ID de Ticket unívoco (`KUD-XXXXXX`) > El backend dispara un Webhook Inbound de n8n (`/webhook/kuden-outbound`) con el texto, ticket ID y las URLs de adjuntos > n8n descarga en memoria los binarios de esas URLs > n8n usa el nodo nativo de Gmail para enviar el correo y evitar bloqueos de Spam.
 
 ### 4.2. Action Agents (Tool Calling Autónomo)
 Cuando el LLM determina que el usuario quiere ejecutar una acción (ej. agendar cita), el `llmService.js` genera una instrucción estructurada y dispara un Webhook a n8n (`n8n_stage_change_webhook_id` u otros triggers de herramientas) inyectando el ID del Tenant y la intención. n8n ejecuta la transacción externa y Kuden se limita a registrar el hito en el CRM.
@@ -98,7 +98,7 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 *   `campaigns`: Los temas o departamentos lógicos.
 *   `campaign_groups`: Relación N:M que autoriza a un `agent_group` a atender conversaciones de una `campaign`. Soporta `is_default` para enrutamiento inicial automático.
 *   `contacts`: Listado global de contactos. Almacena las propiedades demográficas y columnas cacheadas de BI como `nps_historico` y `riesgo_fuga` (que se auto-calculan a partir de la historia transaccional).
-*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal`, `campaign_id`, `assigned_group_id`, `assigned_to`, `resumen_ejecutivo`.
+*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal`, `campaign_id`, `assigned_group_id` (Grupo asignado), `assigned_to` (Ejecutivo), `ticket_id` (ID autogenerado para rastreo), `resumen_ejecutivo`.
 *   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
 *   `rag_suggestions`: Tabla para el entrenamiento auto-didacta (Human-in-the-loop). Almacena pares de Pregunta/Respuesta sugeridos por el LLM tras analizar la intervención de ejecutivos humanos. Campos: `id`, `tenant_id`, `ai_profile_id`, `suggested_question`, `suggested_answer`, `status`.

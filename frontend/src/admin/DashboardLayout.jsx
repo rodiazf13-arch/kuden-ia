@@ -8,6 +8,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   });
   const [alertCount, setAlertCount] = useState(0);
   const [impersonateOpen, setImpersonateOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('kuden_sidebar_collapsed') === 'true';
@@ -117,7 +118,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   return (
     <div
       data-theme={theme}
-      style={{ display: 'flex', minHeight: '100vh', background: mainBg, color: textMain, transition: 'background 0.4s, color 0.3s' }}
+      style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: mainBg, color: textMain, transition: 'background 0.4s, color 0.3s' }}
     >
       {/* ── Mobile Sidebar Overlay ── */}
       <div 
@@ -206,56 +207,6 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
                 <span style={{ fontSize: 11, color: textSec, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', padding: '2px 6px', borderRadius: 10 }}>{userRole === 'admin' ? 'Administrador' : 'Agente'}</span>
               </div>
             </div>
-
-            {/* Impersonation Dropdown for SuperAdmins */}
-            {(isSuperAdmin || impersonatedTenantId) && allTenants?.length > 0 && (
-              <div style={{ marginTop: 16, position: 'relative' }}>
-                <button
-                  onClick={() => setImpersonateOpen(!impersonateOpen)}
-                  style={{
-                    width: '100%', padding: '8px 12px', background: impersonatedTenantId ? 'rgba(239, 159, 39, 0.15)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                    border: `1px solid ${impersonatedTenantId ? '#EF9F27' : borderCol}`, borderRadius: 8, color: impersonatedTenantId ? '#EF9F27' : textSec,
-                    fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
-                    fontWeight: impersonatedTenantId ? 600 : 500
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                    <i className="ti ti-eye"></i>
-                    <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                      {impersonatedTenantId ? `Viendo: ${tenantName}` : 'Visualizar como cliente...'}
-                    </span>
-                  </div>
-                  <i className={`ti ti-chevron-${impersonateOpen ? 'up' : 'down'}`}></i>
-                </button>
-
-                {impersonateOpen && (
-                  <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
-                    background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
-                    borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100,
-                    maxHeight: 200, overflowY: 'auto'
-                  }}>
-                    <button
-                      onClick={() => { setImpersonatedTenantId(null); setImpersonateOpen(false); }}
-                      style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: !impersonatedTenantId ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', borderBottom: `1px solid ${borderCol}`, color: textMain, fontSize: 12, cursor: 'pointer' }}
-                    >
-                      <i className="ti ti-shield" style={{ marginRight: 6, color: '#2563eb' }}></i>
-                      {originalTenantName} (Vista Original)
-                    </button>
-                    {allTenants.map(t => (
-                      <button
-                        key={t.id}
-                        onClick={() => { setImpersonatedTenantId(t.id); setImpersonateOpen(false); }}
-                        style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: impersonatedTenantId === t.id ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', color: textMain, fontSize: 12, cursor: 'pointer' }}
-                      >
-                        <i className="ti ti-building" style={{ marginRight: 6, color: textSec }}></i>
-                        {t.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -336,60 +287,136 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         </nav>
 
         {/* Footer sidebar */}
-        <div style={{ padding: isSidebarCollapsed ? '14px 10px' : '14px', borderTop: `1px solid ${borderCol}`, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-          {/* Rol badge */}
-          {!isSidebarCollapsed && (
-            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{
-                fontSize: '10px', padding: '3px 9px', borderRadius: '20px',
-                background: isSuperAdmin ? '#f59e0b15' : userRole === 'admin' ? '#2563eb15' : '#1D9E7515',
-                color: isSuperAdmin ? '#f59e0b' : userRole === 'admin' ? '#2563eb' : '#1D9E75',
-                border: `1px solid ${isSuperAdmin ? '#f59e0b30' : userRole === 'admin' ? '#2563eb30' : '#1D9E7530'}`,
-                fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
-              }}>
-                {isSuperAdmin ? '⚡ Super Admin' : userRole === 'admin' ? 'Admin' : 'Agente'}
-              </span>
+        <div style={{ padding: isSidebarCollapsed ? '14px 10px' : '14px', borderTop: `1px solid ${borderCol}`, display: 'flex', flexDirection: 'column', alignItems: 'stretch', position: 'relative' }}>
+          
+          {/* Profile Menu Popup */}
+          {profileMenuOpen && (
+            <div style={{
+              position: 'absolute', bottom: '100%', left: '10px', right: '10px', marginBottom: '8px',
+              background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
+              borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 2000,
+              padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px'
+            }}>
+              
+              {/* Impersonation Dropdown for SuperAdmins inside Menu */}
+              {(isSuperAdmin || impersonatedTenantId) && allTenants?.length > 0 && (
+                <div style={{ position: 'relative', marginBottom: '4px' }}>
+                  <button
+                    onClick={() => setImpersonateOpen(!impersonateOpen)}
+                    style={{
+                      width: '100%', padding: '8px 12px', background: impersonatedTenantId ? 'rgba(239, 159, 39, 0.15)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
+                      border: `1px solid ${impersonatedTenantId ? '#EF9F27' : borderCol}`, borderRadius: 8, color: impersonatedTenantId ? '#EF9F27' : textSec,
+                      fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
+                      fontWeight: impersonatedTenantId ? 600 : 500
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                      <i className="ti ti-eye"></i>
+                      <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                        {impersonatedTenantId ? `Viendo: ${tenantName}` : 'Visualizar como cliente...'}
+                      </span>
+                    </div>
+                    <i className={`ti ti-chevron-${impersonateOpen ? 'up' : 'down'}`}></i>
+                  </button>
+
+                  {impersonateOpen && (
+                    <div style={{
+                      position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4,
+                      background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
+                      borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100,
+                      maxHeight: 200, overflowY: 'auto'
+                    }}>
+                      <button
+                        onClick={() => { setImpersonatedTenantId(null); setImpersonateOpen(false); setProfileMenuOpen(false); }}
+                        style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: !impersonatedTenantId ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', borderBottom: `1px solid ${borderCol}`, color: textMain, fontSize: 12, cursor: 'pointer' }}
+                      >
+                        <i className="ti ti-shield" style={{ marginRight: 6, color: '#2563eb' }}></i>
+                        {originalTenantName} (Vista Original)
+                      </button>
+                      {allTenants.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => { setImpersonatedTenantId(t.id); setImpersonateOpen(false); setProfileMenuOpen(false); }}
+                          style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: impersonatedTenantId === t.id ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', color: textMain, fontSize: 12, cursor: 'pointer' }}
+                        >
+                          <i className="ti ti-building" style={{ marginRight: 6, color: textSec }}></i>
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {deferredPrompt && (
+                <button onClick={handleInstallClick}
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', border: `1px solid #1D9E7550`, background: '#1D9E7515', color: '#1D9E75', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600', textAlign: 'left' }}
+                >
+                  <i className="ti ti-download" style={{ fontSize: '16px' }} /> Instalar App Móvil
+                </button>
+              )}
+
+              <button onClick={() => { setTheme(isDark ? 'light' : 'dark'); setProfileMenuOpen(false); }}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: textMain, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                {isDark ? <i className="ti ti-sun" style={{ fontSize: '16px' }} /> : <i className="ti ti-moon" style={{ fontSize: '16px' }} />}
+                {isDark ? 'Modo Claro' : 'Modo Oscuro'}
+              </button>
+
+              <button onClick={() => { setTab('profile'); setProfileMenuOpen(false); }}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: textMain, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <i className="ti ti-user" style={{ fontSize: '16px' }} /> Mi Perfil
+              </button>
+
+              <div style={{ height: '1px', background: borderCol, margin: '4px 0' }}></div>
+
+              <button onClick={handleLogout}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left', fontWeight: '500' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <i className="ti ti-logout" style={{ fontSize: '16px' }} /> Cerrar Sesión
+              </button>
             </div>
           )}
 
-          {!isSidebarCollapsed && (
-            <>
-              <p style={{ margin: '0 0 2px', fontSize: '10px', color: textSec }}>Conectado como</p>
-              <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '500', wordBreak: 'break-all', color: textMain }}>{userEmail}</p>
-            </>
-          )}
-
-          {/* Install PWA Button */}
-          {deferredPrompt && (
-            <button onClick={handleInstallClick} title="Instalar App Móvil"
-              style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid #1D9E7550`, background: '#1D9E7515', color: '#1D9E75', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px', fontWeight: '600' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#1D9E7530'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#1D9E7515'; }}
-            >
-              <i className="ti ti-download" /> {!isSidebarCollapsed && 'Instalar App'}
-            </button>
-          )}
-
-          {/* Theme toggle */}
-          <button onClick={() => setTheme(isDark ? 'light' : 'dark')} title={isDark ? 'Modo Claro' : 'Modo Oscuro'}
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px' }}>
-            {isDark ? <i className="ti ti-sun" /> : <i className="ti ti-moon" />}
-            {!isSidebarCollapsed && (isDark ? 'Modo Claro' : 'Modo Oscuro')}
-          </button>
-
-          {/* Mi Perfil */}
-          <button onClick={() => setTab('profile')} title="Mi Perfil"
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${currentTab === 'profile' ? brandColor + '40' : borderCol}`, background: currentTab === 'profile' ? brandColor + '10' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', color: currentTab === 'profile' ? brandColor : textSec, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: isSidebarCollapsed ? '16px' : '12px', marginBottom: '6px' }}>
-            <i className="ti ti-user" /> {!isSidebarCollapsed && 'Mi Perfil'}
-          </button>
-
-          {/* Logout */}
-          <button onClick={handleLogout} title="Cerrar Sesión"
-            style={{ width: '100%', padding: '7px', borderRadius: '8px', border: `1px solid ${borderCol}`, background: 'transparent', color: textSec, cursor: 'pointer', transition: 'all 0.2s', fontSize: isSidebarCollapsed ? '16px' : '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = textSec; e.currentTarget.style.borderColor = borderCol; }}>
-            <i className="ti ti-logout" style={{ marginRight: isSidebarCollapsed ? 0 : 5 }} />
-            {!isSidebarCollapsed && 'Cerrar Sesión'}
+          {/* User Button */}
+          <button 
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+            style={{ 
+              width: '100%', background: profileMenuOpen ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent', 
+              border: 'none', borderRadius: '10px', padding: isSidebarCollapsed ? '10px 0' : '8px 12px', 
+              display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between', 
+              cursor: 'pointer', transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => { if (!profileMenuOpen) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'; }}
+            onMouseLeave={(e) => { if (!profileMenuOpen) e.currentTarget.style.background = 'transparent'; }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+              <div style={{ 
+                width: '32px', height: '32px', borderRadius: '50%', background: brandColor, 
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                fontWeight: 'bold', fontSize: '14px', flexShrink: 0
+              }}>
+                {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
+              </div>
+              {!isSidebarCollapsed && (
+                <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                  <p style={{ margin: '0 0 2px', fontSize: '11px', color: textSec, fontWeight: '600' }}>Conectado como</p>
+                  <p style={{ margin: '0', fontSize: '13px', fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: textMain }}>
+                    {userEmail}
+                  </p>
+                </div>
+              )}
+            </div>
+            {!isSidebarCollapsed && (
+              <i className="ti ti-dots-vertical" style={{ color: textSec, fontSize: '16px' }}></i>
+            )}
           </button>
         </div>
       </aside>
