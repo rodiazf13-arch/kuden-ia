@@ -227,7 +227,7 @@ function MessageBubble({ msg, c }) {
 }
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
-function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], onBack, onView360 }) {
+function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360 }) {
   const [data,       setData]       = useState(null);
   const [messages,   setMessages]   = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -458,10 +458,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             {typifications.map(t => <option key={t.id} value={t.label}>{t.label}</option>)}
           </select>
           <button onClick={() => doAction('close', 'Conversación cerrada. CSAT pendiente.', { motivoLabel: selectedTyp })}
-            disabled={!selectedTyp && typifications.length > 0}
-            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!selectedTyp && typifications.length > 0) ? 'not-allowed' : 'pointer', background: '#1D9E75', color: '#fff', opacity: (!selectedTyp && typifications.length > 0) ? 0.5 : 1 }}>
+            disabled={!conv.campaign_id || (!selectedTyp && typifications.length > 0)}
+            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 'not-allowed' : 'pointer', background: '#1D9E75', color: '#fff', opacity: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 0.5 : 1 }}>
             Confirmar
           </button>
+          {!conv.campaign_id && <span style={{fontSize: 10, color: '#E24B4A'}}>⚠️ Asigna una campaña primero</span>}
           <button onClick={() => setClosingMode(false)} style={{ background: 'transparent', border: 'none', color: c.subtitle, cursor: 'pointer', fontSize: 11 }}>Cancelar</button>
         </div>
       )}
@@ -1320,6 +1321,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                   isSuperAdmin={isSuperAdmin}
                   c={c}
                   campaigns={campaigns}
+                  groups={groups}
+                  tenantUsers={tenantUsers}
                   onBack={() => setSelectedId(null)}
                   onView360={(contact) => setView360Contact(contact)}
                 />

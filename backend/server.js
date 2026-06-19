@@ -2070,6 +2070,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
               messageId,
               subject,
               conversationId: id,
+              ticketId: conv.ticket_id,
               attachments
             })
           }).catch(err => console.error("[Outbound Email Webhook] Error:", err.message));
