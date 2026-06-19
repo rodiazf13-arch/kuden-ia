@@ -227,7 +227,7 @@ function MessageBubble({ msg, c }) {
 }
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
-function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360 }) {
+function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360, hasTooManyForgotten = false, forgottenCount = 0 }) {
   const [data,       setData]       = useState(null);
   const [messages,   setMessages]   = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -422,11 +422,16 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
   const renderActions = () => (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       {(status === 'active' || status === 'waiting_human') && canAct && (
-        <button onClick={() => doAction('takeover', 'Has tomado el control de la conversación.')}
-          style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: status === 'waiting_human' ? '#EF9F27' : '#2563eb', color: '#fff' }}>
-          ⚡ Tomar Control
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => doAction('takeover', 'Has tomado el control de la conversación.')}
+            disabled={hasTooManyForgotten}
+            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: hasTooManyForgotten ? 'not-allowed' : 'pointer',
+              background: hasTooManyForgotten ? '#9CA3AF' : (status === 'waiting_human' ? '#EF9F27' : '#2563eb'), color: '#fff', opacity: hasTooManyForgotten ? 0.6 : 1 }}
+            title={hasTooManyForgotten ? `Bloqueado. Tienes ${forgottenCount} tickets olvidados.` : ''}>
+            🖐 Tomar Control
+          </button>
+          {hasTooManyForgotten && <span style={{fontSize: 10, color: '#DC2626', fontWeight: 600}}>Limpia tus tickets olvidados primero.</span>}
+        </div>
       )}
       {status === 'human_active' && isMyConv && !closingMode && !pendingMode && (
         <>
@@ -457,7 +462,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             <option value="">Seleccione motivo...</option>
             {typifications.map(t => <option key={t.id} value={t.label}>{t.label}</option>)}
           </select>
-          <button onClick={() => doAction('close', 'Conversación cerrada. CSAT pendiente.', { motivoLabel: selectedTyp })}
+          <button onClick={() => {
+            const isOutbound = conv.canal === 'email' || conv.canal === 'outbound';
+            const closeReason = isOutbound ? 'Conversación cerrada (Canal Saliente).' : 'Conversación cerrada. CSAT pendiente.';
+            doAction('close', closeReason, { motivoLabel: selectedTyp, force: isOutbound });
+          }}
             disabled={!conv.campaign_id || (!selectedTyp && typifications.length > 0)}
             style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 'not-allowed' : 'pointer', background: '#1D9E75', color: '#fff', opacity: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 0.5 : 1 }}>
             Confirmar
@@ -1079,6 +1088,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [tab,           setTab]           = useState('reports'); // 'inbox' | 'reports'
   const [viewMode,      setViewMode]      = useState('board'); // 'list' | 'board'
   const [campaignTypifications, setCampaignTypifications] = useState([]);
+  const [forgottenThreshold, setForgottenThreshold] = useState(12);
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
   const c = {
@@ -1121,6 +1131,17 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
     finally { setLoading(false); }
   }, [tenantId, filterStatus, filterCanal, filterFuga, filterSentimiento, filterCampaign, search]);
 
+  const forgottenTickets = useMemo(() => {
+    return conversations.filter(c => {
+      if (c.status !== 'human_active' || c.assigned_to !== userId) return false;
+      const lastUpdate = new Date(c.updated_at || c.created_at);
+      const hoursSinceUpdate = (new Date() - lastUpdate) / (1000 * 60 * 60);
+      return hoursSinceUpdate >= forgottenThreshold;
+    });
+  }, [conversations, userId, forgottenThreshold]);
+
+  const hasTooManyForgotten = forgottenTickets.length >= 3;
+
   // Carga inicial y polling cada 5 segundos
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
   useEffect(() => {
@@ -1139,6 +1160,10 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
 
     fetch(`${API_URL}/api/crm/users?tenantId=${tenantId}`)
       .then(r => r.json()).then(d => setTenantUsers(Array.isArray(d) ? d : [])).catch(console.error);
+
+    supabase.from('tenants').select('forgotten_ticket_hours_threshold').eq('id', tenantId).single()
+      .then(({data}) => { if (data?.forgotten_ticket_hours_threshold) setForgottenThreshold(data.forgotten_ticket_hours_threshold); })
+      .catch(console.error);
   }, [tenantId]);
 
   // Cargar tipificaciones de la campaña seleccionada para el Kanban
@@ -1250,6 +1275,20 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
             <div className={`crm-list-col ${selectedId ? 'hide-on-mobile' : 'mobile-full-width'}`} style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               {/* Filtros */}
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
+                {forgottenTickets.length > 0 && (
+                  <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '12px 16px', margin: '0 0 16px 0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>🚨</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#991B1B' }}>¡Alerta de Cierre Duro!</p>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#B91C1C' }}>Tienes {forgottenTickets.length} conversación{forgottenTickets.length !== 1 ? 'es' : ''} inactiva{forgottenTickets.length !== 1 ? 's' : ''} por más de {forgottenThreshold} horas. Tipifíca{forgottenTickets.length !== 1 ? 'las' : 'la'} y ciérra{forgottenTickets.length !== 1 ? 'las' : 'la'}.</p>
+                      </div>
+                    </div>
+                    <button onClick={() => { setViewMode('list'); setFilterStatus('human_active'); setFilterCanal('all'); setFilterCampaign(''); }} style={{ padding: '8px 14px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                      Filtrar Mis Tickets Olvidados
+                    </button>
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                   <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o ticket..."
                     style={{ flex: 1, padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }} />
@@ -1346,7 +1385,9 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                   groups={groups}
                   tenantUsers={tenantUsers}
                   onBack={() => setSelectedId(null)}
-                  onView360={(contact) => setView360Contact(contact)}
+                  onView360={(cId) => setView360Contact(cId)}
+                  hasTooManyForgotten={hasTooManyForgotten}
+                  forgottenCount={forgottenTickets.length}
                 />
               </div>
             )}

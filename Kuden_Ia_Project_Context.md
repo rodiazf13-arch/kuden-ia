@@ -125,8 +125,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Aprovechar los datos base de Kimi Insights para crear un tablero en vivo con medallas (ej. "Mejor CSAT", "Resolución Ultra Rápida"). Convierte la atención al cliente en un entorno motivador y competitivo, reduciendo la rotación de personal en contact centers.
 15. **Cobros y Links de Pago en el Chat:**
     La IA detecta la intención de compra y genera automáticamente un link de pago (Transbank, Mercado Pago, Stripe) enviándolo dentro de la misma conversación para cerrar ventas sin fricción.
-16. **SLA Monitor con Alertas de Incumplimiento:**
-    Timer automático para asegurar acuerdos de nivel de servicio (ej. "respuesta en 2 horas"). Dispara alertas urgentes a supervisores antes de que el SLA se venza.
+16. **SLA Monitor con Semáforos y Alertas de Incumplimiento:**
+    Timer automático visual en el CRM para asegurar Acuerdos de Nivel de Servicio (ej. Verde: < 15 min, Amarillo: < 30 min, Rojo: Incumplido). Ordenará la bandeja por urgencia y disparará alertas a supervisores antes de que el SLA se venza.
 17. ✅ **App Móvil Ligera para Ejecutivos (Responsividad -> PWA -> Tiendas):**
     **COMPLETADO (Fase 1 y 2):** Adaptación responsiva total de la vista web actual para uso fluido en móviles/tablets. Conversión a Progressive Web App (PWA) para instalación rápida sin tiendas. Empaquetado futuro para publicación oficial en App Store y Google Play para mayor autoridad de marca.
 18. ✅ **Canal de Email Integrado Bidireccionalmente (Vía n8n):**
@@ -141,6 +141,14 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     API REST para conectar Kuden con ERPs o sistemas contables legacy de grandes corporativos, disparando webhooks ante eventos clave (ej. "nuevo lead calificado").
 22. **Canal SMS (Notificaciones y Marketing Outbound):**
     Adición futura de SMS como canal oficial, delegando la conectividad de los carriers a n8n, y manejando la interacción de respuesta desde la bandeja central unificada para campañas masivas de recordatorios y cobranza.
+23. **Detección de Colisión Multi-Agente:**
+    Indicador en tiempo real (ej. *"Víctor está respondiendo..."*) para evitar que dos agentes asignados al mismo grupo intenten responder al mismo ticket simultáneamente. Si un ticket está asignado a un usuario específico, se bloqueará para los demás.
+24. **Respuestas Rápidas (Macros / Canned Responses):**
+    Sistema de atajos de teclado (ej. `/tarifas`) configurable por el administrador, permitiendo a los agentes enviar bloques de texto o PDFs pre-aprobados en 1 segundo, sin depender siempre de la generación del LLM.
+25. **Tipificación Obligatoria y Cierre Duro:**
+    Modal de "Categorización" forzoso antes de permitir cerrar un ticket. Contará con alertas persistentes si un agente abandona la conversación sin tipificarla, asegurando la precisión de las métricas en Kimi Insights (aplicable tanto a Inbound como a Outbound).
+26. **Fusión de Tickets (De-duplicación Intra-Canal):**
+    Botón para unificar conversaciones duplicadas generadas por el mismo cliente en el mismo canal, limpiando el ruido operativo y manteniendo el historial ordenado.
 23. **Simulador Kimi "Red Team" (Entrenamiento de Perfiles IA):**
     Entorno de simulación donde Kimi adopta personalidades desafiantes (ej. "Cliente Furioso", "Indeciso", "Troll") y chatea automáticamente contra un Perfil IA recién creado. Entrega un reporte de estrés para validar que el agente responde correctamente a casos borde antes de salir a producción.
 24. **"Shadow Kimi" (Auditoría de Calidad - QA Ciega al 100%):**

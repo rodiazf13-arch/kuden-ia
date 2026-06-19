@@ -71,6 +71,7 @@ export default function TenantsManager({ isDark = true }) {
   const [llmMarkup, setLlmMarkup] = useState('1.20');
   const [logoUrl, setLogoUrl] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#2563eb');
+  const [forgottenHours, setForgottenHours] = useState('12');
   const [creating, setCreating] = useState(false);
 
   // Campos seleccionados al crear/editar
@@ -122,7 +123,7 @@ export default function TenantsManager({ isDark = true }) {
       if (editingTenantId) {
         // UPDATE
         const { error: updErr } = await supabase.from('tenants')
-          .update({ name, industry_type: industry, website, address, is_active: isActive, llm_markup_multiplier: parseFloat(llmMarkup) || 1.20, logo_url: logoUrl, primary_color: primaryColor })
+          .update({ name, industry_type: industry, website, address, is_active: isActive, llm_markup_multiplier: parseFloat(llmMarkup) || 1.20, logo_url: logoUrl, primary_color: primaryColor, forgotten_ticket_hours_threshold: parseInt(forgottenHours, 10) || 12 })
           .eq('id', editingTenantId);
         if (updErr) throw updErr;
 
@@ -131,7 +132,7 @@ export default function TenantsManager({ isDark = true }) {
       } else {
         // INSERT
         const { data, error } = await supabase.from('tenants')
-          .insert([{ name, industry_type: industry, website, address, is_active: isActive, llm_markup_multiplier: parseFloat(llmMarkup) || 1.20, logo_url: logoUrl, primary_color: primaryColor }])
+          .insert([{ name, industry_type: industry, website, address, is_active: isActive, llm_markup_multiplier: parseFloat(llmMarkup) || 1.20, logo_url: logoUrl, primary_color: primaryColor, forgotten_ticket_hours_threshold: parseInt(forgottenHours, 10) || 12 }])
           .select();
         if (error) throw error;
         currentTenantId = data[0].id;
@@ -164,7 +165,7 @@ export default function TenantsManager({ isDark = true }) {
       }
 
       fetchTenants();
-      setName(''); setIndustry('general'); setWebsite(''); setAddress(''); setIsActive(true); setLlmMarkup('1.20'); setLogoUrl(''); setPrimaryColor('#2563eb'); setSelectedFields([]); setCustomFields([]);
+      setName(''); setIndustry('general'); setWebsite(''); setAddress(''); setIsActive(true); setLlmMarkup('1.20'); setLogoUrl(''); setPrimaryColor('#2563eb'); setForgottenHours('12'); setSelectedFields([]); setCustomFields([]);
       setEditingTenantId(null);
       setView('list');
       alert(editingTenantId ? `✅ Empresa "${name}" actualizada.` : `✅ Empresa "${name}" creada con ${allFields.length} campos.`);
@@ -198,6 +199,7 @@ export default function TenantsManager({ isDark = true }) {
     setLlmMarkup(t.llm_markup_multiplier ? t.llm_markup_multiplier.toString() : '1.20');
     setLogoUrl(t.logo_url || '');
     setPrimaryColor(t.primary_color || '#2563eb');
+    setForgottenHours(t.forgotten_ticket_hours_threshold ? t.forgotten_ticket_hours_threshold.toString() : '12');
 
     // Cargar campos personalizados
     const { data: fieldsData } = await supabase.from('tenant_field_definitions').select('*').eq('tenant_id', t.id).order('sort_order');
@@ -225,7 +227,7 @@ export default function TenantsManager({ isDark = true }) {
 
   const startCreate = () => {
     setEditingTenantId(null);
-    setName(''); setIndustry('general'); setWebsite(''); setAddress(''); setIsActive(true); setLlmMarkup('1.20'); setLogoUrl(''); setPrimaryColor('#2563eb');
+    setName(''); setIndustry('general'); setWebsite(''); setAddress(''); setIsActive(true); setLlmMarkup('1.20'); setLogoUrl(''); setPrimaryColor('#2563eb'); setForgottenHours('12');
     setSelectedFields((FIELD_TEMPLATES['general'] || []).map(f => f.key));
     setCustomFields([]);
     setError(null);
@@ -358,6 +360,11 @@ export default function TenantsManager({ isDark = true }) {
                 <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} style={{ width: '40px', height: '40px', padding: '2px', border: `1px solid ${c.border}`, borderRadius: '8px', cursor: 'pointer', background: 'transparent' }} />
                 <input type="text" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} placeholder="#2563eb" style={{ ...inputStyle, width: '100px' }} />
               </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', color: c.label }}>Umbral Tickets Olvidados (Horas)</label>
+              <input type="number" min="1" value={forgottenHours} onChange={e => setForgottenHours(e.target.value)} style={inputStyle} placeholder="12" />
+              <span style={{ fontSize: '10px', color: c.subtitle }}>Conversaciones inactivas asignadas a un agente que superen estas horas mostrarán alerta y bloquearán la toma de nuevos tickets.</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: isActive ? 'rgba(29,158,117,0.1)' : 'rgba(226,75,74,0.1)', border: `1px solid ${isActive ? '#1D9E7550' : '#E24B4A50'}`, borderRadius: '8px' }}>
