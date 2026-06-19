@@ -105,7 +105,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Administración',
       items: [
-        { id: 'users', label: 'Usuarios', icon: 'ti-user-plus' },
+        { id: 'users', label: 'Usuarios y Grupos', icon: 'ti-users' },
         { id: 'tenants', label: 'Empresas', icon: 'ti-building', superAdminOnly: true },
         { id: 'global_keys', label: 'Llaves API', icon: 'ti-key', superAdminOnly: true },
         { id: 'billing', label: 'Tarificador', icon: 'ti-receipt', superAdminOnly: true },

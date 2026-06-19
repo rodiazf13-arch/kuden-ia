@@ -1328,6 +1328,97 @@ app.put("/api/admin/users/:userId", async (req, res) => {
 // ─── CRM ENDPOINTS ────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── GET /api/crm/users ───────────────────────────────────────────────────────
+app.get("/api/crm/users", async (req, res) => {
+  const { tenantId } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
+  try {
+    const { data, error } = await supabase.from("tenant_users").select("id, name, email, role").eq("tenant_id", tenantId);
+    if (error) throw error;
+    return res.json(data || []);
+  } catch (e) {
+    console.error("[GET /api/crm/users]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── ENDPOINTS DE GRUPOS DE AGENTES ───────────────────────────────────────────
+app.get("/api/crm/groups", async (req, res) => {
+  const { tenantId } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
+  try {
+    const { data, error } = await supabase
+      .from("agent_groups")
+      .select(`
+        id, name, description, color, icon, is_active,
+        agent_group_users(user_id),
+        campaign_groups(campaign_id, is_default)
+      `)
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return res.json(data || []);
+  } catch (e) {
+    console.error("[GET /api/crm/groups]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/crm/groups", async (req, res) => {
+  const { tenantId, name, description, color, icon, users = [], campaigns = [] } = bodySanitize(req.body);
+  try {
+    const { data: grp, error: grpErr } = await supabase.from("agent_groups")
+      .insert([{ tenant_id: tenantId, name, description, color, icon }]).select().single();
+    if (grpErr) throw grpErr;
+
+    if (users.length > 0) {
+      await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: grp.id, user_id: u })));
+    }
+    if (campaigns.length > 0) {
+      await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: grp.id, campaign_id: c, is_default: false })));
+    }
+    return res.json({ success: true, group: grp });
+  } catch (e) {
+    console.error("[POST /api/crm/groups]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.put("/api/crm/groups/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, description, color, icon, users = [], campaigns = [] } = bodySanitize(req.body);
+  try {
+    await supabase.from("agent_groups").update({ name, description, color, icon }).eq("id", id);
+    
+    // Sincronizar usuarios
+    await supabase.from("agent_group_users").delete().eq("group_id", id);
+    if (users.length > 0) {
+      await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: id, user_id: u })));
+    }
+    
+    // Sincronizar campañas
+    await supabase.from("campaign_groups").delete().eq("group_id", id);
+    if (campaigns.length > 0) {
+      await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: id, campaign_id: c, is_default: false })));
+    }
+    return res.json({ success: true });
+  } catch (e) {
+    console.error("[PUT /api/crm/groups/:id]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete("/api/crm/groups/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await supabase.from("agent_groups").delete().eq("id", id);
+    return res.json({ success: true });
+  } catch (e) {
+    console.error("[DELETE /api/crm/groups/:id]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── GET /api/crm/conversations ───────────────────────────────────────────────
 // Query: tenantId, status, canal, campaignId, fuga, sentimiento, search, limit, offset
 app.get("/api/crm/conversations", async (req, res) => {
