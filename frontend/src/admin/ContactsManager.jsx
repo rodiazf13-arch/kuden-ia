@@ -278,6 +278,18 @@ export default function ContactsManager({ tenantId, isDark = true, userId }) {
   const setField = (key, val) => setFormData(p => ({ ...p, [key]: val }));
 
   // ── CSV ──────────────────────────────────────────────────
+  const downloadSampleCsv = () => {
+    const headers = allFieldsFlat.map(f => f.label || f.field_label).join(',');
+    const blob = new Blob([`\ufeff${headers}\n`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'kuden_contactos_ejemplo.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -708,9 +720,18 @@ export default function ContactsManager({ tenantId, isDark = true, userId }) {
       {/* Paso 1 */}
       <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
         <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: c.title }}>Paso 1 — Selecciona el archivo CSV</h3>
-        <p style={{ margin: '0 0 16px', fontSize: '13px', color: c.subtitle }}>
-          La primera fila debe contener los encabezados. Si coinciden con un campo de Kuden, se mapearán automáticamente.
-        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', gap: '16px', flexWrap: 'wrap' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: c.subtitle, flex: 1 }}>
+            La primera fila debe contener los encabezados. Si coinciden con un campo de Kuden, se mapearán automáticamente.
+          </p>
+          <button type="button" onClick={downloadSampleCsv}
+            style={{ padding: '6px 12px', borderRadius: '6px', border: `1px solid ${c.border}`, background: c.inputBg, color: c.subtitle, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#2563eb'; e.currentTarget.style.borderColor = '#2563eb50'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = c.subtitle; e.currentTarget.style.borderColor = c.border; }}
+          >
+            <i className="ti ti-download"></i> Descargar Ejemplo CSV
+          </button>
+        </div>
         <input ref={fileRef} type="file" accept=".csv" onChange={handleFileChange} style={{ display: 'none' }} />
         <button type="button" onClick={() => fileRef.current.click()}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px 20px', borderRadius: '10px', border: `2px dashed ${c.border}`, backgroundColor: 'transparent', color: c.subtitle, cursor: 'pointer', fontSize: '14px', width: '100%', justifyContent: 'center' }}>
