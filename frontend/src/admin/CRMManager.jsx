@@ -391,6 +391,24 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
     } catch (e) { console.error(e); }
   };
 
+  const doAssign = async (type, val) => {
+    setActionMsg('');
+    try {
+      const body = { assignerName: displayName };
+      if (type === 'group') body.assigned_group_id = val || null;
+      if (type === 'user') body.assigned_to = val || null;
+      
+      const res = await fetch(`${API_URL}/api/crm/conversations/${convId}/assign`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) { 
+        setActionMsg(`Transferido exitosamente.`); 
+        await fetchDetail(); 
+      }
+    } catch (e) { console.error(e); }
+  };
+
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>Cargando conversación...</div>;
   if (!data)   return <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>No se encontró la conversación.</div>;
 
@@ -493,6 +511,36 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
               >
                 <option value="">Sin campaña</option>
                 {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+              </select>
+            )}
+            {/* Transferencia a Grupo */}
+            {groups.length > 0 && (
+              <select 
+                value={conv.assigned_group_id || ''} 
+                onChange={(e) => doAssign('group', e.target.value)}
+                style={{ fontSize: 10, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.title, border: `1px solid ${c.border}`, outline: 'none', maxWidth: 150, cursor: (!isMyConv && !isSuperAdmin && userRole !== 'admin') ? 'not-allowed' : 'pointer' }}
+                disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
+              >
+                <option value="">Sin grupo</option>
+                {groups.map(g => {
+                  // Mostrar solo los grupos que tienen acceso a la campana actual o a todas si no hay campana
+                  if (!conv.campaign_id || g.campaign_groups?.some(cg => cg.campaign_id === conv.campaign_id)) {
+                    return <option key={g.id} value={g.id}>{g.name}</option>;
+                  }
+                  return null;
+                })}
+              </select>
+            )}
+            {/* Transferencia a Ejecutivo */}
+            {tenantUsers.length > 0 && (
+              <select 
+                value={conv.assigned_to || ''} 
+                onChange={(e) => doAssign('user', e.target.value)}
+                style={{ fontSize: 10, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.title, border: `1px solid ${c.border}`, outline: 'none', maxWidth: 150, cursor: (!isMyConv && !isSuperAdmin && userRole !== 'admin') ? 'not-allowed' : 'pointer' }}
+                disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
+              >
+                <option value="">No asignado</option>
+                {tenantUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             )}
           </div>
@@ -1006,6 +1054,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const [view360Contact, setView360Contact] = useState(null);
   const [alerts,        setAlerts]        = useState({ count: 0, alerts: [] });
   const [campaigns,     setCampaigns]     = useState([]);
+  const [groups,        setGroups]        = useState([]);
+  const [tenantUsers,   setTenantUsers]   = useState([]);
   const [filterStatus,  setFilterStatus]  = useState('open');
   const [filterCanal,   setFilterCanal]   = useState('all');
   const [filterFuga,    setFilterFuga]    = useState('all');
@@ -1065,11 +1115,17 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
     return () => clearInterval(t);
   }, [fetchConversations]);
 
-  // Cargar campañas (solo una vez)
+  // Cargar campañas, grupos y usuarios (solo una vez)
   useEffect(() => {
     if (!tenantId) return;
     fetch(`${API_URL}/api/crm/campaigns?tenantId=${tenantId}`)
       .then(r => r.json()).then(d => setCampaigns(Array.isArray(d) ? d : [])).catch(console.error);
+    
+    fetch(`${API_URL}/api/crm/groups?tenantId=${tenantId}`)
+      .then(r => r.json()).then(d => setGroups(Array.isArray(d) ? d : [])).catch(console.error);
+
+    fetch(`${API_URL}/api/crm/users?tenantId=${tenantId}`)
+      .then(r => r.json()).then(d => setTenantUsers(Array.isArray(d) ? d : [])).catch(console.error);
   }, [tenantId]);
 
   // Cargar tipificaciones de la campaña seleccionada para el Kanban
@@ -1162,6 +1218,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                 isDark={isDark} 
                 c={c} 
                 tenantId={tenantId} 
+                userId={userId}
               />
             </div>
           ) : (

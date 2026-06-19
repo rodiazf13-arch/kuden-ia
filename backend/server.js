@@ -470,6 +470,8 @@ function parseClaudeMetadata(text) {
     telefono: get("TELEFONO"),
     direccion: get("DIRECCION"),
     campana: get("CAMPAÑA"),
+    grupo: get("GRUPO"),
+    ejecutivo: get("EJECUTIVO"),
   };
 }
 
@@ -515,6 +517,32 @@ async function upsertConversation({ tenantId, contactId, systemPrompt, history, 
   if (canal) updatePayload.canal = canal;
   if (parsedMeta?.campana && parsedMeta.campana.length > 5) {
     updatePayload.campaign_id = parsedMeta.campana;
+  }
+  if (parsedMeta?.grupo && parsedMeta.grupo.length > 5) {
+    updatePayload.assigned_group_id = parsedMeta.grupo;
+    updatePayload.status = "waiting_human";
+    updatePayload.is_ai_active = false;
+  }
+  if (parsedMeta?.ejecutivo && parsedMeta.ejecutivo.length > 5) {
+    updatePayload.assigned_to = parsedMeta.ejecutivo;
+    updatePayload.status = "waiting_human";
+    updatePayload.is_ai_active = false;
+  }
+
+  // Si la campaña no tiene grupo asignado todavía y tiene un grupo por defecto, asignar
+  // Solo aplicable si la IA lo enrutó a una campaña y no definió grupo
+  if (updatePayload.campaign_id && !updatePayload.assigned_group_id) {
+    try {
+      const { data: defaultGroup } = await supabase
+        .from('campaign_groups')
+        .select('group_id')
+        .eq('campaign_id', updatePayload.campaign_id)
+        .eq('is_default', true)
+        .maybeSingle();
+      if (defaultGroup) {
+        updatePayload.assigned_group_id = defaultGroup.group_id;
+      }
+    } catch(e) { console.error("Error buscando grupo por defecto:", e.message) }
   }
 
   if (existing) {
@@ -590,6 +618,15 @@ app.post("/api/chat", async (req, res) => {
         });
         finalSystemPrompt += `\nINSTRUCCIÓN DE ENRUTAMIENTO: Si según el mensaje del cliente puedes identificar claramente a qué departamento/campaña corresponde su solicitud, añade al final EXACTAMENTE la etiqueta [CAMPAÑA: ID_DE_LA_CAMPAÑA] (reemplazando con el ID exacto). Si no estás seguro o no aplica ninguna, omite la etiqueta.\n`;
       }
+      
+      const { data: execs } = await supabase.from('tenant_users').select('id, name').eq('tenant_id', contactData.tenantId);
+      if (execs && execs.length > 0) {
+        finalSystemPrompt += `\nEJECUTIVOS HUMANOS DISPONIBLES:\n`;
+        execs.forEach(e => {
+          finalSystemPrompt += `- [ID: ${e.id}] ${e.name}\n`;
+        });
+        finalSystemPrompt += `\nSi el cliente pide explícitamente hablar con un ejecutivo en particular por su nombre, puedes transferirlo usando la etiqueta [EJECUTIVO: ID_DEL_EJECUTIVO].\n`;
+      }
 
       // 2. Buscar la campaña activa de esta conversación
       if (contactData?.clienteNombre) {
@@ -609,7 +646,7 @@ app.post("/api/chat", async (req, res) => {
         } catch (e) { console.error("[POST /api/chat] Error al buscar campaña actual:", e.message); }
       }
 
-      if (activeCampaignId) {
+        if (activeCampaignId) {
         // 3a. Tipificaciones de la campaña
         const { data: typs } = await supabase.from("campaign_typifications").select("label").eq("campaign_id", activeCampaignId).order("order_index", { ascending: true });
         if (typs && typs.length > 0) {
@@ -618,6 +655,16 @@ app.post("/api/chat", async (req, res) => {
             finalSystemPrompt += `- "${t.label}"\n`;
           });
           finalSystemPrompt += `\nINSTRUCCIÓN DE TIPIFICACIÓN Y ETAPAS: Evalúa el estado de la conversación y la intención del cliente, y OBLIGATORIAMENTE incluye al final de tu mensaje la etiqueta [ETAPA: <nombre de la etapa>] usando exactamente una de las tipificaciones anteriores. Esto moverá automáticamente la tarjeta del cliente en nuestro Tablero Kanban. Si la conversación recién empieza, usa la etapa inicial o más apropiada. Además, si logras resolver completamente la solicitud por tu cuenta, debes marcar [ESTADO: finalizado].\n`;
+        }
+
+        // Grupos de agentes de la campaña
+        const { data: groups } = await supabase.from('campaign_groups').select('agent_groups(id, name, description)').eq('campaign_id', activeCampaignId);
+        if (groups && groups.length > 0) {
+          finalSystemPrompt += `\nGRUPOS/EQUIPOS DE ATENCIÓN DE ESTA CAMPAÑA:\n`;
+          groups.forEach(g => {
+            if(g.agent_groups) finalSystemPrompt += `- [ID: ${g.agent_groups.id}] ${g.agent_groups.name}: ${g.agent_groups.description || ''}\n`;
+          });
+          finalSystemPrompt += `\nSi no puedes resolver la solicitud del cliente y necesitas derivarla a un equipo humano específico de esta campaña, utiliza la etiqueta [GRUPO: ID_DEL_GRUPO].\n`;
         }
 
         // 3b. Herramientas n8n activas para esta campaña (Agentes Autónomos)
@@ -1316,13 +1363,33 @@ app.get("/api/crm/conversations", async (req, res) => {
     }
 
     if (userId && userRole === 'agent' && isSuperAdmin !== 'true') {
-      const { data: agentCamps } = await supabase.from('campaign_agents').select('campaign_id').eq('user_id', userId);
-      const validIds = agentCamps ? agentCamps.map(ac => ac.campaign_id) : [];
-      if (validIds.length > 0) {
-        query = query.or(`campaign_id.in.(${validIds.join(',')}),campaign_id.is.null`);
+      const { data: agentCamps } = await supabase.from('campaign_agents').select('campaign_id, is_supervisor').eq('user_id', userId);
+      const validCamps = agentCamps ? agentCamps.map(ac => ac.campaign_id) : [];
+      const supervisorCamps = agentCamps ? agentCamps.filter(ac => ac.is_supervisor).map(ac => ac.campaign_id) : [];
+      
+      const { data: agentGroups } = await supabase.from('agent_group_users').select('group_id').eq('user_id', userId);
+      const validGroups = agentGroups ? agentGroups.map(ag => ag.group_id) : [];
+
+      let orClauses = [];
+      
+      // 1. Acceso general a la campaña (si la conv NO tiene grupo asignado)
+      if (validCamps.length > 0) {
+        orClauses.push(`and(campaign_id.in.(${validCamps.join(',')}),assigned_group_id.is.null)`);
       } else {
-        query = query.is("campaign_id", null);
+        orClauses.push(`and(campaign_id.is.null,assigned_group_id.is.null)`);
       }
+
+      // 2. Acceso por grupo (si la conv está asignada a uno de tus grupos)
+      if (validGroups.length > 0) {
+        orClauses.push(`assigned_group_id.in.(${validGroups.join(',')})`);
+      }
+
+      // 3. Acceso por supervisor (puede ver todo dentro de sus campañas)
+      if (supervisorCamps.length > 0) {
+        orClauses.push(`campaign_id.in.(${supervisorCamps.join(',')})`);
+      }
+      
+      query = query.or(orClauses.join(','));
     }
 
     const { data, error } = await query;
@@ -1383,6 +1450,89 @@ app.get("/api/crm/alerts", async (req, res) => {
     return res.json({ count: data?.length || 0, alerts: data || [] });
   } catch (e) {
     console.error("[GET /api/crm/alerts]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── GET /api/crm/groups ──────────────────────────────────────────────────────
+app.get("/api/crm/groups", async (req, res) => {
+  const { tenantId } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
+  try {
+    const { data, error } = await supabase
+      .from("agent_groups")
+      .select(`
+        *,
+        agent_group_users(user_id, role_in_group),
+        campaign_groups(campaign_id, is_default)
+      `)
+      .eq("tenant_id", tenantId)
+      .order("created_at");
+    if (error) throw error;
+    return res.json(data || []);
+  } catch (e) {
+    console.error("[GET /api/crm/groups]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── GET /api/crm/users ───────────────────────────────────────────────────────
+app.get("/api/crm/users", async (req, res) => {
+  const { tenantId } = req.query;
+  if (!tenantId) return res.status(400).json({ error: "tenantId requerido." });
+  try {
+    const { data, error } = await supabase
+      .from("tenant_users")
+      .select("id, name, email")
+      .eq("tenant_id", tenantId)
+      .order("name");
+    if (error) throw error;
+    return res.json(data || []);
+  } catch (e) {
+    console.error("[GET /api/crm/users]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── PUT /api/crm/conversations/:id/assign ────────────────────────────────────
+app.put("/api/crm/conversations/:id/assign", async (req, res) => {
+  const { id } = req.params;
+  const { assigned_group_id, assigned_to, assignerName } = req.body;
+  try {
+    // Buscar conversacion
+    const { data: conv } = await supabase.from('conversations').select('*').eq('id', id).single();
+    if (!conv) return res.status(404).json({ error: "Conversación no encontrada" });
+
+    // Actualizar 
+    const updatePayload = {
+      assigned_group_id: assigned_group_id !== undefined ? assigned_group_id : conv.assigned_group_id,
+      assigned_to: assigned_to !== undefined ? assigned_to : conv.assigned_to,
+      status: (assigned_to || assigned_group_id) ? 'human_active' : conv.status
+    };
+
+    const { data: updated, error } = await supabase
+      .from("conversations")
+      .update(updatePayload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Registrar auditoría y nota interna
+    let nota = `Transferido a nuevo ejecutivo/grupo por ${assignerName || 'Sistema'}`;
+    await supabase.from("conversation_messages").insert({
+      conversation_id: id,
+      tenant_id: conv.tenant_id,
+      sender_type: "system",
+      sender_name: "Sistema",
+      content: nota,
+      is_internal_note: true
+    });
+
+    return res.json(updated);
+  } catch (e) {
+    console.error("[PUT /api/crm/conversations/:id/assign]", e.message);
     return res.status(500).json({ error: e.message });
   }
 });

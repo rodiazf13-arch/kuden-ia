@@ -80,7 +80,7 @@ const BASE_FIELD_SECTIONS = [
 // Todos los campos base en una sola lista plana (para crear/editar)
 const ALL_BASE_FIELDS = BASE_FIELD_SECTIONS.flatMap(s => s.fields);
 
-export default function ContactsManager({ tenantId, isDark = true }) {
+export default function ContactsManager({ tenantId, isDark = true, userId }) {
   const [view,         setView]         = useState('list');
   const [contacts,     setContacts]     = useState([]);
   const [fieldDefs,    setFieldDefs]    = useState([]);
@@ -577,6 +577,7 @@ export default function ContactsManager({ tenantId, isDark = true }) {
       tenantId={tenantId}
       c={c} 
       isDark={isDark} 
+      userId={userId}
       onBack={() => { setView('list'); setEditingContact(null); }} 
       onEdit={() => setView('create')} 
     />

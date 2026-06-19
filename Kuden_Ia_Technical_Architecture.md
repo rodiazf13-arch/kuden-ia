@@ -93,8 +93,12 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 ### 5.1. Esquema Relacional Principal
 *   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n.
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
+*   `agent_groups`: Grupos operativos (Ej. Nivel 1, Ventas VIP).
+*   `agent_group_users`: Relación N:M que define la pertenencia de un `tenant_user` a un `agent_group`.
+*   `campaigns`: Los temas o departamentos lógicos.
+*   `campaign_groups`: Relación N:M que autoriza a un `agent_group` a atender conversaciones de una `campaign`. Soporta `is_default` para enrutamiento inicial automático.
 *   `contacts`: Listado global de contactos. Almacena las propiedades demográficas y columnas cacheadas de BI como `nps_historico` y `riesgo_fuga` (que se auto-calculan a partir de la historia transaccional).
-*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal` (whatsapp, email, webchat, instagram), `motivo_label`, `resumen_ejecutivo`.
+*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal`, `campaign_id`, `assigned_group_id`, `assigned_to`, `resumen_ejecutivo`.
 *   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
 *   `rag_suggestions`: Tabla para el entrenamiento auto-didacta (Human-in-the-loop). Almacena pares de Pregunta/Respuesta sugeridos por el LLM tras analizar la intervención de ejecutivos humanos. Campos: `id`, `tenant_id`, `ai_profile_id`, `suggested_question`, `suggested_answer`, `status`.

@@ -212,7 +212,7 @@ function DashboardPerfil({ contact, conversations, c, isDark }) {
   );
 }
 
-export default function Contact360View({ contact, onBack, onEdit, isDark, c, tenantId }) {
+export default function Contact360View({ contact, onBack, onEdit, isDark, c, tenantId, userId }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalSummary, setGlobalSummary] = useState(contact.global_summary || '');
@@ -265,6 +265,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
         status: 'human_active',
         canal: canal,
         motivo_label: 'Conversación Saliente',
+        assigned_to: userId,
         last_message_at: new Date().toISOString()
       }).select();
 

@@ -157,7 +157,7 @@ export default function App() {
           : <div style={{ padding: "40px", textAlign: "center", color: "#666" }}><h2>Sin empresa asignada</h2></div>;
 
       case 'contacts':
-        return <ContactsManager tenantId={activeTenantId} isDark={isDark} />;
+        return <ContactsManager tenantId={activeTenantId} isDark={isDark} userId={session?.user?.id} />;
 
       case 'profiles':
         return <ProfilesManager tenantId={activeTenantId} isDark={isDark} isSuperAdmin={isSuperAdmin && !impersonatedTenantId} actualTenantId={tenantId} allTenants={allTenants} />;

@@ -149,7 +149,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Mediante n8n, Kuden escuchará en tiempo real APIs de redes sociales (ej. grupos de Facebook, Instagram, Reddit) buscando palabras clave o intenciones de compra relacionadas al negocio del cliente. Al detectar un lead potencial, Kuden enviará un DM automático y consultivo, transformando la plataforma de un centro reactivo a un motor activo de generación de ingresos.
 26. **Módulo Autónomo de Marketing y Publicaciones en Redes Sociales (Social Media Engine):**
     Integración proactiva con Instagram, Facebook, LinkedIn y TikTok. Kimi ayudará a los dueños de PyMEs a redactar posts atractivos y publicar promociones directamente desde la plataforma. Además, la IA leerá los comentarios e interacciones de las publicaciones en tiempo real para generar un **Análisis de Sentimiento de Producto**, y creará formularios de prospección automáticos. Si un cliente comenta interesado en una promoción, Kuden IA o los ejecutivos humanos podrán continuar la atención en el CRM, unificando marketing y ventas bajo un mismo techo.
-
+27. ✅ **Grupos Operativos y Enrutamiento Escalonado (Routing Avanzado):**
+    **COMPLETADO:** Se separó la lógica de "Campañas" (departamentos lógicos) de los "Grupos" (equipos humanos de atención). Permite jerarquizar la operación (ej. Nivel 1, Nivel 2, Soporte Avanzado). La IA es capaz de transferir autónomamente conversaciones usando la etiqueta `[GRUPO: ID]`, y los ejecutivos pueden delegarse tickets asegurando total privacidad de la conversación entre distintos niveles operativos.
 
 ## Actualización PWA y Móvil (Punto 5.17 del Roadmap)
 - **COMPLETADO:** Se implementó vite-plugin-pwa para convertir Kuden IA en una aplicación instalable (Progressive Web App).
