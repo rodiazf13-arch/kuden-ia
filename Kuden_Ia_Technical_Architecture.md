@@ -33,11 +33,11 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 *   `/lib`: Funciones utilitarias (formatters de fecha, parsers de markdown).
 
 ### 2.2. Componentes y Módulos Principales
-*   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. 
+*   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. Funciona como un **Bus de Eventos Global** (ej. escuchando eventos custom `changeTab` para coordinar saltos automáticos entre módulos disjuntos como Contactos y CRM).
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
-*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen".
+*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de conversaciones, paneles de métricas interactivos (clic en un gráfico filtra la bandeja), y un panel de chat en tiempo real a la derecha. Soporta precarga automática de chats (`kuden_open_conv_id` en localStorage).
+*   `ContactsManager.jsx` y `Contact360View.jsx`: Gestor de Leads a nivel macro. Soporta filtrado de estados y métricas. Desde la vista 360 se invocan las conversaciones Outbound (salientes) que generan registros silenciosos e inyectan al usuario directamente en el CRM.
 *   `CopilotManager.jsx`: Interfaz de chat con Kimi.
-*   `KnowledgeBase.jsx`: UI para la carga de documentos (Base RAG). Permite subir PDFs, archivos Markdown y URLs. Al ingresar una URL de sitio web, realiza Web Scraping automático, convierte el contenido a chunks y lo envía al backend para su vectorización en pgvector.
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
 *   `AIConfigManager.jsx`: Identidad Maestra. Pantalla superadmin para gestionar los proveedores LLM internos (Kimi y Resúmenes). Incluye el **Buzón de Entrenamiento Auto-Didacta (RAG)** para aprobar/rechazar sugerencias extraídas de conversaciones y asignarlas a perfiles IA específicos.
 *   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers). KimiInsights utiliza `recharts` para curvas de área y soporta exportación de reportes a Word (.doc).
@@ -59,6 +59,7 @@ Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corr
 *   `llmService.js`: Encargado de hablar con la API del LLM. Posee la lógica para inyectar el RAG (Contexto de la empresa), el Tono del Asistente y decidir las herramientas (Tools) a usar. **Soporta modelos disociados** (ej. Sonnet para el copiloto, Haiku para resúmenes).
 *   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (fijado en 768 dimensiones) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
 *   `queueWorker.js` *(Opcional)*: Encargado de procesar tareas asíncronas pesadas (ej. vectorización masiva) usando `supabase_queue` si se activa la persistencia asíncrona.
+*   `updateContactMetricsByConversation` (Lógica delegada): Trigger/Función middleware que recalcula promedios de CSAT (`nps_historico`) y el conteo de incidentes de fugas tras el cierre de cualquier conversación, volcando los resultados como datos cacheados en la tabla `contacts` para su consumo rápido en Vistas de Mando.
 
 ### 3.1.1 Endpoints Destacados y de Orquestación
 *   `/api/setup/magic-onboarding`: Extrae texto de PDFs (usando `pdf-parse` mediante `createRequire` para soporte ESM), genera un JSON arquitectónico vía LLM y crea iterativamente los sub-perfiles en base de datos.
@@ -92,7 +93,8 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 ### 5.1. Esquema Relacional Principal
 *   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n.
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
-*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `lead_phone` (o email), `status` (Etapa del Kanban), `source` (whatsapp, email, web), `resumen_ejecutivo`.
+*   `contacts`: Listado global de contactos. Almacena las propiedades demográficas y columnas cacheadas de BI como `nps_historico` y `riesgo_fuga` (que se auto-calculan a partir de la historia transaccional).
+*   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal` (whatsapp, email, webchat, instagram), `motivo_label`, `resumen_ejecutivo`.
 *   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
 *   `rag_suggestions`: Tabla para el entrenamiento auto-didacta (Human-in-the-loop). Almacena pares de Pregunta/Respuesta sugeridos por el LLM tras analizar la intervención de ejecutivos humanos. Campos: `id`, `tenant_id`, `ai_profile_id`, `suggested_question`, `suggested_answer`, `status`.

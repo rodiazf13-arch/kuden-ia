@@ -1676,8 +1676,14 @@ app.post("/api/webhook/n8n-email", async (req, res) => {
     }
 
     // 2. Buscar conversación activa del contacto, si no existe, crear una nueva
-    let { data: conv } = await supabase.from('conversations')
-      .select('*').eq('contact_id', contact.id).eq('status', 'active').maybeSingle();
+    let { data: convs } = await supabase.from('conversations')
+      .select('*')
+      .eq('contact_id', contact.id)
+      .in('status', ['active', 'waiting_human', 'human_active'])
+      .order('last_message_at', { ascending: false })
+      .limit(1);
+    
+    let conv = convs && convs.length > 0 ? convs[0] : null;
     
     // Guardar el Message-ID y el Subject en metadata para threading y respuestas
     const newMetadata = conv ? { ...(conv.metadata || {}), messageId, subject: subject || (conv.metadata?.subject || '') } : { messageId, subject: subject || '' };

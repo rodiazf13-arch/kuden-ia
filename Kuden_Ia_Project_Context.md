@@ -152,10 +152,18 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 
 
 ## Actualización PWA y Móvil (Punto 5.17 del Roadmap)
-- **COMPLETADO:** Se implementó  ite-plugin-pwa para convertir Kuden IA en una aplicación instalable (Progressive Web App).
-- Se agregaron íconos PWA generados a partir del logo oficial en rontend/public/.
+- **COMPLETADO:** Se implementó vite-plugin-pwa para convertir Kuden IA en una aplicación instalable (Progressive Web App).
+- Se agregaron íconos PWA generados a partir del logo oficial en `frontend/public/`.
 - **Diseño Móvil (UI/UX):** Se rediseñó el DashboardLayout.jsx integrando un overlay y un menú tipo Hamburguesa (☰) para pantallas chicas.
 - El CRM (CRMManager.jsx) ahora maneja estado adaptativo: muestra por defecto la lista de contactos, y al seleccionar un chat, la caja de mensajes ocupa toda la pantalla para asegurar una experiencia tipo aplicación nativa en móviles. Esto logra el Efecto WOW inmediato.
+
+---
+
+## 5.x Avances Operacionales (Junio 2026)
+- **Unificación de Canales:** Estandarización del canal "webchat" a nivel de DB y Componentes para consistencia de reportes.
+- **Reportes Interactivos:** Los gráficos de Reportes en el CRM ahora actúan como filtros dinámicos (clic en una barra de estado o canal redirige a la bandeja filtrada).
+- **Métricas de Contactos Macro (NPS e Inteligencia Predictiva):** Se crearon scripts de backfill y triggers en Node.js que mantienen el `nps_historico` y el `riesgo_fuga` a nivel de contacto, exponiéndolos con insignias visuales (badges) y selectores dinámicos de columnas en el `ContactsManager`.
+- **Conversaciones Outbound (Omnicanalidad Reactiva):** Se incorporaron acciones rápidas en la "Vista 360" de Contactos para que el agente dispare una nueva conversación proactiva por WhatsApp, Email o Instagram. El sistema emite un evento global e inyecta al agente de inmediato en la ventana de mensajería del CRM.
 
 ---
 
