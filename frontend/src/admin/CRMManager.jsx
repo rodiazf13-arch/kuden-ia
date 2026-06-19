@@ -10,43 +10,43 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const timeAgo = (iso) => {
   if (!iso) return '—';
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (diff < 60)   return 'hace ' + diff + 's';
+  if (diff < 60) return 'hace ' + diff + 's';
   if (diff < 3600) return 'hace ' + Math.floor(diff / 60) + 'min';
   if (diff < 86400) return 'hace ' + Math.floor(diff / 3600) + 'h';
   return 'hace ' + Math.floor(diff / 86400) + 'd';
 };
 
 const STATUS_CONFIG = {
-  active:        { label: 'IA Activa',          color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-robot'             },
-  waiting_human: { label: 'Esperando Humano',   color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle'    },
-  human_active:  { label: 'Ejecutivo Activo',   color: '#2563eb', bg: '#EFF6FF', icon: 'ti-user-check'        },
-  pending_csat:  { label: 'Pendiente CSAT',     color: '#D85A30', bg: '#FAECE7', icon: 'ti-star'              },
-  resolved:      { label: 'Resuelto por IA',    color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-circle-check'      },
-  closed:        { label: 'Cerrado',            color: '#6b7280', bg: '#f3f4f6', icon: 'ti-lock'              },
-  abandoned:     { label: 'Abandonado',         color: '#E24B4A', bg: '#FDECEA', icon: 'ti-circle-x'          },
-  pending_followup: { label: 'Pendiente Seg.',  color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-clock'             },
+  active: { label: 'IA Activa', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-robot' },
+  waiting_human: { label: 'Esperando Humano', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
+  human_active: { label: 'Ejecutivo Activo', color: '#2563eb', bg: '#EFF6FF', icon: 'ti-user-check' },
+  pending_csat: { label: 'Pendiente CSAT', color: '#D85A30', bg: '#FAECE7', icon: 'ti-star' },
+  resolved: { label: 'Resuelto por IA', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-circle-check' },
+  closed: { label: 'Cerrado', color: '#6b7280', bg: '#f3f4f6', icon: 'ti-lock' },
+  abandoned: { label: 'Abandonado', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-circle-x' },
+  pending_followup: { label: 'Pendiente Seg.', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-clock' },
 };
 
 const SENTIMIENTO_CONFIG = {
-  muy_negativo: { label: 'Muy frustrado',  emoji: '😠', color: '#E24B4A', bg: '#FDECEA', pct: 10  },
-  negativo:     { label: 'Frustrado',      emoji: '😕', color: '#D85A30', bg: '#FAECE7', pct: 30  },
-  neutral:      { label: 'Neutral',        emoji: '😐', color: '#EF9F27', bg: '#FEF3E0', pct: 50  },
-  positivo:     { label: 'Satisfecho',     emoji: '🙂', color: '#1D9E75', bg: '#E1F5EE', pct: 75  },
+  muy_negativo: { label: 'Muy frustrado', emoji: '😠', color: '#E24B4A', bg: '#FDECEA', pct: 10 },
+  negativo: { label: 'Frustrado', emoji: '😕', color: '#D85A30', bg: '#FAECE7', pct: 30 },
+  neutral: { label: 'Neutral', emoji: '😐', color: '#EF9F27', bg: '#FEF3E0', pct: 50 },
+  positivo: { label: 'Satisfecho', emoji: '🙂', color: '#1D9E75', bg: '#E1F5EE', pct: 75 },
   muy_positivo: { label: 'Muy satisfecho', emoji: '😊', color: '#534AB7', bg: '#EEEDFE', pct: 100 },
 };
 
 const FUGA_CONFIG = {
-  sin_riesgo: { label: 'Sin riesgo',   color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-shield-check'   },
-  bajo:       { label: 'Riesgo bajo',  color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
-  medio:      { label: 'Riesgo medio', color: '#D85A30', bg: '#FAECE7', icon: 'ti-alert-triangle' },
-  alto:       { label: 'Riesgo alto',  color: '#E24B4A', bg: '#FDECEA', icon: 'ti-flame'          },
+  sin_riesgo: { label: 'Sin riesgo', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-shield-check' },
+  bajo: { label: 'Riesgo bajo', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
+  medio: { label: 'Riesgo medio', color: '#D85A30', bg: '#FAECE7', icon: 'ti-alert-triangle' },
+  alto: { label: 'Riesgo alto', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-flame' },
 };
 
 const CHANNEL_COLORS = {
-  email:     { rgb: '59, 130, 246' }, // Azul
-  whatsapp:  { rgb: '37, 211, 102' }, // Verde
+  email: { rgb: '59, 130, 246' }, // Azul
+  whatsapp: { rgb: '37, 211, 102' }, // Verde
   instagram: { rgb: '225, 48, 108' }, // Rosado
-  webchat:   { rgb: '234, 179, 8'  }  // Amarillo
+  webchat: { rgb: '234, 179, 8' }  // Amarillo
 };
 
 const normalizeCanal = (canal) => {
@@ -77,9 +77,11 @@ const getChannelBorder = (canal, c) => {
 function StatusBadge({ status }) {
   const s = STATUS_CONFIG[status] || STATUS_CONFIG.active;
   return (
-    <span style={{ fontSize: 10, fontWeight: 600, color: s.color, background: s.bg,
+    <span style={{
+      fontSize: 10, fontWeight: 600, color: s.color, background: s.bg,
       border: `0.5px solid ${s.color}40`, borderRadius: 20, padding: '2px 8px',
-      display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+      display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
+    }}>
       <i className={`ti ${s.icon}`} style={{ fontSize: 10 }} />
       {s.label}
     </span>
@@ -89,21 +91,21 @@ function StatusBadge({ status }) {
 // ── Panel de Inteligencia IA (derecha en el detalle) ─────────────────────────
 function IntelPanel({ conv, c }) {
   const sent = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
-  const fuga = FUGA_CONFIG[conv.fuga_final]               || FUGA_CONFIG.sin_riesgo;
+  const fuga = FUGA_CONFIG[conv.fuga_final] || FUGA_CONFIG.sin_riesgo;
 
   const segScore = (() => {
     const plan = conv.contacts?.plan || '';
     if (plan.includes('Empresas') || plan.includes('1GB')) return { label: 'Estratégico', color: '#534AB7', score: 100 };
-    if (plan.includes('500MB') || plan.includes('VIP'))    return { label: 'Alto',        color: '#1D9E75', score: 75  };
-    if (plan.includes('200MB'))                            return { label: 'Medio',       color: '#EF9F27', score: 50  };
+    if (plan.includes('500MB') || plan.includes('VIP')) return { label: 'Alto', color: '#1D9E75', score: 75 };
+    if (plan.includes('200MB')) return { label: 'Medio', color: '#EF9F27', score: 50 };
     return { label: 'Básico', color: '#D85A30', score: 25 };
   })();
 
   const rec = conv.fuga_final === 'alto'
     ? '⚠️ Riesgo de fuga elevado. Se recomienda contacto proactivo e intervención humana.'
     : conv.sentimiento_final === 'muy_negativo' || conv.sentimiento_final === 'negativo'
-    ? 'Cliente con frustración detectada. Considera tomar el control para una atención empática.'
-    : 'Conversación dentro de parámetros normales. La IA está gestionando adecuadamente.';
+      ? 'Cliente con frustración detectada. Considera tomar el control para una atención empática.'
+      : 'Conversación dentro de parámetros normales. La IA está gestionando adecuadamente.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -172,11 +174,11 @@ function IntelPanel({ conv, c }) {
 
 // ── Burbuja de mensaje ────────────────────────────────────────────────────────
 function MessageBubble({ msg, c }) {
-  const isCustomer    = msg.sender_type === 'customer';
-  const isAI          = msg.sender_type === 'ai';
-  const isHuman       = msg.sender_type === 'human_agent';
-  const isSystem      = msg.sender_type === 'system';
-  const isNote        = msg.is_internal_note;
+  const isCustomer = msg.sender_type === 'customer';
+  const isAI = msg.sender_type === 'ai';
+  const isHuman = msg.sender_type === 'human_agent';
+  const isSystem = msg.sender_type === 'system';
+  const isNote = msg.is_internal_note;
 
   if (isSystem) return (
     <div style={{ textAlign: 'center', padding: '4px 0' }}>
@@ -228,14 +230,14 @@ function MessageBubble({ msg, c }) {
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
 function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360, hasTooManyForgotten = false, forgottenCount = 0 }) {
-  const [data,       setData]       = useState(null);
-  const [messages,   setMessages]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [sending,    setSending]    = useState(false);
-  const [input,      setInput]      = useState('');
-  const [isNote,     setIsNote]     = useState(false);
-  const [actionMsg,  setActionMsg]  = useState('');
-  const [showInfo,   setShowInfo]   = useState(false);  // panel lateral colapsado por defecto
+  const [data, setData] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [input, setInput] = useState('');
+  const [isNote, setIsNote] = useState(false);
+  const [actionMsg, setActionMsg] = useState('');
+  const [showInfo, setShowInfo] = useState(false);  // panel lateral colapsado por defecto
   const [closingMode, setClosingMode] = useState(false);
   const [pendingMode, setPendingMode] = useState(false);
   const [followUpDate, setFollowUpDate] = useState('');
@@ -256,14 +258,14 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
       const res = await fetch(`${API_URL}/api/crm/conversations/${convId}`);
       if (!res.ok) return; // Omitir si la llamada falla, para evitar parpadeos
       const json = await res.json();
-      
+
       if (json && json.conversation) {
         setData(prev => {
           const newJson = JSON.stringify(json.conversation);
           return JSON.stringify(prev) !== newJson ? json.conversation : prev;
         });
       }
-      
+
       if (json && Array.isArray(json.messages)) {
         setMessages(prev => {
           const newMsgs = json.messages;
@@ -314,10 +316,10 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, userId, displayName, content: input, isInternalNote: isNote, attachments }),
       });
-      if (res.ok) { 
-        setInput(''); 
+      if (res.ok) {
+        setInput('');
         setAttachments([]);
-        await fetchDetail(); 
+        await fetchDetail();
       } else {
         const err = await res.json();
         alert('Error al enviar mensaje: ' + err.error);
@@ -329,26 +331,26 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-    
+
     setUploadingFiles(true);
     const newAttachments = [];
-    
+
     try {
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${tenantId}/${convId}/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('chat_attachments')
           .upload(filePath, file);
-          
+
         if (uploadError) throw uploadError;
-        
+
         const { data } = supabase.storage
           .from('chat_attachments')
           .getPublicUrl(filePath);
-          
+
         newAttachments.push({ url: data.publicUrl, name: file.name, type: file.type });
       }
       setAttachments(prev => [...prev, ...newAttachments]);
@@ -397,26 +399,26 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
       const body = { assignerName: displayName };
       if (type === 'group') body.assigned_group_id = val || null;
       if (type === 'user') body.assigned_to = val || null;
-      
+
       const res = await fetch(`${API_URL}/api/crm/conversations/${convId}/assign`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (res.ok) { 
-        setActionMsg(`Transferido exitosamente.`); 
-        await fetchDetail(); 
+      if (res.ok) {
+        setActionMsg(`Transferido exitosamente.`);
+        await fetchDetail();
       }
     } catch (e) { console.error(e); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>Cargando conversación...</div>;
-  if (!data)   return <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>No se encontró la conversación.</div>;
+  if (!data) return <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>No se encontró la conversación.</div>;
 
-  const conv    = data;
+  const conv = data;
   const contact = conv.contacts || {};
-  const status  = conv.status;
+  const status = conv.status;
   const isMyConv = conv.assigned_to === userId;
-  const canAct  = isSuperAdmin || userRole === 'admin' || isMyConv || !conv.assigned_to;
+  const canAct = isSuperAdmin || userRole === 'admin' || isMyConv || !conv.assigned_to;
 
   // Botones según estado
   const renderActions = () => (
@@ -425,12 +427,14 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button onClick={() => doAction('takeover', 'Has tomado el control de la conversación.')}
             disabled={hasTooManyForgotten}
-            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: hasTooManyForgotten ? 'not-allowed' : 'pointer',
-              background: hasTooManyForgotten ? '#9CA3AF' : (status === 'waiting_human' ? '#EF9F27' : '#2563eb'), color: '#fff', opacity: hasTooManyForgotten ? 0.6 : 1 }}
+            style={{
+              padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: hasTooManyForgotten ? 'not-allowed' : 'pointer',
+              background: hasTooManyForgotten ? '#9CA3AF' : (status === 'waiting_human' ? '#EF9F27' : '#2563eb'), color: '#fff', opacity: hasTooManyForgotten ? 0.6 : 1
+            }}
             title={hasTooManyForgotten ? `Bloqueado. Tienes ${forgottenCount} tickets olvidados.` : ''}>
             🖐 Tomar Control
           </button>
-          {hasTooManyForgotten && <span style={{fontSize: 10, color: '#DC2626', fontWeight: 600}}>Limpia tus tickets olvidados primero.</span>}
+          {hasTooManyForgotten && <span style={{ fontSize: 10, color: '#DC2626', fontWeight: 600 }}>Limpia tus tickets olvidados primero.</span>}
         </div>
       )}
       {status === 'human_active' && isMyConv && !closingMode && !pendingMode && (
@@ -471,7 +475,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 'not-allowed' : 'pointer', background: '#1D9E75', color: '#fff', opacity: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 0.5 : 1 }}>
             Confirmar
           </button>
-          {!conv.campaign_id && <span style={{fontSize: 10, color: '#E24B4A'}}>⚠️ Asigna una campaña primero</span>}
+          {!conv.campaign_id && <span style={{ fontSize: 10, color: '#E24B4A' }}>⚠️ Asigna una campaña primero</span>}
           <button onClick={() => setClosingMode(false)} style={{ background: 'transparent', border: 'none', color: c.subtitle, cursor: 'pointer', fontSize: 11 }}>Cancelar</button>
         </div>
       )}
@@ -480,7 +484,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
           <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333' }} />
           <input type="time" value={followUpTime} onChange={e => setFollowUpTime(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333' }} />
           <input type="text" placeholder="Nota..." value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333', width: 120 }} />
-          
+
           <button onClick={() => doAction('close', 'Conversación dejada en pendiente.', { isPending: true, followUpAt: new Date(`${followUpDate}T${followUpTime}`).toISOString(), followUpNote })}
             disabled={!followUpDate || !followUpTime}
             style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!followUpDate || !followUpTime) ? 'not-allowed' : 'pointer', background: '#EF9F27', color: '#fff', opacity: (!followUpDate || !followUpTime) ? 0.5 : 1 }}>
@@ -513,8 +517,8 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             {conv.canal && <span style={{ fontSize: 10, padding: '2px 6px', background: c.inputBg, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
             {/* Reasignación manual de campaña */}
             {campaigns.length > 0 && (
-              <select 
-                value={conv.campaign_id || ''} 
+              <select
+                value={conv.campaign_id || ''}
                 onChange={(e) => doAction('campaign', 'Campaña reasignada exitosamente.', { campaignId: e.target.value || null })}
                 style={{ fontSize: 10, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.title, border: `1px solid ${c.border}`, outline: 'none', maxWidth: 150, cursor: (!isMyConv && !isSuperAdmin && userRole !== 'admin') ? 'not-allowed' : 'pointer' }}
                 disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
@@ -525,8 +529,8 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             )}
             {/* Transferencia a Grupo */}
             {groups.length > 0 && (
-              <select 
-                value={conv.assigned_group_id || ''} 
+              <select
+                value={conv.assigned_group_id || ''}
                 onChange={(e) => doAssign('group', e.target.value)}
                 style={{ fontSize: 10, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.title, border: `1px solid ${c.border}`, outline: 'none', maxWidth: 150, cursor: (!isMyConv && !isSuperAdmin && userRole !== 'admin') ? 'not-allowed' : 'pointer' }}
                 disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
@@ -543,8 +547,8 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             )}
             {/* Transferencia a Ejecutivo */}
             {tenantUsers.length > 0 && (
-              <select 
-                value={conv.assigned_to || ''} 
+              <select
+                value={conv.assigned_to || ''}
                 onChange={(e) => doAssign('user', e.target.value)}
                 style={{ fontSize: 10, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.title, border: `1px solid ${c.border}`, outline: 'none', maxWidth: 150, cursor: (!isMyConv && !isSuperAdmin && userRole !== 'admin') ? 'not-allowed' : 'pointer' }}
                 disabled={!isMyConv && !isSuperAdmin && userRole !== 'admin'}
@@ -559,9 +563,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         <button
           onClick={() => onView360(contact)}
           title="Ver Vista 360° Omnicanal"
-          style={{ padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
+          style={{
+            padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
             background: 'transparent', color: c.subtitle,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0
+          }}
         >
           <i className="ti ti-chart-pie" style={{ fontSize: 14 }} />
           Vista 360°
@@ -569,9 +575,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         <button
           onClick={() => setShowInfo(v => !v)}
           title={showInfo ? 'Ocultar panel' : 'Ver ficha y análisis IA'}
-          style={{ padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
+          style={{
+            padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
             background: showInfo ? '#2563eb15' : 'transparent', color: showInfo ? '#2563eb' : c.subtitle,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0
+          }}
         >
           <i className={`ti ${showInfo ? 'ti-layout-sidebar-right-collapse' : 'ti-layout-sidebar-right'}`} style={{ fontSize: 14 }} />
           {showInfo ? 'Ocultar' : 'Info'}
@@ -619,14 +627,14 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                 >
                   😀
                 </button>
-                <input 
-                  type="file" 
-                  multiple 
-                  id="chat-attachment-input" 
-                  style={{ display: 'none' }} 
-                  onChange={handleFileUpload} 
+                <input
+                  type="file"
+                  multiple
+                  id="chat-attachment-input"
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload}
                 />
-                <button 
+                <button
                   onClick={() => document.getElementById('chat-attachment-input').click()}
                   disabled={uploadingFiles}
                   style={{ padding: '8px 12px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: uploadingFiles ? 'wait' : 'pointer', fontSize: 16, opacity: uploadingFiles ? 0.5 : 1 }}
@@ -634,18 +642,18 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                 >
                   <i className="ti ti-paperclip" />
                 </button>
-                
+
                 {showEmojiPicker && (
                   <div style={{ position: 'absolute', bottom: '100%', left: 0, zIndex: 100, marginBottom: 8 }}>
-                    <EmojiPicker 
+                    <EmojiPicker
                       onEmojiClick={(emojiObj) => {
                         setInput(prev => prev + emojiObj.emoji);
                         setShowEmojiPicker(false);
-                      }} 
+                      }}
                     />
                   </div>
                 )}
-                
+
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {attachments.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingBottom: 4 }}>
@@ -663,7 +671,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                     rows={2}
                     style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isNote ? '#FDE047' : c.border}`, background: isNote ? '#FEF9C3' : c.inputBg, color: c.inputText, fontSize: 13, outline: 'none', resize: 'vertical', minHeight: '40px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
-                
+
                 <button onClick={sendMessage} disabled={sending || (!input.trim() && attachments.length === 0)}
                   style={{ padding: '8px 16px', background: isNote ? '#EF9F27' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: (input.trim() || attachments.length > 0) ? 'pointer' : 'not-allowed', opacity: (input.trim() || attachments.length > 0) ? 1 : 0.5, height: 'fit-content' }}>
                   <i className="ti ti-send" style={{ fontSize: 14 }} />
@@ -685,12 +693,12 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
               <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cliente</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {[
-                  ['Nombre',    contact.cliente_nombre],
-                  ['RUT',       contact.rut],
-                  ['Teléfono',  contact.telefono],
-                  ['Email',     contact.email],
-                  ['Plan',      contact.plan],
-                  ['Empresa',   contact.empresa],
+                  ['Nombre', contact.cliente_nombre],
+                  ['RUT', contact.rut],
+                  ['Teléfono', contact.telefono],
+                  ['Email', contact.email],
+                  ['Plan', contact.plan],
+                  ['Empresa', contact.empresa],
                 ].map(([l, v]) => v ? (
                   <div key={l}>
                     <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>{l}</p>
@@ -711,8 +719,8 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                 </div>
                 <div>
                   <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>Etapa Kanban</p>
-                  <select 
-                    value={conv.motivo_label || ''} 
+                  <select
+                    value={conv.motivo_label || ''}
                     onChange={(e) => doAction('typification', 'Etapa actualizada', { motivoLabel: e.target.value })}
                     style={{ width: '100%', fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}
                   >
@@ -752,12 +760,12 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
 
 // ── Fila de la bandeja ────────────────────────────────────────────────────────
 function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }) {
-  const contact  = conv.contacts || {};
+  const contact = conv.contacts || {};
   const campaign = conv.campaigns;
   const group = groups.find(g => g.id === conv.assigned_group_id);
   const user = tenantUsers.find(u => u.user_id === conv.assigned_to);
-  const sent     = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
-  const fuga     = FUGA_CONFIG[conv.fuga_final]               || FUGA_CONFIG.sin_riesgo;
+  const sent = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
+  const fuga = FUGA_CONFIG[conv.fuga_final] || FUGA_CONFIG.sin_riesgo;
   const initials = (n) => n ? n.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?';
 
   return (
@@ -771,8 +779,10 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
       onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = getChannelBg(conv.canal, c, 'normal'); }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         {/* Avatar */}
-        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0
+        }}>
           {initials(contact.cliente_nombre)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -798,12 +808,12 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
             )}
             {group && (
               <span style={{ fontSize: 9, fontWeight: 600, color: c.title, background: c.card, border: `0.5px solid ${c.border}`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Grupo asignado">
-                <i className="ti ti-users" style={{fontSize: 10}}/> {group.name}
+                <i className="ti ti-users" style={{ fontSize: 10 }} /> {group.name}
               </span>
             )}
             {user && (
               <span style={{ fontSize: 9, fontWeight: 600, color: '#2563eb', background: '#2563eb15', border: `0.5px solid #2563eb40`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Ejecutivo asignado">
-                <i className="ti ti-user" style={{fontSize: 10}}/> {user.display_name.split(' ')[0]}
+                <i className="ti ti-user" style={{ fontSize: 10 }} /> {user.display_name.split(' ')[0]}
               </span>
             )}
             <span title={sent.label} style={{ fontSize: 12 }}>{sent.emoji}</span>
@@ -819,28 +829,28 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
 
 // ── Panel de Reportería ───────────────────────────────────────────────────────
 function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
-  const [stats,   setStats]   = useState(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [period,  setPeriod]  = useState('month');
+  const [period, setPeriod] = useState('month');
   const [periodCampaign, setPeriodCampaign] = useState('');
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const now  = new Date();
+      const now = new Date();
       let from;
-      if (period === 'today') { from = new Date(now.setHours(0,0,0,0)).toISOString(); }
-      else if (period === 'week') { from = new Date(Date.now() - 7*86400000).toISOString(); }
-      else { from = new Date(Date.now() - 30*86400000).toISOString(); }
+      if (period === 'today') { from = new Date(now.setHours(0, 0, 0, 0)).toISOString(); }
+      else if (period === 'week') { from = new Date(Date.now() - 7 * 86400000).toISOString(); }
+      else { from = new Date(Date.now() - 30 * 86400000).toISOString(); }
       try {
         let url = `${API_URL}/api/crm/stats?tenantId=${tenantId}&from=${from}`;
         if (periodCampaign) url += `&campaignId=${periodCampaign}`;
-        const res  = await fetch(url);
+        const res = await fetch(url);
         if (!res.ok) throw new Error("API Error");
         const data = await res.json();
         setStats(data);
-      } catch (e) { 
-        console.error(e); 
+      } catch (e) {
+        console.error(e);
         setStats({ byStatus: {}, byCanal: {}, bySentimiento: {}, byFuga: {} });
       }
       setLoading(false);
@@ -849,13 +859,13 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
   }, [tenantId, period, periodCampaign]);
 
   if (loading) return <div style={{ padding: 40, color: c.subtitle, textAlign: 'center' }}>Cargando métricas...</div>;
-  if (!stats)  return null;
+  if (!stats) return null;
 
   const kpis = [
-    { l: 'Total conversaciones', v: stats.total,          color: '#534AB7', icon: 'ti-messages', action: () => onNavigate && onNavigate('all') },
-    { l: 'Tasa FCR (IA)',        v: stats.fcrRate + '%',  color: '#1D9E75', icon: 'ti-robot'        },
-    { l: 'Tasa escalación',      v: stats.escalationRate + '%', color: '#D85A30', icon: 'ti-user-check' },
-    { l: 'CSAT promedio',        v: stats.csatAvg ? stats.csatAvg + ' ★' : '—', color: '#EF9F27', icon: 'ti-star' },
+    { l: 'Total conversaciones', v: stats.total, color: '#534AB7', icon: 'ti-messages', action: () => onNavigate && onNavigate('all') },
+    { l: 'Tasa FCR (IA)', v: stats.fcrRate + '%', color: '#1D9E75', icon: 'ti-robot' },
+    { l: 'Tasa escalación', v: stats.escalationRate + '%', color: '#D85A30', icon: 'ti-user-check' },
+    { l: 'CSAT promedio', v: stats.csatAvg ? stats.csatAvg + ' ★' : '—', color: '#EF9F27', icon: 'ti-star' },
   ];
 
   const renderRechartsBar = (obj, colorMap, label, onBarClick) => {
@@ -913,9 +923,9 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
   return (
     <div style={{ padding: '0 2px' }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {[['today','Hoy'],['week','Semana'],['month','Mes']].map(([p, l]) => (
+        {[['today', 'Hoy'], ['week', 'Semana'], ['month', 'Mes']].map(([p, l]) => (
           <button key={p} onClick={() => setPeriod(p)}
-            style={{ padding: '5px 14px', fontSize: 12, borderRadius: 20, border: `1px solid ${period===p ? '#2563eb' : c.border}`, background: period===p ? '#2563eb' : 'transparent', color: period===p ? '#fff' : c.subtitle, cursor: 'pointer' }}>
+            style={{ padding: '5px 14px', fontSize: 12, borderRadius: 20, border: `1px solid ${period === p ? '#2563eb' : c.border}`, background: period === p ? '#2563eb' : 'transparent', color: period === p ? '#fff' : c.subtitle, cursor: 'pointer' }}>
             {l}
           </button>
         ))}
@@ -939,10 +949,10 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {Object.keys(stats.byStatus).length > 0      && renderRechartsBar(stats.byStatus,      STATUS_CONFIG,      '📊 Por estado', (id) => onNavigate && onNavigate('status', id))}
+        {Object.keys(stats.byStatus).length > 0 && renderRechartsBar(stats.byStatus, STATUS_CONFIG, '📊 Por estado', (id) => onNavigate && onNavigate('status', id))}
         {Object.keys(stats.bySentimiento).length > 0 && renderRechartsPie(stats.bySentimiento, SENTIMIENTO_CONFIG, '😊 Sentimiento al cierre', (id) => onNavigate && onNavigate('sentimiento', id))}
-        {Object.keys(stats.byFuga).length > 0        && renderRechartsPie(stats.byFuga,        FUGA_CONFIG,        '🚨 Riesgo de fuga', (id) => onNavigate && onNavigate('fuga', id))}
-        {Object.keys(stats.byCanal).length > 0       && renderRechartsBar(stats.byCanal,       null,               '📡 Por canal', (id) => onNavigate && onNavigate('canal', id))}
+        {Object.keys(stats.byFuga).length > 0 && renderRechartsPie(stats.byFuga, FUGA_CONFIG, '🚨 Riesgo de fuga', (id) => onNavigate && onNavigate('fuga', id))}
+        {Object.keys(stats.byCanal).length > 0 && renderRechartsBar(stats.byCanal, null, '📡 Por canal', (id) => onNavigate && onNavigate('canal', id))}
       </div>
     </div>
   );
@@ -981,7 +991,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
 
   const grouped = {};
   columns.forEach(col => { grouped[col.id] = []; });
-  
+
   conversations.forEach(conv => {
     const stage = conv.motivo_label || 'sin_etapa';
     if (grouped[stage]) grouped[stage].push(conv);
@@ -1031,15 +1041,15 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
               {grouped[col.id].map(conv => (
                 <div key={conv.id} onClick={() => onClick(conv.id)}
                   style={{ background: getChannelBg(conv.canal, c, 'kanban-normal'), border: `1px solid ${getChannelBorder(conv.canal, c)}`, borderRadius: 10, padding: 12, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s, background 0.1s' }}
-                  onMouseEnter={e => { 
-                    e.currentTarget.style.transform = 'translateY(-2px)'; 
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; 
-                    e.currentTarget.style.background = getChannelBg(conv.canal, c, 'hover'); 
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                    e.currentTarget.style.background = getChannelBg(conv.canal, c, 'hover');
                   }}
-                  onMouseLeave={e => { 
-                    e.currentTarget.style.transform = 'none'; 
-                    e.currentTarget.style.boxShadow = 'none'; 
-                    e.currentTarget.style.background = getChannelBg(conv.canal, c, 'kanban-normal'); 
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.background = getChannelBg(conv.canal, c, 'kanban-normal');
                   }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1072,31 +1082,31 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
 // ── Módulo principal CRM ──────────────────────────────────────────────────────
 export default function CRMManager({ tenantId, isDark = true, userId, userEmail, userRole, isSuperAdmin }) {
   const [conversations, setConversations] = useState([]);
-  const [selectedId,    setSelectedId]    = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const [view360Contact, setView360Contact] = useState(null);
-  const [alerts,        setAlerts]        = useState({ count: 0, alerts: [] });
-  const [campaigns,     setCampaigns]     = useState([]);
-  const [groups,        setGroups]        = useState([]);
-  const [tenantUsers,   setTenantUsers]   = useState([]);
-  const [filterStatus,  setFilterStatus]  = useState('my');
-  const [filterCanal,   setFilterCanal]   = useState('all');
-  const [filterFuga,    setFilterFuga]    = useState('all');
+  const [alerts, setAlerts] = useState({ count: 0, alerts: [] });
+  const [campaigns, setCampaigns] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [tenantUsers, setTenantUsers] = useState([]);
+  const [filterStatus, setFilterStatus] = useState('my');
+  const [filterCanal, setFilterCanal] = useState('all');
+  const [filterFuga, setFilterFuga] = useState('all');
   const [filterSentimiento, setFilterSentimiento] = useState('all');
-  const [filterCampaign,setFilterCampaign]= useState('');
-  const [search,        setSearch]        = useState('');
-  const [loading,       setLoading]       = useState(true);
-  const [tab,           setTab]           = useState('reports'); // 'inbox' | 'reports'
-  const [viewMode,      setViewMode]      = useState('board'); // 'list' | 'board'
+  const [filterCampaign, setFilterCampaign] = useState('');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('reports'); // 'inbox' | 'reports'
+  const [viewMode, setViewMode] = useState('board'); // 'list' | 'board'
   const [campaignTypifications, setCampaignTypifications] = useState([]);
   const [forgottenThreshold, setForgottenThreshold] = useState(12);
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
   const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    inputBg:   isDark ? '#1a1a1a' : '#f9fafb',
+    card: isDark ? '#111' : '#ffffff',
+    border: isDark ? '#222' : '#e5e7eb',
+    title: isDark ? '#ffffff' : '#111827',
+    subtitle: isDark ? '#aaaaaa' : '#6b7280',
+    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
     inputText: isDark ? '#ffffff' : '#111827',
   };
 
@@ -1155,7 +1165,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
     if (!tenantId) return;
     fetch(`${API_URL}/api/crm/campaigns?tenantId=${tenantId}`)
       .then(r => r.json()).then(d => setCampaigns(Array.isArray(d) ? d : [])).catch(console.error);
-    
+
     fetch(`${API_URL}/api/crm/groups?tenantId=${tenantId}`)
       .then(r => r.json()).then(d => setGroups(Array.isArray(d) ? d : [])).catch(console.error);
 
@@ -1163,7 +1173,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
       .then(r => r.json()).then(d => setTenantUsers(Array.isArray(d) ? d : [])).catch(console.error);
 
     supabase.from('tenants').select('forgotten_ticket_hours_threshold').eq('id', tenantId).single()
-      .then(({data}) => { if (data?.forgotten_ticket_hours_threshold) setForgottenThreshold(data.forgotten_ticket_hours_threshold); })
+      .then(({ data }) => { if (data?.forgotten_ticket_hours_threshold) setForgottenThreshold(data.forgotten_ticket_hours_threshold); })
       .catch(console.error);
   }, [tenantId]);
 
@@ -1178,15 +1188,15 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   }, [filterCampaign]);
 
   const FILTER_TABS = [
-    { id: 'my',            label: '🙋 Asignadas a mí' },
-    { id: 'open',          label: 'Activas'        },
-    { id: 'all',           label: 'Todas'          },
+    { id: 'my', label: '🙋 Asignadas a mí' },
+    { id: 'open', label: 'Activas' },
+    { id: 'all', label: 'Todas' },
     { id: 'waiting_human', label: '⚡ Necesitan Atención', badge: alerts.count },
-    { id: 'active',        label: '🤖 IA Activa'   },
-    { id: 'human_active',  label: '👨‍💼 Con Ejecutivo' },
-    { id: 'pending_csat',  label: '⭐ CSAT Pendiente' },
+    { id: 'active', label: '🤖 IA Activa' },
+    { id: 'human_active', label: '👨‍💼 Con Ejecutivo' },
+    { id: 'pending_csat', label: '⭐ CSAT Pendiente' },
     { id: 'pending_followup', label: '⏳ Pendientes' },
-    { id: 'closed',        label: '✅ Cerradas'    },
+    { id: 'closed', label: '✅ Cerradas' },
   ];
 
   return (
@@ -1200,12 +1210,14 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {[['inbox','📥 Bandeja'],['reports','📊 Reportes']].map(([id, label]) => (
+          {[['inbox', '📥 Bandeja'], ['reports', '📊 Reportes']].map(([id, label]) => (
             <button key={id} onClick={() => { setTab(id); setSelectedId(null); }}
-              style={{ padding: '8px 16px', fontSize: 13, fontWeight: tab === id ? 600 : 400, borderRadius: 8,
+              style={{
+                padding: '8px 16px', fontSize: 13, fontWeight: tab === id ? 600 : 400, borderRadius: 8,
                 border: `1px solid ${tab === id ? '#2563eb' : c.border}`,
                 background: tab === id ? '#2563eb' : 'transparent',
-                color: tab === id ? '#fff' : c.subtitle, cursor: 'pointer' }}>
+                color: tab === id ? '#fff' : c.subtitle, cursor: 'pointer'
+              }}>
               {label}
             </button>
           ))}
@@ -1216,7 +1228,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
         <ReportPanel tenantId={tenantId} c={c} campaigns={campaigns} onNavigate={(type, val) => {
           setTab('inbox');
           setViewMode('list'); // Switch to list view as requested
-          
+
           // Reset other filters to avoid conflicts when coming from reports
           setFilterStatus('all');
           setFilterCanal('all');
@@ -1261,138 +1273,140 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
           {/* Layout: bandeja + detalle */}
           {view360Contact ? (
             <div style={{ height: 'calc(100vh - 170px)', background: c.card, borderRadius: 12, overflow: 'hidden' }}>
-              <Contact360View 
-                contact={view360Contact} 
-                onBack={() => setView360Contact(null)} 
-                isDark={isDark} 
-                c={c} 
-                tenantId={tenantId} 
+              <Contact360View
+                contact={view360Contact}
+                onBack={() => setView360Contact(null)}
+                isDark={isDark}
+                c={c}
+                tenantId={tenantId}
                 userId={userId}
               />
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 0, background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 170px)' }}>
-            {/* Columna izquierda: Bandeja */}
-            <div className={`crm-list-col ${selectedId ? 'hide-on-mobile' : 'mobile-full-width'}`} style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-              {/* Filtros */}
-              <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
-                {forgottenTickets.length > 0 && (
-                  <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '12px 16px', margin: '0 0 16px 0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '20px' }}>🚨</span>
-                      <div>
-                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#991B1B' }}>¡Alerta de Cierre Duro!</p>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#B91C1C' }}>Tienes {forgottenTickets.length} conversación{forgottenTickets.length !== 1 ? 'es' : ''} inactiva{forgottenTickets.length !== 1 ? 's' : ''} por más de {forgottenThreshold} horas. Tipifíca{forgottenTickets.length !== 1 ? 'las' : 'la'} y ciérra{forgottenTickets.length !== 1 ? 'las' : 'la'}.</p>
+              {/* Columna izquierda: Bandeja */}
+              <div className={`crm-list-col ${selectedId ? 'hide-on-mobile' : 'mobile-full-width'}`} style={{ width: selectedId ? 340 : '100%', borderRight: selectedId ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                {/* Filtros */}
+                <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
+                  {forgottenTickets.length > 0 && (
+                    <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '12px 16px', margin: '0 0 16px 0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '20px' }}>🚨</span>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#991B1B' }}>¡Alerta de Cierre de Tickets!</p>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#B91C1C' }}>Tienes {forgottenTickets.length} conversación{forgottenTickets.length !== 1 ? 'es' : ''} inactiva{forgottenTickets.length !== 1 ? 's' : ''} por más de {forgottenThreshold} horas. Tipifíca{forgottenTickets.length !== 1 ? 'las' : 'la'} y ciérra{forgottenTickets.length !== 1 ? 'las' : 'la'}.</p>
+                        </div>
                       </div>
+                      <button onClick={() => { setViewMode('list'); setFilterStatus('human_active'); setFilterCanal('all'); setFilterCampaign(''); }} style={{ padding: '8px 14px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                        Filtrar Mis Tickets Olvidados
+                      </button>
                     </div>
-                    <button onClick={() => { setViewMode('list'); setFilterStatus('human_active'); setFilterCanal('all'); setFilterCampaign(''); }} style={{ padding: '8px 14px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                      Filtrar Mis Tickets Olvidados
-                    </button>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o ticket..."
+                      style={{ flex: 1, padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }} />
+                    {/* View Toggle */}
+                    <div style={{ display: 'flex', background: c.inputBg, borderRadius: 8, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+                      <button onClick={() => setViewMode('list')} title="Vista de Lista"
+                        style={{ padding: '0 10px', background: viewMode === 'list' ? '#2563eb' : 'transparent', color: viewMode === 'list' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer' }}>
+                        <i className="ti ti-list" style={{ fontSize: 16 }} />
+                      </button>
+                      <button onClick={() => setViewMode('board')} title="Vista de Tablero Kanban"
+                        style={{ padding: '0 10px', background: viewMode === 'board' ? '#2563eb' : 'transparent', color: viewMode === 'board' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer', borderLeft: `1px solid ${c.border}` }}>
+                        <i className="ti ti-layout-kanban" style={{ fontSize: 16 }} />
+                      </button>
+                    </div>
                   </div>
-                )}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o ticket..."
-                    style={{ flex: 1, padding: '7px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }} />
-                  {/* View Toggle */}
-                  <div style={{ display: 'flex', background: c.inputBg, borderRadius: 8, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
-                    <button onClick={() => setViewMode('list')} title="Vista de Lista"
-                      style={{ padding: '0 10px', background: viewMode === 'list' ? '#2563eb' : 'transparent', color: viewMode === 'list' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer' }}>
-                      <i className="ti ti-list" style={{ fontSize: 16 }} />
-                    </button>
-                    <button onClick={() => setViewMode('board')} title="Vista de Tablero Kanban"
-                      style={{ padding: '0 10px', background: viewMode === 'board' ? '#2563eb' : 'transparent', color: viewMode === 'board' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer', borderLeft: `1px solid ${c.border}` }}>
-                      <i className="ti ti-layout-kanban" style={{ fontSize: 16 }} />
-                    </button>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {FILTER_TABS.map(f => (
+                      <button key={f.id} onClick={() => setFilterStatus(f.id)}
+                        style={{
+                          fontSize: 10, padding: '3px 8px', borderRadius: 20, border: `1px solid ${filterStatus === f.id ? '#2563eb' : c.border}`,
+                          background: filterStatus === f.id ? '#2563eb' : 'transparent',
+                          color: filterStatus === f.id ? '#fff' : c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap'
+                        }}>
+                        {f.label}
+                        {f.badge > 0 && <span style={{ background: '#EF9F27', color: '#fff', borderRadius: 10, fontSize: 9, padding: '0 4px' }}>{f.badge}</span>}
+                      </button>
+                    ))}
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {FILTER_TABS.map(f => (
-                    <button key={f.id} onClick={() => setFilterStatus(f.id)}
-                      style={{ fontSize: 10, padding: '3px 8px', borderRadius: 20, border: `1px solid ${filterStatus === f.id ? '#2563eb' : c.border}`,
-                        background: filterStatus === f.id ? '#2563eb' : 'transparent',
-                        color: filterStatus === f.id ? '#fff' : c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap' }}>
-                      {f.label}
-                      {f.badge > 0 && <span style={{ background: '#EF9F27', color: '#fff', borderRadius: 10, fontSize: 9, padding: '0 4px' }}>{f.badge}</span>}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                  <select value={filterCanal} onChange={e => setFilterCanal(e.target.value)}
-                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                    <option value="all">Canales (Todos)</option>
-                    <option value="webchat">Web Chat</option>
-                    <option value="whatsapp">WhatsApp</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="email">Email</option>
-                  </select>
-                  <select value={filterFuga} onChange={e => setFilterFuga(e.target.value)}
-                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                    <option value="all">Riesgo (Todos)</option>
-                    <option value="bajo">Riesgo Bajo</option>
-                    <option value="medio">Riesgo Medio</option>
-                    <option value="alto">Riesgo Alto</option>
-                  </select>
-                  <select value={filterSentimiento} onChange={e => setFilterSentimiento(e.target.value)}
-                    style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                    <option value="all">Sentimiento (Todos)</option>
-                    <option value="positivo">Positivo</option>
-                    <option value="neutral">Neutral</option>
-                    <option value="negativo">Negativo</option>
-                  </select>
-                  {campaigns.length > 0 && (
-                    <select value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                    <select value={filterCanal} onChange={e => setFilterCanal(e.target.value)}
                       style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
-                      <option value="">Campañas (Todas)</option>
-                      {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+                      <option value="all">Canales (Todos)</option>
+                      <option value="webchat">Web Chat</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="instagram">Instagram</option>
+                      <option value="email">Email</option>
                     </select>
+                    <select value={filterFuga} onChange={e => setFilterFuga(e.target.value)}
+                      style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                      <option value="all">Riesgo (Todos)</option>
+                      <option value="bajo">Riesgo Bajo</option>
+                      <option value="medio">Riesgo Medio</option>
+                      <option value="alto">Riesgo Alto</option>
+                    </select>
+                    <select value={filterSentimiento} onChange={e => setFilterSentimiento(e.target.value)}
+                      style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                      <option value="all">Sentimiento (Todos)</option>
+                      <option value="positivo">Positivo</option>
+                      <option value="neutral">Neutral</option>
+                      <option value="negativo">Negativo</option>
+                    </select>
+                    {campaigns.length > 0 && (
+                      <select value={filterCampaign} onChange={e => setFilterCampaign(e.target.value)}
+                        style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
+                        <option value="">Campañas (Todas)</option>
+                        {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+                      </select>
+                    )}
+                  </div>
+                </div>
+                {/* Lista o Tablero */}
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  {loading ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>
+                      <i className="ti ti-loader-2" style={{ fontSize: 24, display: 'block', marginBottom: 8 }} />
+                      Cargando conversaciones...
+                    </div>
+                  ) : conversations.length === 0 ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>
+                      <i className="ti ti-messages-off" style={{ fontSize: 32, display: 'block', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontSize: 13 }}>No hay conversaciones con estos filtros</p>
+                    </div>
+                  ) : viewMode === 'board' && !selectedId ? (
+                    <KanbanBoard conversations={conversations} typifications={campaignTypifications} c={c} onClick={id => setSelectedId(id)} />
+                  ) : (
+                    conversations.map(conv => (
+                      <ConvRow key={conv.id} conv={conv} isSelected={selectedId === conv.id}
+                        onClick={() => setSelectedId(conv.id)} c={c} groups={groups} tenantUsers={tenantUsers} />
+                    ))
                   )}
                 </div>
               </div>
-              {/* Lista o Tablero */}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-                {loading ? (
-                  <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>
-                    <i className="ti ti-loader-2" style={{ fontSize: 24, display: 'block', marginBottom: 8 }} />
-                    Cargando conversaciones...
-                  </div>
-                ) : conversations.length === 0 ? (
-                  <div style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>
-                    <i className="ti ti-messages-off" style={{ fontSize: 32, display: 'block', marginBottom: 10 }} />
-                    <p style={{ margin: 0, fontSize: 13 }}>No hay conversaciones con estos filtros</p>
-                  </div>
-                ) : viewMode === 'board' && !selectedId ? (
-                  <KanbanBoard conversations={conversations} typifications={campaignTypifications} c={c} onClick={id => setSelectedId(id)} />
-                ) : (
-                  conversations.map(conv => (
-                    <ConvRow key={conv.id} conv={conv} isSelected={selectedId === conv.id}
-                      onClick={() => setSelectedId(conv.id)} c={c} groups={groups} tenantUsers={tenantUsers} />
-                  ))
-                )}
-              </div>
-            </div>
 
-            {/* Columna derecha: Detalle */}
-            {selectedId && (
-              <div className="crm-detail-col mobile-full-width" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <ConversationDetail
-                  convId={selectedId}
-                  tenantId={tenantId}
-                  userId={userId}
-                  displayName={displayName}
-                  userRole={userRole}
-                  isSuperAdmin={isSuperAdmin}
-                  c={c}
-                  campaigns={campaigns}
-                  groups={groups}
-                  tenantUsers={tenantUsers}
-                  onBack={() => setSelectedId(null)}
-                  onView360={(cId) => setView360Contact(cId)}
-                  hasTooManyForgotten={hasTooManyForgotten}
-                  forgottenCount={forgottenTickets.length}
-                />
-              </div>
-            )}
-          </div>
+              {/* Columna derecha: Detalle */}
+              {selectedId && (
+                <div className="crm-detail-col mobile-full-width" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <ConversationDetail
+                    convId={selectedId}
+                    tenantId={tenantId}
+                    userId={userId}
+                    displayName={displayName}
+                    userRole={userRole}
+                    isSuperAdmin={isSuperAdmin}
+                    c={c}
+                    campaigns={campaigns}
+                    groups={groups}
+                    tenantUsers={tenantUsers}
+                    onBack={() => setSelectedId(null)}
+                    onView360={(cId) => setView360Contact(cId)}
+                    hasTooManyForgotten={hasTooManyForgotten}
+                    forgottenCount={forgottenTickets.length}
+                  />
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
