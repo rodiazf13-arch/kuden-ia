@@ -25,7 +25,7 @@ const FONT_MONO    = 'monospace';
 const KUDEN_LOGO   = "/kuden-logo.png";
 
 const CHANNELS = [
-  { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1FA1C4", bg:"#DCF2F9" },
+  { id:"webchat",  label:"Web Chat",  icon:"ti-world",          color:"#1FA1C4", bg:"#DCF2F9" },
   { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
   { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#3E6AA8", bg:"#E7EFF9" },
   { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#137E9C", bg:"#D4EEF6" },
@@ -201,7 +201,7 @@ function ClienteForm({ profile, dbProfiles, setProfile, onStart }) {
   const [telefono,  setTelefono]  = useState("");
   const [plan,      setPlan]      = useState("");
   const [direccion, setDireccion] = useState("");
-  const [canal,     setCanal]     = useState("web");
+  const [canal,     setCanal]     = useState("webchat");
   const ok = nombre.trim()!==""&&rut.trim()!==""&&telefono.trim()!==""&&plan!=="";
   return (
     <div style={{ background:"var(--color-background-primary)", border:"0.5px solid var(--color-border-tertiary)", borderRadius:"var(--border-radius-lg)", padding:16, display:"flex", flexDirection:"column", gap:12 }}>
@@ -592,7 +592,7 @@ export default function KudenSimulator({ tenantId }) {
   const [dbProfiles,     setDbProfiles]     = useState([]);
   const [masterConfig,   setMasterConfig]   = useState(null);
   const [cliente,        setCliente]        = useState(null);
-  const [canal,          setCanal]          = useState("web");
+  const [canal,          setCanal]          = useState("webchat");
   const [messages,       setMessages]       = useState([]);
   const [input,          setInput]          = useState("");
   const [loading,        setLoading]        = useState(false);
@@ -624,7 +624,7 @@ export default function KudenSimulator({ tenantId }) {
   const startRef   = useRef(null);
   const profileRef = useRef(null);
   const clienteRef = useRef(null);
-  const canalRef   = useRef("web");
+  const canalRef   = useRef("webchat");
   const closedRef  = useRef(false);
   const loadingRef = useRef(false);
   const crmRef     = useRef(null);   // permite leer ticketId desde doSend (useCallback)

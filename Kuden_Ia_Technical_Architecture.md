@@ -37,8 +37,9 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
 *   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de contactos (Leads) y un panel de chat en tiempo real a la derecha. En pantallas móviles, asume un comportamiento "Full Screen".
 *   `CopilotManager.jsx`: Interfaz de chat con Kimi.
-*   `KnowledgeBase.jsx`: UI para la carga de documentos. Convierte PDFs/TXTs en chunks y los envía al backend para su vectorización (RAG).
+*   `KnowledgeBase.jsx`: UI para la carga de documentos (Base RAG). Permite subir PDFs, archivos Markdown y URLs. Al ingresar una URL de sitio web, realiza Web Scraping automático, convierte el contenido a chunks y lo envía al backend para su vectorización en pgvector.
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
+*   `AIConfigManager.jsx`: Identidad Maestra. Pantalla superadmin para gestionar los proveedores LLM internos (Kimi y Resúmenes). Incluye el **Buzón de Entrenamiento Auto-Didacta (RAG)** para aprobar/rechazar sugerencias extraídas de conversaciones y asignarlas a perfiles IA específicos.
 *   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers). KimiInsights utiliza `recharts` para curvas de área y soporta exportación de reportes a Word (.doc).
 *   `KimiMascot.jsx`: Componente global persistente en la UI que interactúa visualmente con el usuario, simulando el "cerebro" de la plataforma.
 *   `KimiWidget.jsx`: Widget global flotante de asistencia (Agent Assist interno). Mantiene estado de apertura y tiene consciencia espacial al detectar cambios de pestaña (`currentTab`) para inyectar este `appContext` al LLM en `server.js` de forma invisible.
@@ -53,7 +54,7 @@ Se utiliza CSS Vanilla puro en `index.css`. Se basa en variables CSS (`--bg-main
 Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corriendo en el puerto 3001.
 
 ### 3.1. Servicios Core (`/backend/*.js`)
-*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase. Implementa el **Gatekeeper Transaccional** para validar action locks antes de invocar herramientas en n8n. Contiene hooks asíncronos como `generateExecutiveSummary` para operaciones post-cierre.
+*   `server.js`: El monolito. Inicializa Express, carga CORS, expone todas las rutas (`/api/crm`, `/api/chat`, `/api/auth`, `/api/webhook`) e interactúa con el SDK de Supabase. Implementa el **Gatekeeper Transaccional** para validar action locks antes de invocar herramientas en n8n. Contiene hooks asíncronos como `generateExecutiveSummary` y `generateRAGSuggestion` para operaciones post-cierre y aprendizaje auto-didacta.
 *   `redisClient.js`: Capa de caché efímera conectada a una instancia de Redis. Administra el estado en memoria de las conversaciones (`conv_history:*`) para inyectar el contexto al LLM en milisegundos sin sobrecargar PostgreSQL.
 *   `llmService.js`: Encargado de hablar con la API del LLM. Posee la lógica para inyectar el RAG (Contexto de la empresa), el Tono del Asistente y decidir las herramientas (Tools) a usar. **Soporta modelos disociados** (ej. Sonnet para el copiloto, Haiku para resúmenes).
 *   `ragService.js`: Recibe textos, los divide en *Chunks* usando técnicas heurísticas, genera el Vector Embedding (fijado en 768 dimensiones) y hace el `INSERT` en PgVector. También hace la consulta de similitud del coseno al recuperar.
@@ -94,6 +95,7 @@ Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vect
 *   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `lead_phone` (o email), `status` (Etapa del Kanban), `source` (whatsapp, email, web), `resumen_ejecutivo`.
 *   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.
+*   `rag_suggestions`: Tabla para el entrenamiento auto-didacta (Human-in-the-loop). Almacena pares de Pregunta/Respuesta sugeridos por el LLM tras analizar la intervención de ejecutivos humanos. Campos: `id`, `tenant_id`, `ai_profile_id`, `suggested_question`, `suggested_answer`, `status`.
 *   `agent_action_locks`: Tabla de control transaccional (Gatekeeper) que registra un hash único por cada herramienta invocada por el LLM para el inquilino/contacto, previniendo acciones duplicadas.
 *   `audit_logs`: Trazabilidad técnica. Usado por el System Health Dashboard.
 

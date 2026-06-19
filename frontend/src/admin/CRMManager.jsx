@@ -46,13 +46,13 @@ const CHANNEL_COLORS = {
   email:     { rgb: '59, 130, 246' }, // Azul
   whatsapp:  { rgb: '37, 211, 102' }, // Verde
   instagram: { rgb: '225, 48, 108' }, // Rosado
-  web:       { rgb: '234, 179, 8'  }  // Amarillo
+  webchat:   { rgb: '234, 179, 8'  }  // Amarillo
 };
 
 const normalizeCanal = (canal) => {
   if (!canal) return null;
   const c = canal.toLowerCase().replace(/\s/g, '');
-  if (c === 'web' || c === 'webchat') return 'web';
+  if (c === 'web' || c === 'webchat') return 'webchat';
   return c;
 };
 
@@ -728,7 +728,7 @@ function ConvRow({ conv, isSelected, onClick, c }) {
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             {normalizeCanal(conv.canal) === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#3b82f6' }} title="Email" />}
             {normalizeCanal(conv.canal) === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
-            {normalizeCanal(conv.canal) === 'web' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
+            {normalizeCanal(conv.canal) === 'webchat' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
             {normalizeCanal(conv.canal) === 'instagram' && <i className="ti ti-brand-instagram" style={{ fontSize: 13, color: '#E1306C' }} title="Instagram" />}
             <StatusBadge status={conv.status} />
             {campaign && (

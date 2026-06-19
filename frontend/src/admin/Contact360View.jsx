@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const CHANNELS = [
-  { id:"web",      label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
+  { id:"webchat",  label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
   { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
   { id:"email",    label:"Email",     icon:"ti-mail",           color:"#3b82f6", bg:"#dbeafe" },
   { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#534AB7", bg:"#EEEDFE" },
@@ -55,7 +55,7 @@ function DashboardPerfil({ contact, conversations, c, isDark }) {
   
   const cFreq = {};
   conversations.forEach(conv=>{ 
-    const can = conv.canal || 'web';
+    const can = conv.canal || 'webchat';
     cFreq[can]=(cFreq[can]||0)+1; 
   });
   const cEntries = Object.entries(cFreq).sort((a,b)=>b[1]-a[1]);
