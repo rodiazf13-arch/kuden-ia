@@ -1135,7 +1135,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
     return conversations.filter(c => {
       const isActive = c.status === 'active' || c.status === 'human_active' || c.status === 'pending_followup';
       if (!isActive || c.assigned_to !== userId) return false;
-      const lastUpdate = new Date(c.updated_at || c.created_at);
+      const lastUpdate = new Date(c.last_message_at || c.updated_at || c.created_at);
       const hoursSinceUpdate = (new Date() - lastUpdate) / (1000 * 60 * 60);
       return hoursSinceUpdate >= forgottenThreshold;
     });
