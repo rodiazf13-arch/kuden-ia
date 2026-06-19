@@ -1440,7 +1440,7 @@ app.get("/api/crm/conversations", async (req, res) => {
     let query = supabase
       .from("conversations")
       .select(`
-        id, ticket_id, status, canal, is_ai_active, assigned_to,
+        id, ticket_id, status, canal, is_ai_active, assigned_to, assigned_group_id,
         last_message_at, last_message_preview, unread_count,
         sentimiento_final, fuga_final, intencion, csat_final,
         campaign_id, motivo_label,
@@ -1452,7 +1452,14 @@ app.get("/api/crm/conversations", async (req, res) => {
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
     if (status && status !== "all") {
-      if (status === "open") query = query.neq("status", "closed");
+      if (status === "my" && userId) {
+        const { data: ug } = await supabase.from("agent_group_users").select("group_id").eq("user_id", userId);
+        const gIds = ug ? ug.map(g => g.group_id) : [];
+        let orStr = `assigned_to.eq.${userId}`;
+        if (gIds.length > 0) orStr += `,assigned_group_id.in.(${gIds.join(',')})`;
+        query = query.neq("status", "closed").or(orStr);
+      }
+      else if (status === "open") query = query.neq("status", "closed");
       else query = query.eq("status", status);
     }
     if (canal && canal !== "all") query = query.eq("canal", canal);

@@ -266,6 +266,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
         canal: canal,
         motivo_label: 'Conversación Saliente',
         assigned_to: userId,
+        ticket_id: 'KUD-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
         last_message_at: new Date().toISOString()
       }).select();
 
