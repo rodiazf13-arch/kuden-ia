@@ -296,7 +296,7 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '12px', color: c.label }}>Rol</label>
             <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
-              <option value="agent">Agente (Solo simulador)</option>
+              <option value="agent">Agente (CRM + Contactos)</option>
               <option value="admin">Administrador (Acceso total)</option>
             </select>
           </div>

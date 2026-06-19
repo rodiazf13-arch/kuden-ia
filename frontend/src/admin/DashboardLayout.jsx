@@ -88,7 +88,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       title: 'Operaciones CRM',
       items: [
         { id: 'crm', label: 'CRM', icon: 'ti-messages', badge: alertCount > 0 ? alertCount : null, badgeColor: '#EF9F27' },
-        { id: 'campaigns', label: 'Campañas', icon: 'ti-speakerphone' },
+        { id: 'campaigns', label: 'Campañas', icon: 'ti-speakerphone', adminOnly: true },
         { id: 'contacts', label: 'Contactos', icon: 'ti-address-book' }
       ]
     },
@@ -106,7 +106,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
     {
       title: 'Administración',
       items: [
-        { id: 'users', label: 'Usuarios y Grupos', icon: 'ti-users' },
+        { id: 'users', label: 'Usuarios y Grupos', icon: 'ti-users', adminOnly: true },
         { id: 'tenants', label: 'Empresas', icon: 'ti-building', superAdminOnly: true },
         { id: 'global_keys', label: 'Llaves API', icon: 'ti-key', superAdminOnly: true },
         { id: 'billing', label: 'Tarificador', icon: 'ti-receipt', superAdminOnly: true },
