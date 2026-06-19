@@ -1378,10 +1378,12 @@ app.post("/api/crm/groups", async (req, res) => {
     if (grpErr) throw grpErr;
 
     if (users.length > 0) {
-      await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: grp.id, user_id: u })));
+      const { error: userErr } = await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: grp.id, user_id: u })));
+      if (userErr) throw userErr;
     }
     if (campaigns.length > 0) {
-      await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: grp.id, campaign_id: c, is_default: false })));
+      const { error: campErr } = await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: grp.id, campaign_id: c, is_default: false })));
+      if (campErr) throw campErr;
     }
     return res.json({ success: true, group: grp });
   } catch (e) {
@@ -1400,13 +1402,15 @@ app.put("/api/crm/groups/:id", async (req, res) => {
     // Sincronizar usuarios
     await supabase.from("agent_group_users").delete().eq("group_id", id);
     if (users.length > 0) {
-      await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: id, user_id: u })));
+      const { error: userErr } = await supabase.from("agent_group_users").insert(users.map(u => ({ group_id: id, user_id: u })));
+      if (userErr) throw userErr;
     }
     
     // Sincronizar campañas
     await supabase.from("campaign_groups").delete().eq("group_id", id);
     if (campaigns.length > 0) {
-      await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: id, campaign_id: c, is_default: false })));
+      const { error: campErr } = await supabase.from("campaign_groups").insert(campaigns.map(c => ({ group_id: id, campaign_id: c, is_default: false })));
+      if (campErr) throw campErr;
     }
     return res.json({ success: true });
   } catch (e) {

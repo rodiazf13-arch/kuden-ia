@@ -433,13 +433,17 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '12px', color: c.label }}>Usuarios Asignados (Múltiple)</label>
                   <select multiple value={groupUsers} onChange={e => setGroupUsers(Array.from(e.target.selectedOptions, option => option.value))} style={{ ...inputStyle, height: '100px' }}>
-                    {tenantUsers.map(u => <option key={u.user_id} value={u.user_id}>{u.display_name || u.email}</option>)}
+                    {tenantUsers
+                      .filter(u => !isSuperAdmin || !selectedTenant || u.tenant_id === selectedTenant)
+                      .map(u => <option key={u.user_id} value={u.user_id}>{u.display_name || u.email}</option>)}
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '12px', color: c.label }}>Campañas Autorizadas (Múltiple)</label>
                   <select multiple value={groupCampaigns} onChange={e => setGroupCampaigns(Array.from(e.target.selectedOptions, option => option.value))} style={{ ...inputStyle, height: '100px' }}>
-                    {campaigns.map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
+                    {campaigns
+                      .filter(cam => !isSuperAdmin || !selectedTenant || cam.tenant_id === selectedTenant)
+                      .map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
                   </select>
                   <p style={{ margin: 0, fontSize: '11px', color: c.subtitle }}>Si no seleccionas campañas, el grupo no verá ninguna conversación por defecto.</p>
                 </div>
