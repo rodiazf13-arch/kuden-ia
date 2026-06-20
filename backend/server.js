@@ -1927,6 +1927,8 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const nameKey = mapping['cliente_nombre'];
     const transcriptKey = mapping['transcript'];
     const recordingKey = mapping['recordingUrl'];
+    const campaignKey = mapping['campaign_id'];
+    const motivoKey = mapping['motivo_label'];
 
     if (!phoneKey || !payload[phoneKey]) {
       return res.status(400).json({ error: "No se encontró un número de teléfono en el payload bajo la llave configurada." });
@@ -1938,10 +1940,28 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const transcript = (transcriptKey && payload[transcriptKey]) ? payload[transcriptKey] : "[Llamada de Voz Registrada sin Transcripción]";
     const recordingUrl = (recordingKey && payload[recordingKey]) ? payload[recordingKey] : null;
 
+    // Obtener campaña asociada
+    let campaignId = null;
+    if (campaignKey && payload[campaignKey]) {
+      campaignId = payload[campaignKey];
+    } else {
+      // Fallback: primera campaña del tenant
+      const { data: defaultCamp } = await supabase.from('campaigns').select('id').eq('tenant_id', tenantId).limit(1).maybeSingle();
+      if (defaultCamp) {
+        campaignId = defaultCamp.id;
+      }
+    }
+
+    // Obtener tipificación (motivo_label)
+    const motivoLabel = (motivoKey && payload[motivoKey]) ? payload[motivoKey] : null;
+
+    // Generar ticket ID
+    const ticketId = "VOX-" + Math.floor(100000 + Math.random() * 900000);
+
     // 3. Extraer custom fields adicionales
     const additionalFields = {};
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
-      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl'].includes(kudenField)) continue;
+      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label'].includes(kudenField)) continue;
       if (payload[jsonKey] !== undefined && payload[jsonKey] !== null) {
         additionalFields[kudenField] = payload[jsonKey];
       }
@@ -1976,6 +1996,9 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
         contact_id: contact.id, 
         status: 'closed', 
         tenant_id: tenantId, 
+        ticket_id: ticketId,
+        campaign_id: campaignId,
+        motivo_label: motivoLabel,
         last_message_at: now, 
         closed_at: now,
         canal: 'voz',
@@ -2134,7 +2157,7 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
     let assignmentUpdated = false;
     const updatePayload = {};
 
-    if (!conv.assigned_to && userId) {
+    if (!conv.assigned_to && userId && !isInternalNote) {
       updatePayload.assigned_to = userId;
       updatePayload.status = "human_active";
       updatePayload.is_ai_active = false;

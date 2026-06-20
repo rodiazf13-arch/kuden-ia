@@ -39,7 +39,9 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
     { key: 'direccion', label: 'Dirección' },
     { key: 'comuna', label: 'Comuna' },
     { key: 'ciudad', label: 'Ciudad' },
-    { key: 'region', label: 'Región' }
+    { key: 'region', label: 'Región' },
+    { key: 'motivo_label', label: '[Conversación] Tipificación / Estado Cierre' },
+    { key: 'campaign_id', label: '[Conversación] ID Campaña Kuden' }
   ];
 
   const systemFields = [

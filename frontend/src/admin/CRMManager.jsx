@@ -46,7 +46,8 @@ const CHANNEL_COLORS = {
   email: { rgb: '59, 130, 246' }, // Azul
   whatsapp: { rgb: '37, 211, 102' }, // Verde
   instagram: { rgb: '225, 48, 108' }, // Rosado
-  webchat: { rgb: '234, 179, 8' }  // Amarillo
+  webchat: { rgb: '234, 179, 8' },  // Amarillo
+  voz: { rgb: '139, 92, 246' }  // Morado (Violeta)
 };
 
 const normalizeCanal = (canal) => {
@@ -346,6 +347,12 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
       setTypifications([]);
     }
   }, [data?.campaign_id]);
+
+  useEffect(() => {
+    if (data?.canal === 'voz') {
+      setIsNote(true);
+    }
+  }, [data?.canal]);
 
   useEffect(() => {
     const t = setInterval(fetchDetail, 5000);
@@ -693,26 +700,32 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             <div ref={bottomRef} />
           </div>
           {/* Input ejecutivo */}
-          {(status === 'human_active' && isMyConv) || isSuperAdmin || userRole === 'admin' ? (
+          {(status === 'human_active' && isMyConv) || isSuperAdmin || userRole === 'admin' || conv.canal === 'voz' ? (
             <div style={{ padding: '10px 12px', borderTop: `1px solid ${c.border}`, background: c.card }}>
               <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                <button onClick={() => setIsNote(false)}
-                  style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${!isNote ? '#2563eb' : c.border}`, background: !isNote ? '#2563eb15' : 'transparent', color: !isNote ? '#2563eb' : c.subtitle, cursor: 'pointer' }}>
-                  💬 Mensaje
-                </button>
+                {conv.canal !== 'voz' && (
+                  <button onClick={() => setIsNote(false)}
+                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${!isNote ? '#2563eb' : c.border}`, background: !isNote ? '#2563eb15' : 'transparent', color: !isNote ? '#2563eb' : c.subtitle, cursor: 'pointer' }}>
+                    💬 Mensaje
+                  </button>
+                )}
                 <button onClick={() => setIsNote(true)}
                   style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isNote ? '#EF9F27' : c.border}`, background: isNote ? '#EF9F2715' : 'transparent', color: isNote ? '#EF9F27' : c.subtitle, cursor: 'pointer' }}>
-                  🔒 Nota interna
+                  🔒 Nota interna {conv.canal === 'voz' && '(Llamada de Voz)'}
                 </button>
-                <button onClick={handleSuggestAI} disabled={suggesting}
-                  style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid #1D9E75`, background: '#1D9E7515', color: '#1D9E75', cursor: suggesting ? 'wait' : 'pointer', opacity: suggesting ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {suggesting ? <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }} /> : <i className="ti ti-sparkles" />} Sugerencia IA
-                </button>
-                {emailSignature && !isNote && (
-                  <button onClick={() => setInput(prev => prev + (prev.endsWith('\n') ? '' : '\n\n') + emailSignature)}
-                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <i className="ti ti-signature" /> Insertar Firma
-                  </button>
+                {conv.canal !== 'voz' && (
+                  <>
+                    <button onClick={handleSuggestAI} disabled={suggesting}
+                      style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid #1D9E75`, background: '#1D9E7515', color: '#1D9E75', cursor: suggesting ? 'wait' : 'pointer', opacity: suggesting ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {suggesting ? <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }} /> : <i className="ti ti-sparkles" />} Sugerencia IA
+                    </button>
+                    {emailSignature && !isNote && (
+                      <button onClick={() => setInput(prev => prev + (prev.endsWith('\n') ? '' : '\n\n') + emailSignature)}
+                        style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <i className="ti ti-signature" /> Insertar Firma
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
@@ -895,6 +908,7 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
             {normalizeCanal(conv.canal) === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
             {normalizeCanal(conv.canal) === 'webchat' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
             {normalizeCanal(conv.canal) === 'instagram' && <i className="ti ti-brand-instagram" style={{ fontSize: 13, color: '#E1306C' }} title="Instagram" />}
+            {normalizeCanal(conv.canal) === 'voz' && <i className="ti ti-microphone" style={{ fontSize: 13, color: '#8b5cf6' }} title="Llamada de Voz" />}
             <StatusBadge status={conv.status} />
             {(conv.status === 'waiting_human' || conv.status === 'human_active') && <SLABadge lastMessageAt={conv.last_message_at} warningMinutes={campaign?.sla_warning_minutes} dangerMinutes={campaign?.sla_danger_minutes} />}
             {campaign && (
@@ -1435,6 +1449,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                       <option value="whatsapp">WhatsApp</option>
                       <option value="instagram">Instagram</option>
                       <option value="email">Email</option>
+                      <option value="voz">Llamada de Voz</option>
                     </select>
                     <select value={filterFuga} onChange={e => setFilterFuga(e.target.value)}
                       style={{ flex: 1, minWidth: 100, padding: '5px 8px', fontSize: 11, borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none' }}>
