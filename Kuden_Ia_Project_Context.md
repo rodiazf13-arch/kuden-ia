@@ -75,7 +75,8 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 ### FASE 2: Multicanalidad Oficial y Campañas
 1.  ✅ **Estructura de Campañas y Tipificación:** Subdividir clientes en campañas y aplicar perfiles de IA distintos. Completado.
 2.  ✅ **Meta Tech Provider (Webhook Serverless & Supabase Queue):** Proceso oficial de Meta para WhatsApp/Instagram. Arquitectura *Serverless* implementada en Vercel (`frontend/api/webhook/whatsapp.js`) para recibir y responder a cientos de mensajes por segundo con código 200 OK de inmediato, encolándolos en Supabase (`whatsapp_webhooks_queue`). Un Worker asíncrono en Railway los procesa sin saturar el hilo principal de Node. (Falta vinculación final con Facebook App).
-3.  **Voz y VICIdial:** Transcripción y análisis de llamadas de voz mediante un microservicio de baja latencia.
+3.  ✅ **Voz y VICIdial:** Transcripción, análisis y registro automático de llamadas de voz finalizadas mediante el endpoint webhook dinámico de Kuden.
+
 
 ### FASE 3: Ecosistema IA, RAG y Vista 360
 1.  ✅ **Vista 360° Omnicanal:** Unificar la línea de tiempo de un contacto (Web + WhatsApp + Voz) para que el ejecutivo humano y la IA tengan todo el contexto histórico. **COMPLETADO.** Se integró `Contact360View` dentro del `CRMManager` permitiendo a los ejecutivos ver el historial completo del contacto sin salir del chat en vivo. En el backend, se agregó la inyección automática del `[HISTORIAL OMNICANAL RECIENTE]` al prompt maestro, otorgándole a Kuden IA la memoria de conversaciones pasadas a través de cualquier canal.
@@ -103,8 +104,9 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     El sistema escanea la Vista 360° de los contactos. Si un cliente acumula interacciones frustradas en varios canales, el dashboard dispara una alerta roja y puede enviar automáticamente un correo/WhatsApp de retención *antes* de que el cliente decida irse.
 4.  ✅ **Entrenamiento RAG "Auto-Didacta" (Human-in-the-loop):**
     **COMPLETADO:** Se construyó un sistema de aprendizaje continuo. Un hook asíncrono en el backend analiza los tickets cerrados con intervención humana. Si detecta una nueva política o solución, genera un par Pregunta/Respuesta y lo envía a un Buzón en la vista "Identidad Maestra" (`AIConfigManager.jsx`). El superadministrador revisa, selecciona un Perfil IA de destino y al aprobar, la sugerencia se convierte en Markdown y se vectoriza automáticamente en Supabase `pgvector`, mejorando el conocimiento de la IA para futuros casos sin riesgo de alucinación.
-5.  **Integración Asíncrona de Voz Outbound (VICIdial + AI):**
-    **Regla de Arquitectura (Desacoplamiento):** Kuden NO construirá un motor SIP/VoIP interno. La marcación y el diálogo en vivo se delegan a la infraestructura experta (ej. VICIdial conectado a Retell AI). Al finalizar la llamada, el sistema inyecta vía Webhook la transcripción y el resumen directamente en el CRM de Kuden como un evento de voz. Esto alimenta la **Vista 360°** sin heredar la latencia y complejidad del streaming de audio en tiempo real.
+5.  ✅ **Integración Asíncrona de Voz Inbound y Outbound (VICIdial / Retell AI):**
+    **COMPLETADO.** Kuden cuenta con un webhook central (`POST /api/webhook/voice-call/:tenantId`) para llamadas finalizadas. El sistema genera un ticket único con prefijo `VOX-XXXXXX`, asocia automáticamente la llamada a la campaña correcta (por ID o por nombre de campaña), registra la transcripción y el audio, actualiza la información del contacto y dispara de forma asíncrona a "Shadow Kimi" para realizar la auditoría/resumen.
+
 6.  **A/B Testing de "Perfiles IA" (Basado en Recomendación, no Automático):**
     Para clientes de ventas, Kuden probará el perfil "Vendedor Consultivo" vs "Vendedor Urgencia". **Riesgo:** Apagar perfiles automáticamente sin volumen estadístico significativo puede arruinar campañas (falsos positivos). **Regla de Arquitectura:** El sistema generará reportes vía Kimi Insights sugiriendo el perfil ganador, pero la decisión de cambio será siempre manual por parte del administrador.
 7.  **Traducción y Multilingüismo en Tiempo Real:**
@@ -172,7 +174,9 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 - **Unificación de Canales:** Estandarización del canal "webchat" a nivel de DB y Componentes para consistencia de reportes.
 - **Reportes Interactivos:** Los gráficos de Reportes en el CRM ahora actúan como filtros dinámicos (clic en una barra de estado o canal redirige automáticamente a la vista de lista con los filtros aplicados).
 - **Métricas de Contactos Macro (NPS e Inteligencia Predictiva):** Se crearon scripts de backfill y triggers en Node.js que mantienen el `nps_historico` y el `riesgo_fuga` a nivel de contacto, exponiéndolos con insignias visuales (badges) y selectores dinámicos de columnas en el `ContactsManager`.
+- **Canal de Voz y Mapeo Dinámico (VICIdial / Retell AI):** Habilitación del canal oficial `voz` con color violeta e ícono de micrófono. El CRM (`CRMManager.jsx`) ahora bloquea la entrada de mensajes regulares a solo Notas Internas en conversaciones de voz, y el Hub de Integraciones provee un "Mantenedor" para configurar el mapeo dinámico entre parámetros del JSON externo y campos Kuden.
 - **Conversaciones Outbound (Omnicanalidad Reactiva):** Se incorporaron acciones rápidas en la "Vista 360" de Contactos para que el agente dispare una nueva conversación proactiva por WhatsApp, Email o Instagram. El sistema emite un evento global e inyecta al agente de inmediato en la ventana de mensajería del CRM.
+
 - **Control de Accesos Basado en Roles (RBAC):** Se refinó el perfil "Agente (CRM + Contactos)" para ocultar módulos administrativos y restringir el acceso al gestor de campañas y usuarios, garantizando la seguridad operativa.
 - **Mejora UX en Contactos:** Se añadió la funcionalidad de descargar plantillas CSV de ejemplo directamente desde el gestor de contactos para agilizar el *onboarding*.
 
@@ -219,10 +223,14 @@ Se ejecutó un plan de robustecimiento de infraestructura para mitigar los riesg
   - **Estado:** ✅ COMPLETADO
   - **Descripción:** Se implementó una función asíncrona (`generateExecutiveSummary`) que se dispara automáticamente cada vez que una conversación se cierra o se marca como resuelta. El sistema utiliza el modelo LLM configurado en "Identidad Maestra" (`summary_llm_model`) para leer el historial de `conversation_messages` y redactar un resumen estricto de 4 líneas, mostrándolo instantáneamente en la interfaz de `CRMManager.jsx`. Se aplicó una actualización retroactiva a todos los tickets pasados.
 
-- **Ruta C: Kimi Insights (Tablero Directivo / BI):**
-  - **Estado:** ✅ COMPLETADO
-  - **Descripción:** Se re-diseñó la pantalla de métricas convirtiéndola en un "Command Center" de Inteligencia de Negocios para Ejecutivos. Utiliza Glassmorphism y gráficos interactivos (`recharts`). El backend agrupa las conversaciones por día para mostrar curvas de tendencia de volumen de casos en los últimos 30 días. Incluye filtros interactivos por Campaña, barras de progreso de colores para el CSAT de ejecutivos y la capacidad de descargar el reporte narrativo de IA a formato Microsoft Word (.doc).
-
 - **Ruta D: Kimi Widget Contextual:**
   - **Estado:** ✅ COMPLETADO
   - **Descripción:** Se implementó `KimiWidget.jsx`, una burbuja de chat flotante que acompaña al usuario en toda la plataforma. El widget es "consciente de su contexto" (`appContext`): detecta en qué pantalla está el usuario (ej. "Campañas" o "Perfiles") y le avisa silenciosamente al backend cuando el usuario cambia de pestaña, inyectando esta información en el System Prompt. Esto permite a Kimi dar asesoría técnica y estratégica exacta según la sección que el usuario esté mirando.
+
+- **Ruta E: Webhook de Voz y Mantenedor de Mapeo:**
+  - **Estado:** ✅ COMPLETADO
+  - **Descripción:** Se implementó el soporte para recibir llamadas transcritas de plataformas externas de voz (VICIdial, Retell AI) y un configurador visual (Mantenedor) en el Hub de Integraciones. Permite a los administradores asociar dinámicamente las llaves del JSON entrante a columnas específicas de contactos en Kuden, resolviendo automáticamente los nombres de campañas (ej: "Ventas") a sus respectivos UUIDs en base de datos. En el CRM, las interacciones de voz se bloquean para que los ejecutivos solo puedan ingresar notas internas y no mensajes hacia el cliente, protegiendo el flujo de comunicación.
+
+- **Ruta C: Kimi Insights (Tablero Directivo / BI):**
+  - **Estado:** ✅ COMPLETADO
+  - **Descripción:** Se re-diseñó la pantalla de métricas convirtiéndola en un "Command Center" de Inteligencia de Negocios para Ejecutivos. Utiliza Glassmorphism y gráficos interactivos (`recharts`). El backend agrupa las conversaciones por día para mostrar curvas de tendencia de volumen de casos en los últimos 30 días. Incluye filtros interactivos por Campaña, barras de progreso de colores para el CSAT de ejecutivos y la capacidad de descargar el reporte narrativo de IA a formato Microsoft Word (.doc).

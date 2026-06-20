@@ -35,11 +35,13 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 ### 2.2. Componentes y Módulos Principales
 *   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. Funciona como un **Bus de Eventos Global** (ej. escuchando eventos custom `changeTab` para coordinar saltos automáticos entre módulos disjuntos como Contactos y CRM).
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
-*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de conversaciones, paneles de métricas interactivos (clic en un gráfico filtra la bandeja), y un panel de chat en tiempo real a la derecha. Soporta precarga automática de chats (`kuden_open_conv_id` en localStorage). Incluye el sistema de "Cierre Duro" (Obligatoriedad de Tipificación) y la pantalla de bloqueo de "Tickets Olvidados", limitando la acción de agentes con exceso de tickets inactivos. Además, incorpora el **SLA Monitor (SLABadge)** que cambia de color dinámicamente según umbrales de campaña, y utiliza **Supabase Realtime Presence** para mostrar quién está escribiendo y evitar la colisión multi-agente.
+*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de conversaciones, paneles de métricas interactivos (clic en un gráfico filtra la bandeja), y un panel de chat en tiempo real a la derecha. Soporta precarga automática de chats (`kuden_open_conv_id` en localStorage). Incluye el sistema de "Cierre Duro" (Obligatoriedad de Tipificación) y la pantalla de bloqueo de "Tickets Olvidados", limitando la acción de agentes con exceso de tickets inactivos. Además, incorpora el **SLA Monitor (SLABadge)** que cambia de color dinámicamente según umbrales de campaña, y utiliza **Supabase Realtime Presence** para mostrar quién está escribiendo y evitar la colisión multi-agente. **Actualización**: Incorpora el soporte visual completo para llamadas de voz (canal `voz`), pintando las tarjetas y burbujas de un color violeta distintivo e incluyendo filtros específicos. Cuando el canal es de voz, el chat bloquea la redacción saliente y la sugerencia de IA, forzando la creación exclusiva de notas internas en tickets que ya ingresaron cerrados en segundo plano.
 *   `ContactsManager.jsx` y `Contact360View.jsx`: Gestor de Leads a nivel macro. Soporta filtrado de estados y métricas. Desde la vista 360 se invocan las conversaciones Outbound (salientes) que generan registros silenciosos e inyectan al usuario directamente en el CRM.
 *   `CopilotManager.jsx`: Interfaz de chat con Kimi.
-*   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
+*   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n. **Actualización**: Incluye el render del nuevo componente `VoiceWebhookSettings.jsx`.
+*   `VoiceWebhookSettings.jsx` [NEW]: Interfaz administrativa (Mantenedor) para configurar el mapeo dinámico del Webhook de Voz. Permite copiar la URL única de integración y configurar qué llaves del JSON entrante del dialer (VICIdial, Retell AI) mapean a qué columnas base de la tabla `contacts` o `conversations` (incluyendo Custom Fields, Tipificaciones y Campañas).
 *   `AIConfigManager.jsx`: Identidad Maestra. Pantalla superadmin para gestionar los proveedores LLM internos (Kimi y Resúmenes). Incluye el **Buzón de Entrenamiento Auto-Didacta (RAG)** para aprobar/rechazar sugerencias extraídas de conversaciones y asignarlas a perfiles IA específicos.
+
 *   `KimiInsights.jsx` y `SystemHealth.jsx`: Dashboards de BI y monitoreo técnico de uso exclusivo (SuperAdmin y Managers). KimiInsights utiliza `recharts` para curvas de área y soporta exportación de reportes a Word (.doc).
 *   `KimiMascot.jsx`: Componente global persistente en la UI que interactúa visualmente con el usuario, simulando el "cerebro" de la plataforma.
 *   `KimiWidget.jsx`: Widget global flotante de asistencia (Agent Assist interno). Mantiene estado de apertura y tiene consciencia espacial al detectar cambios de pestaña (`currentTab`) para inyectar este `appContext` al LLM en `server.js` de forma invisible.
@@ -69,6 +71,8 @@ Ubicado en la carpeta `backend/`. Todo se orquesta a través de `server.js` corr
 El sistema expone Endpoints públicos protegidos por Tokens internos para que n8n inyecte datos:
 *   `POST /api/webhook/n8n-email`: Recibe payloads estructurados desde correos. Parsea el "Message-ID" para lograr Threading, y guarda arreglos de URLs (`attached_files`) si venían archivos adjuntos transformados desde Base64.
 *   `POST /api/webhook/whatsapp`: Estructura similar al email, pero mapea el número de teléfono como identificador único de Lead.
+*   `POST /api/webhook/voice-call/:tenantId` [NEW]: Endpoint para la ingesta asíncrona de llamadas de voz finalizadas. Parsea el cuerpo JSON entrante utilizando el mapeo configurado del tenant (`voice_webhook_mapping`). Genera un identificador de ticket con prefijo `VOX-XXXXXX`, busca/crea el contacto mediante su número telefónico enriqueciendo su metadata (Rut, Nombre, Plan), asocia dinámicamente la campaña (resolviendo nombres planos a sus UUIDs correspondientes) y tipifica de inmediato el ticket en estado `closed` con su respectiva transcripción y URL de grabación de audio. Al finalizar la inserción, dispara en segundo plano el resumen ejecutivo de "Shadow Kimi".
+
 
 ---
 
@@ -91,9 +95,10 @@ Cuando el LLM determina que el usuario quiere ejecutar una acción (ej. agendar 
 Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vectorial en una sola plataforma.
 
 ### 5.1. Esquema Relacional Principal
-*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n, `forgotten_ticket_hours_threshold` (Umbral configurable de horas límite para tickets inactivos).
+*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n, `forgotten_ticket_hours_threshold` (Umbral configurable de horas límite para tickets inactivos), y **`voice_webhook_mapping`** (JSONB) que almacena el diccionario de traducción de campos externos para el webhook de llamadas de voz.
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
 *   `agent_groups`: Grupos operativos (Ej. Nivel 1, Ventas VIP).
+
 *   `agent_group_users`: Relación N:M que define la pertenencia de un `tenant_user` a un `agent_group`.
 *   `campaigns`: Los temas o departamentos lógicos.
 *   `campaign_groups`: Relación N:M que autoriza a un `agent_group` a atender conversaciones de una `campaign`. Soporta `is_default` para enrutamiento inicial automático.

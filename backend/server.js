@@ -1908,6 +1908,18 @@ app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
   }
 });
 
+// Helper para resolver propiedades anidadas en un objeto mediante notación de puntos (ej: "call.to_number")
+function getNestedValue(obj, path) {
+  if (!path || !obj) return null;
+  const parts = path.split('.');
+  let current = obj;
+  for (const part of parts) {
+    if (current === null || current === undefined) return null;
+    current = current[part];
+  }
+  return current;
+}
+
 // ─── POST /api/webhook/voice-call/:tenantId ──────────────────────────────────
 // Webhook entrante desde VICIdial/Retell AI para llamadas de voz
 app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
@@ -1923,27 +1935,27 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const mapping = tenantData?.voice_webhook_mapping || {};
 
     // 2. Extraer campos base según el mapeo
-    const phoneKey = mapping['telefono']; // La llave en el JSON que trae el teléfono
+    const phoneKey = mapping['telefono']; // La llave en el JSON que trae el teléfono (ej: call.to_number)
     const nameKey = mapping['cliente_nombre'];
     const transcriptKey = mapping['transcript'];
     const recordingKey = mapping['recordingUrl'];
     const campaignKey = mapping['campaign_id'];
     const motivoKey = mapping['motivo_label'];
 
-    if (!phoneKey || !payload[phoneKey]) {
+    const rawPhone = phoneKey ? getNestedValue(payload, phoneKey) : null;
+    if (!phoneKey || !rawPhone) {
       return res.status(400).json({ error: "No se encontró un número de teléfono en el payload bajo la llave configurada." });
     }
 
-    const rawPhone = payload[phoneKey];
     const customerPhone = normalizePhone(rawPhone);
-    const customerName = (nameKey && payload[nameKey]) ? payload[nameKey] : rawPhone;
-    const transcript = (transcriptKey && payload[transcriptKey]) ? payload[transcriptKey] : "[Llamada de Voz Registrada sin Transcripción]";
-    const recordingUrl = (recordingKey && payload[recordingKey]) ? payload[recordingKey] : null;
+    const customerName = (nameKey && getNestedValue(payload, nameKey)) ? getNestedValue(payload, nameKey) : rawPhone;
+    const transcript = (transcriptKey && getNestedValue(payload, transcriptKey)) ? getNestedValue(payload, transcriptKey) : "[Llamada de Voz Registrada sin Transcripción]";
+    const recordingUrl = (recordingKey && getNestedValue(payload, recordingKey)) ? getNestedValue(payload, recordingKey) : null;
 
     // Obtener campaña asociada (soporta UUID o Nombre de Campaña)
     let campaignId = null;
-    if (campaignKey && payload[campaignKey]) {
-      const campVal = payload[campaignKey];
+    if (campaignKey && getNestedValue(payload, campaignKey)) {
+      const campVal = getNestedValue(payload, campaignKey);
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(campVal)) {
         campaignId = campVal;
@@ -1969,7 +1981,7 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     }
 
     // Obtener tipificación (motivo_label)
-    const motivoLabel = (motivoKey && payload[motivoKey]) ? payload[motivoKey] : null;
+    const motivoLabel = (motivoKey && getNestedValue(payload, motivoKey)) ? getNestedValue(payload, motivoKey) : null;
 
     // Generar ticket ID
     const ticketId = "VOX-" + Math.floor(100000 + Math.random() * 900000);
@@ -1978,8 +1990,9 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const additionalFields = {};
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
       if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label'].includes(kudenField)) continue;
-      if (payload[jsonKey] !== undefined && payload[jsonKey] !== null) {
-        additionalFields[kudenField] = payload[jsonKey];
+      const val = getNestedValue(payload, jsonKey);
+      if (val !== undefined && val !== null) {
+        additionalFields[kudenField] = val;
       }
     }
 
