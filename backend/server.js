@@ -1940,12 +1940,28 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const transcript = (transcriptKey && payload[transcriptKey]) ? payload[transcriptKey] : "[Llamada de Voz Registrada sin Transcripción]";
     const recordingUrl = (recordingKey && payload[recordingKey]) ? payload[recordingKey] : null;
 
-    // Obtener campaña asociada
+    // Obtener campaña asociada (soporta UUID o Nombre de Campaña)
     let campaignId = null;
     if (campaignKey && payload[campaignKey]) {
-      campaignId = payload[campaignKey];
-    } else {
-      // Fallback: primera campaña del tenant
+      const campVal = payload[campaignKey];
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(campVal)) {
+        campaignId = campVal;
+      } else {
+        // Buscar por nombre de campaña
+        const { data: foundCamp } = await supabase.from('campaigns')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('name', campVal)
+          .maybeSingle();
+        if (foundCamp) {
+          campaignId = foundCamp.id;
+        }
+      }
+    }
+    
+    // Fallback: primera campaña del tenant si no se encontró
+    if (!campaignId) {
       const { data: defaultCamp } = await supabase.from('campaigns').select('id').eq('tenant_id', tenantId).limit(1).maybeSingle();
       if (defaultCamp) {
         campaignId = defaultCamp.id;
