@@ -145,8 +145,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Indicador en tiempo real (ej. *"Víctor está respondiendo..."*) para evitar que dos agentes asignados al mismo grupo intenten responder al mismo ticket simultáneamente. Si un ticket está asignado a un usuario específico, se bloqueará para los demás.
 24. **Respuestas Rápidas (Macros / Canned Responses):**
     Sistema de atajos de teclado (ej. `/tarifas`) configurable por el administrador, permitiendo a los agentes enviar bloques de texto o PDFs pre-aprobados en 1 segundo, sin depender siempre de la generación del LLM.
-25. **Tipificación Obligatoria y Cierre Duro:**
-    Modal de "Categorización" forzoso antes de permitir cerrar un ticket. Contará con alertas persistentes si un agente abandona la conversación sin tipificarla, asegurando la precisión de las métricas en Kimi Insights (aplicable tanto a Inbound como a Outbound).
+25. ✅ **Tipificación Obligatoria y Cierre Duro:**
+    **COMPLETADO:** Modal de "Categorización" forzoso antes de permitir cerrar un ticket. Los agentes están obligados a tipificar para asegurar la precisión de las métricas en Kimi Insights. Adicionalmente, se implementó el sistema de **"Tickets Olvidados"**: un banner persistente y un bloqueo de interacción total para agentes que acumulen 3 o más tickets inactivos por encima del umbral de horas configurable por la empresa, forzándolos a cerrar o gestionar su cartera antes de tomar nuevos casos. Las conversaciones *Outbound* se cierran directamente a "Resuelto" saltándose la encuesta CSAT.
 26. **Fusión de Tickets (De-duplicación Intra-Canal):**
     Botón para unificar conversaciones duplicadas generadas por el mismo cliente en el mismo canal, limpiando el ruido operativo y manteniendo el historial ordenado.
 23. **Simulador Kimi "Red Team" (Entrenamiento de Perfiles IA):**
@@ -170,9 +170,11 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 
 ## 5.x Avances Operacionales (Junio 2026)
 - **Unificación de Canales:** Estandarización del canal "webchat" a nivel de DB y Componentes para consistencia de reportes.
-- **Reportes Interactivos:** Los gráficos de Reportes en el CRM ahora actúan como filtros dinámicos (clic en una barra de estado o canal redirige a la bandeja filtrada).
+- **Reportes Interactivos:** Los gráficos de Reportes en el CRM ahora actúan como filtros dinámicos (clic en una barra de estado o canal redirige automáticamente a la vista de lista con los filtros aplicados).
 - **Métricas de Contactos Macro (NPS e Inteligencia Predictiva):** Se crearon scripts de backfill y triggers en Node.js que mantienen el `nps_historico` y el `riesgo_fuga` a nivel de contacto, exponiéndolos con insignias visuales (badges) y selectores dinámicos de columnas en el `ContactsManager`.
 - **Conversaciones Outbound (Omnicanalidad Reactiva):** Se incorporaron acciones rápidas en la "Vista 360" de Contactos para que el agente dispare una nueva conversación proactiva por WhatsApp, Email o Instagram. El sistema emite un evento global e inyecta al agente de inmediato en la ventana de mensajería del CRM.
+- **Control de Accesos Basado en Roles (RBAC):** Se refinó el perfil "Agente (CRM + Contactos)" para ocultar módulos administrativos y restringir el acceso al gestor de campañas y usuarios, garantizando la seguridad operativa.
+- **Mejora UX en Contactos:** Se añadió la funcionalidad de descargar plantillas CSV de ejemplo directamente desde el gestor de contactos para agilizar el *onboarding*.
 
 ---
 

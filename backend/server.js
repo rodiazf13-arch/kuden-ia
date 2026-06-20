@@ -1669,11 +1669,16 @@ app.post("/api/crm/campaigns", async (req, res) => {
 });
 
 app.put("/api/crm/campaigns/:id", async (req, res) => {
-  const { ai_profile_id } = req.body;
+  const { ai_profile_id, sla_warning_minutes, sla_danger_minutes } = req.body;
   try {
+    const updates = {};
+    if (ai_profile_id !== undefined) updates.ai_profile_id = ai_profile_id || null;
+    if (sla_warning_minutes !== undefined) updates.sla_warning_minutes = sla_warning_minutes;
+    if (sla_danger_minutes !== undefined) updates.sla_danger_minutes = sla_danger_minutes;
+
     const { data, error } = await supabase
       .from("campaigns")
-      .update({ ai_profile_id: ai_profile_id || null })
+      .update(updates)
       .eq("id", req.params.id)
       .select().single();
     if (error) throw error;
@@ -2022,13 +2027,38 @@ app.post("/api/crm/conversations/:id/messages", async (req, res) => {
       .select().single();
     if (msgErr) throw msgErr;
 
+    // Auto-asignación si no estaba asignada
+    let assignmentUpdated = false;
+    const updatePayload = {};
+
+    if (!conv.assigned_to && userId) {
+      updatePayload.assigned_to = userId;
+      updatePayload.status = "human_active";
+      updatePayload.is_ai_active = false;
+      assignmentUpdated = true;
+    }
+
     // Actualizar preview en la conversación (solo si no es nota interna)
     if (!isInternalNote) {
-      await supabase.from("conversations").update({
-        last_message_at: now,
-        last_message_preview: content ? `[Ejecutivo] ${content.slice(0, 100)}` : `[Ejecutivo] 📎 ${attachments.length} adjuntos`,
-      }).eq("id", id);
-      
+      updatePayload.last_message_at = now;
+      updatePayload.last_message_preview = content ? `[Ejecutivo] ${content.slice(0, 100)}` : `[Ejecutivo] 📎 ${attachments.length} adjuntos`;
+    }
+
+    // Ejecutar actualización si hay algo que actualizar
+    if (Object.keys(updatePayload).length > 0) {
+      await supabase.from("conversations").update(updatePayload).eq("id", id);
+    }
+
+    if (assignmentUpdated) {
+      // Registrar en el historial que el sistema lo auto-asignó
+      await insertConvMessage({
+        conversationId: id, tenantId,
+        senderType: "system",
+        content: `Ticket auto-asignado a ${displayName || "ejecutivo"} tras responder.`,
+      });
+    }
+
+    if (!isInternalNote) {
       // Disparar Webhook Outbound a n8n si el canal es email
       if (conv.canal === 'email') {
         const receiverEmail = conv.metadata?.receiverEmail;

@@ -13,6 +13,10 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
   const [typifications, setTypifications] = useState([]);
   const [newTypLabel, setNewTypLabel] = useState('');
 
+  // ─── SLA state ───────────────────────────────────────────────────────────────
+  const [slaWarning, setSlaWarning] = useState(15);
+  const [slaDanger, setSlaDanger] = useState(30);
+
   // ─── n8n + Tools state ───────────────────────────────────────────────────────
   const [n8nUrl, setN8nUrl] = useState('');
   const [n8nStageWebhookId, setN8nStageWebhookId] = useState('');
@@ -118,6 +122,8 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
       loadTypifications(selectedCam.id);
       loadN8nConfig(selectedCam.id);
       loadTools(selectedCam.id);
+      setSlaWarning(selectedCam.sla_warning_minutes ?? 15);
+      setSlaDanger(selectedCam.sla_danger_minutes ?? 30);
     }
   }, [selectedCam?.id]);
 
@@ -145,6 +151,19 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
         body: JSON.stringify({ tenantId, ai_profile_id: profileId })
       });
       if (res.ok) loadCampaigns();
+    } catch (e) { console.error(e); }
+  };
+
+  const updateCampaignSLA = async (campaignId, warningMinutes, dangerMinutes) => {
+    try {
+      const res = await fetch(`${API_URL}/api/crm/campaigns/${campaignId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, sla_warning_minutes: warningMinutes, sla_danger_minutes: dangerMinutes })
+      });
+      if (res.ok) {
+        alert('Tiempos SLA guardados correctamente.');
+        loadCampaigns();
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -389,6 +408,39 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
                   <option value="">Sin Perfil IA (Agente Genérico por Defecto)</option>
                   {profiles.map(p => <option key={p.id} value={p.id}>{p.is_router ? '🤖 ' : ''}{p.label}</option>)}
                 </select>
+              </div>
+
+              {/* ── SLA Config ── */}
+              <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
+                <h3 style={{ margin: '0 0 12px', fontSize: 16, color: c.title }}>Configuración de SLA (Tiempos de Respuesta)</h3>
+                <p style={{ margin: '0 0 16px', fontSize: 13, color: c.subtitle }}>Define los umbrales en minutos para que los tickets cambien de color alertando sobre demoras en la atención humana.</p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ fontSize: 12, color: c.title, display: 'block', marginBottom: 4 }}>🟡 Advertencia (minutos)</label>
+                    <input type="number" min="1" value={slaWarning} onChange={e => setSlaWarning(parseInt(e.target.value) || 0)} style={inp} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, color: c.title, display: 'block', marginBottom: 4 }}>🔴 Peligro (minutos)</label>
+                    <input type="number" min="2" value={slaDanger} onChange={e => setSlaDanger(parseInt(e.target.value) || 0)} style={inp} />
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    const selectedIndex = campaigns.findIndex(cam => cam.id === selectedCam.id);
+                    if (selectedIndex > -1) {
+                      const newCamps = [...campaigns];
+                      newCamps[selectedIndex].sla_warning_minutes = slaWarning;
+                      newCamps[selectedIndex].sla_danger_minutes = slaDanger;
+                      setSelectedCam(newCamps[selectedIndex]);
+                      setCampaigns(newCamps);
+                    }
+                    updateCampaignSLA(selectedCam.id, slaWarning, slaDanger);
+                  }}
+                  style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                  💾 Guardar SLA
+                </button>
               </div>
 
               {/* ════ AGENTE AUTÓNOMO n8n ════ */}

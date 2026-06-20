@@ -88,6 +88,45 @@ function StatusBadge({ status }) {
   );
 }
 
+// ── SLA Monitor Badge ────────────────────────────────────────────────────────
+function SLABadge({ lastMessageAt, warningMinutes = 15, dangerMinutes = 30 }) {
+  const [minutesPassed, setMinutesPassed] = useState(0);
+
+  useEffect(() => {
+    if (!lastMessageAt) return;
+    const calc = () => {
+      const diffMs = Date.now() - new Date(lastMessageAt).getTime();
+      setMinutesPassed(Math.floor(diffMs / 60000));
+    };
+    calc();
+    const interval = setInterval(calc, 60000);
+    return () => clearInterval(interval);
+  }, [lastMessageAt]);
+
+  if (!lastMessageAt) return null;
+
+  let color = '#1D9E75'; // Verde
+  let label = 'A tiempo';
+  
+  if (minutesPassed >= (dangerMinutes || 30)) {
+    color = '#E24B4A'; // Rojo
+    label = 'Atrasado';
+  } else if (minutesPassed >= (warningMinutes || 15)) {
+    color = '#EF9F27'; // Amarillo
+    label = 'Advertencia';
+  }
+
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 600, color, background: `${color}15`,
+      border: `0.5px solid ${color}40`, borderRadius: 20, padding: '2px 8px',
+      display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
+    }} title={`Han pasado ${minutesPassed} minutos desde el último mensaje`}>
+      ⏱ {label} ({minutesPassed}m)
+    </span>
+  );
+}
+
 // ── Panel de Inteligencia IA (derecha en el detalle) ─────────────────────────
 function IntelPanel({ conv, c }) {
   const sent = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
@@ -253,6 +292,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
   const bottomRef = useRef(null);
   const lastMsgCountRef = useRef(0);
 
+  // Colisión Multi-Agente
+  const [typingUsers, setTypingUsers] = useState([]);
+  const channelRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
   const fetchDetail = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/crm/conversations/${convId}`);
@@ -308,6 +352,48 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
     return () => clearInterval(t);
   }, [fetchDetail]);
 
+  // Presence channel para colisión
+  useEffect(() => {
+    if (!convId || !userId) return;
+
+    const channel = supabase.channel(`crm-presence-${convId}`, {
+      config: { presence: { key: userId } }
+    });
+    channelRef.current = channel;
+
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState();
+      const typing = [];
+      for (const id in state) {
+        if (id !== userId) {
+          typing.push(...state[id].filter(p => p.typing).map(p => p.displayName));
+        }
+      }
+      setTypingUsers([...new Set(typing)]);
+    }).subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ typing: false, displayName });
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [convId, userId, displayName]);
+
+  const handleInput = async (val) => {
+    setInput(val);
+    if (channelRef.current && channelRef.current.state === 'joined') {
+      await channelRef.current.track({ typing: true, displayName });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(async () => {
+        if (channelRef.current && channelRef.current.state === 'joined') {
+          await channelRef.current.track({ typing: false, displayName });
+        }
+      }, 3000);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() && attachments.length === 0) return;
     setSending(true);
@@ -319,6 +405,9 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
       if (res.ok) {
         setInput('');
         setAttachments([]);
+        if (channelRef.current && channelRef.current.state === 'joined') {
+          await channelRef.current.track({ typing: false, displayName });
+        }
         await fetchDetail();
       } else {
         const err = await res.json();
@@ -515,6 +604,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             <span style={{ fontSize: 11, color: c.subtitle, fontFamily: 'monospace' }}>{conv.ticket_id}</span>
             <StatusBadge status={status} />
             {conv.canal && <span style={{ fontSize: 10, padding: '2px 6px', background: c.inputBg, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
+            {(status === 'waiting_human' || status === 'human_active') && <SLABadge lastMessageAt={conv.last_message_at} warningMinutes={conv.campaigns?.sla_warning_minutes} dangerMinutes={conv.campaigns?.sla_danger_minutes} />}
             {/* Reasignación manual de campaña */}
             {campaigns.length > 0 && (
               <select
@@ -595,6 +685,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
             {messages.map(m => <MessageBubble key={m.id} msg={m} c={c} />)}
+            {typingUsers.length > 0 && (
+              <div style={{ fontSize: 11, color: c.subtitle, fontStyle: 'italic', marginBottom: 8, paddingLeft: 4 }}>
+                👨‍💼 {typingUsers.join(', ')} {typingUsers.length === 1 ? 'está escribiendo...' : 'están escribiendo...'}
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
           {/* Input ejecutivo */}
@@ -665,7 +760,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                       ))}
                     </div>
                   )}
-                  <textarea value={input} onChange={e => setInput(e.target.value)}
+                  <textarea value={input} onChange={e => handleInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendMessage(); } }}
                     placeholder={isNote ? 'Nota interna (no visible al cliente)...' : 'Escribe un mensaje... (Ctrl + Enter para enviar)'}
                     rows={2}
@@ -801,6 +896,7 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
             {normalizeCanal(conv.canal) === 'webchat' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
             {normalizeCanal(conv.canal) === 'instagram' && <i className="ti ti-brand-instagram" style={{ fontSize: 13, color: '#E1306C' }} title="Instagram" />}
             <StatusBadge status={conv.status} />
+            {(conv.status === 'waiting_human' || conv.status === 'human_active') && <SLABadge lastMessageAt={conv.last_message_at} warningMinutes={campaign?.sla_warning_minutes} dangerMinutes={campaign?.sla_danger_minutes} />}
             {campaign && (
               <span style={{ fontSize: 9, fontWeight: 600, color: campaign.color, background: `${campaign.color}15`, border: `0.5px solid ${campaign.color}40`, borderRadius: 10, padding: '1px 5px' }}>
                 {campaign.name}

@@ -35,7 +35,7 @@ Ubicado en la carpeta `frontend/`, es una aplicación React renderizada del lado
 ### 2.2. Componentes y Módulos Principales
 *   `App.jsx`: Maneja el ruteo (React Router DOM) y protege las rutas validando el JWT. Funciona como un **Bus de Eventos Global** (ej. escuchando eventos custom `changeTab` para coordinar saltos automáticos entre módulos disjuntos como Contactos y CRM).
 *   `DashboardLayout.jsx`: Es el layout padre. Maneja la barra lateral (Sidebar), el modo oscuro/claro (CSS Variables), y la lógica PWA (Botón "Instalar App"). En móviles, oculta la barra y expone un menú hamburguesa.
-*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de conversaciones, paneles de métricas interactivos (clic en un gráfico filtra la bandeja), y un panel de chat en tiempo real a la derecha. Soporta precarga automática de chats (`kuden_open_conv_id` en localStorage).
+*   `CRMManager.jsx`: El corazón de la operación. Implementa un **Kanban Reactivo** de conversaciones, paneles de métricas interactivos (clic en un gráfico filtra la bandeja), y un panel de chat en tiempo real a la derecha. Soporta precarga automática de chats (`kuden_open_conv_id` en localStorage). Incluye el sistema de "Cierre Duro" (Obligatoriedad de Tipificación) y la pantalla de bloqueo de "Tickets Olvidados", limitando la acción de agentes con exceso de tickets inactivos.
 *   `ContactsManager.jsx` y `Contact360View.jsx`: Gestor de Leads a nivel macro. Soporta filtrado de estados y métricas. Desde la vista 360 se invocan las conversaciones Outbound (salientes) que generan registros silenciosos e inyectan al usuario directamente en el CRM.
 *   `CopilotManager.jsx`: Interfaz de chat con Kimi.
 *   `IntegrationsHub.jsx`: Panel de configuración de conectores (Google Calendar, Outlook, WhatsApp). Aquí el administrador pega las credenciales que alimentarán los flujos de n8n.
@@ -91,7 +91,7 @@ Cuando el LLM determina que el usuario quiere ejecutar una acción (ej. agendar 
 Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vectorial en una sola plataforma.
 
 ### 5.1. Esquema Relacional Principal
-*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n.
+*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n, `forgotten_ticket_hours_threshold` (Umbral configurable de horas límite para tickets inactivos).
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
 *   `agent_groups`: Grupos operativos (Ej. Nivel 1, Ventas VIP).
 *   `agent_group_users`: Relación N:M que define la pertenencia de un `tenant_user` a un `agent_group`.
