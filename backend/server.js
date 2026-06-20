@@ -2059,7 +2059,7 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     // 3. Extraer custom fields adicionales
     const additionalFields = {};
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
-      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label'].includes(kudenField)) continue;
+      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label', 'validation_key', 'validation_value'].includes(kudenField)) continue;
       let val = getNestedValue(payload, jsonKey);
       if (val !== undefined && val !== null) {
         if (typeof val === 'string') {
