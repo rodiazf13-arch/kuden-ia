@@ -1911,14 +1911,45 @@ app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
 // Helper para resolver propiedades anidadas en un objeto mediante notación de puntos (ej: "call.to_number")
 function getNestedValue(obj, path) {
   if (!path || !obj) return null;
-  const parts = path.split('.');
+  
+  // Intento 1: tal como viene el path
+  let parts = path.split('.');
   let current = obj;
+  let success = true;
+  for (const part of parts) {
+    if (current === null || current === undefined || !(part in current)) {
+      success = false;
+      break;
+    }
+    current = current[part];
+  }
+  if (success && current !== undefined) return current;
+
+  // Intento 2: si el objeto tiene un campo 'payload' y el path no empieza con 'payload.', intentamos anteponerlo
+  if (obj && obj.payload && !path.startsWith('payload.')) {
+    parts = ('payload.' + path).split('.');
+    current = obj;
+    success = true;
+    for (const part of parts) {
+      if (current === null || current === undefined || !(part in current)) {
+        success = false;
+        break;
+      }
+      current = current[part];
+    }
+    if (success && current !== undefined) return current;
+  }
+
+  // Fallback original (tolerancia a undefined intermedio)
+  parts = path.split('.');
+  current = obj;
   for (const part of parts) {
     if (current === null || current === undefined) return null;
     current = current[part];
   }
   return current;
 }
+
 
 // ─── POST /api/webhook/voice-call/:tenantId ──────────────────────────────────
 // Webhook entrante desde VICIdial/Retell AI para llamadas de voz
@@ -1963,14 +1994,20 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     }
 
     const customerPhone = normalizePhone(rawPhone);
-    const customerName = (nameKey && getNestedValue(payload, nameKey)) ? getNestedValue(payload, nameKey) : rawPhone;
+    let customerName = (nameKey && getNestedValue(payload, nameKey)) ? getNestedValue(payload, nameKey) : rawPhone;
+    if (customerName && typeof customerName === 'string') {
+      customerName = decodeURIComponent(customerName.replace(/\+/g, ' '));
+    }
     const transcript = (transcriptKey && getNestedValue(payload, transcriptKey)) ? getNestedValue(payload, transcriptKey) : "[Llamada de Voz Registrada sin Transcripción]";
     const recordingUrl = (recordingKey && getNestedValue(payload, recordingKey)) ? getNestedValue(payload, recordingKey) : null;
 
     // Obtener campaña asociada (soporta UUID o Nombre de Campaña)
     let campaignId = null;
     if (campaignKey && getNestedValue(payload, campaignKey)) {
-      const campVal = getNestedValue(payload, campaignKey);
+      let campVal = getNestedValue(payload, campaignKey);
+      if (campVal && typeof campVal === 'string') {
+        campVal = decodeURIComponent(campVal.replace(/\+/g, ' '));
+      }
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(campVal)) {
         campaignId = campVal;
@@ -1996,7 +2033,10 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     }
 
     // Obtener tipificación (motivo_label)
-    const motivoLabel = (motivoKey && getNestedValue(payload, motivoKey)) ? getNestedValue(payload, motivoKey) : null;
+    let motivoLabel = (motivoKey && getNestedValue(payload, motivoKey)) ? getNestedValue(payload, motivoKey) : null;
+    if (motivoLabel && typeof motivoLabel === 'string') {
+      motivoLabel = decodeURIComponent(motivoLabel.replace(/\+/g, ' '));
+    }
 
     // Generar ticket ID
     const ticketId = "VOX-" + Math.floor(100000 + Math.random() * 900000);
@@ -2005,8 +2045,11 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const additionalFields = {};
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
       if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label'].includes(kudenField)) continue;
-      const val = getNestedValue(payload, jsonKey);
+      let val = getNestedValue(payload, jsonKey);
       if (val !== undefined && val !== null) {
+        if (typeof val === 'string') {
+          val = decodeURIComponent(val.replace(/\+/g, ' '));
+        }
         additionalFields[kudenField] = val;
       }
     }
