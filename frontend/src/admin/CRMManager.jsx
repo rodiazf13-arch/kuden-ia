@@ -1158,6 +1158,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
                   </p>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                     <StatusBadge status={conv.status} />
+                    {(conv.status === 'waiting_human' || conv.status === 'human_active') && <SLABadge lastMessageAt={conv.last_message_at} warningMinutes={conv.campaigns?.sla_warning_minutes} dangerMinutes={conv.campaigns?.sla_danger_minutes} />}
                     {conv.canal && <span style={{ fontSize: 9, padding: '2px 6px', background: c.card, borderRadius: 10, color: c.subtitle, border: `0.5px solid ${c.border}` }}>{conv.canal}</span>}
                   </div>
                 </div>
