@@ -211,12 +211,44 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
         </div>
       </div>
 
+      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Registro de Logs (Auditoría)</h3>
+      <div style={{ background: inputBg, border: `1px solid ${borderCol}`, padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: '600', color: textMain }}>Logs de Auditoría Activos</p>
+          <p style={{ margin: 0, fontSize: '13px', color: textSec, lineHeight: '1.4' }}>
+            Registra el éxito o validación de cada llamada en el System Health Monitor. Desactívalo para evitar saturar el visor en campañas masivas.
+          </p>
+        </div>
+        <div>
+          <button 
+            onClick={() => updateMapping('logs_enabled', mapping['logs_enabled'] !== false ? false : true)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '13px',
+              transition: 'all 0.2s',
+              backgroundColor: mapping['logs_enabled'] !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: mapping['logs_enabled'] !== false ? '#10b981' : '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <i className={mapping['logs_enabled'] !== false ? "ti ti-toggle-on" : "ti ti-toggle-off"} style={{ fontSize: '18px' }}></i>
+            {mapping['logs_enabled'] !== false ? "Habilitado" : "Deshabilitado"}
+          </button>
+        </div>
+      </div>
+
       <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Campos Adicionales Dinámicos</h3>
       <div style={{ background: inputBg, borderRadius: '12px', padding: '16px', border: `1px solid ${borderCol}`, marginBottom: '24px' }}>
         
         {/* Lista de mapeos adicionales ya configurados */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: Object.keys(mapping).filter(k => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value'].includes(k)).length > 0 ? '20px' : '0' }}>
-          {Object.entries(mapping).filter(([k]) => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value'].includes(k)).map(([kudenField, jsonKey]) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: Object.keys(mapping).filter(k => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value', 'logs_enabled'].includes(k)).length > 0 ? '20px' : '0' }}>
+          {Object.entries(mapping).filter(([k]) => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value', 'logs_enabled'].includes(k)).map(([kudenField, jsonKey]) => {
             const fieldDef = allAvailableFields.find(f => f.key === kudenField);
             return (
               <div key={kudenField} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: cardBg, padding: '10px 16px', borderRadius: '8px', border: `1px solid ${borderCol}` }}>

@@ -1980,6 +1980,7 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     // 1. Obtener la configuración de mapeo del tenant
     const { data: tenantData } = await supabase.from('tenants').select('voice_webhook_mapping').eq('id', tenantId).single();
     const mapping = tenantData?.voice_webhook_mapping || {};
+    const logsEnabled = mapping['logs_enabled'] !== false; // por defecto es true
 
     // Regla de validación condicional (opcional)
     const validationKey = mapping['validation_key'];
@@ -1990,7 +1991,9 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
       const targetValue = expectedValue !== undefined && expectedValue !== null ? expectedValue : "true";
       if (String(actualValue) !== String(targetValue)) {
         console.log(`[VoiceWebhook Ignored] tenantId: ${tenantId}. '${validationKey}' (${actualValue}) !== '${targetValue}'`);
-        await insertAuditLog('info', 'webhook_voice', `Llamada de voz ignorada por regla de validación. Llave: ${validationKey}`, { payload, validationKey, expectedValue: targetValue, actualValue }, tenantId).catch(console.error);
+        if (logsEnabled) {
+          await insertAuditLog('info', 'webhook_voice', `Llamada de voz ignorada por regla de validación. Llave: ${validationKey}`, { payload, validationKey, expectedValue: targetValue, actualValue }, tenantId).catch(console.error);
+        }
         return res.json({ success: true, ignored: true, message: `Ignorado: el valor de '${validationKey}' (${actualValue}) no coincide con el esperado (${targetValue})` });
       }
     }
@@ -2059,7 +2062,7 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     // 3. Extraer custom fields adicionales
     const additionalFields = {};
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
-      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label', 'validation_key', 'validation_value'].includes(kudenField)) continue;
+      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label', 'validation_key', 'validation_value', 'logs_enabled'].includes(kudenField)) continue;
       let val = getNestedValue(payload, jsonKey);
       if (val !== undefined && val !== null) {
         if (typeof val === 'string') {
@@ -2130,7 +2133,9 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     generateExecutiveSummary(conv.id, tenantId).catch(console.error);
 
     // Registrar auditoría de éxito
-    await insertAuditLog('info', 'webhook_voice', `Llamada de voz procesada con éxito. Ticket: ${ticketId}`, { conversationId: conv.id, ticketId, contactId: contact.id }, tenantId).catch(console.error);
+    if (logsEnabled) {
+      await insertAuditLog('info', 'webhook_voice', `Llamada de voz procesada con éxito. Ticket: ${ticketId}`, { conversationId: conv.id, ticketId, contactId: contact.id }, tenantId).catch(console.error);
+    }
 
     return res.json({ success: true, conversationId: conv.id });
   } catch (e) {
