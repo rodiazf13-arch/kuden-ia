@@ -1974,9 +1974,10 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const { data: conv, error: errConv } = await supabase.from('conversations')
       .insert({ 
         contact_id: contact.id, 
-        status: 'resuelto', 
+        status: 'closed', 
         tenant_id: tenantId, 
         last_message_at: now, 
+        closed_at: now,
         canal: 'voz',
         metadata: { recordingUrl }
       })
