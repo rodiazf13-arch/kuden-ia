@@ -1934,6 +1934,18 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const { data: tenantData } = await supabase.from('tenants').select('voice_webhook_mapping').eq('id', tenantId).single();
     const mapping = tenantData?.voice_webhook_mapping || {};
 
+    // Regla de validación condicional (opcional)
+    const validationKey = mapping['validation_key'];
+    const expectedValue = mapping['validation_value'];
+    if (validationKey) {
+      const actualValue = getNestedValue(payload, validationKey);
+      // Por defecto, si no se especifica valor esperado, asumimos "true"
+      const targetValue = expectedValue !== undefined && expectedValue !== null ? expectedValue : "true";
+      if (String(actualValue) !== String(targetValue)) {
+        return res.json({ success: true, ignored: true, message: `Ignorado: el valor de '${validationKey}' (${actualValue}) no coincide con el esperado (${targetValue})` });
+      }
+    }
+
     // 2. Extraer campos base según el mapeo
     const phoneKey = mapping['telefono']; // La llave en el JSON que trae el teléfono (ej: call.to_number)
     const nameKey = mapping['cliente_nombre'];

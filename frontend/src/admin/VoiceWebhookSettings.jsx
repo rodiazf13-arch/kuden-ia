@@ -182,12 +182,41 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
         ))}
       </div>
 
+      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Regla de Validación / Filtro (Opcional)</h3>
+      <div style={{ background: inputBg, border: `1px solid ${borderCol}`, padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <p style={{ margin: 0, fontSize: '13px', color: textSec, lineHeight: '1.4' }}>
+          Configura una llave y un valor esperado. Las llamadas que no cumplan esta condición serán ignoradas silenciosamente por el sistema (evitando procesar llamadas no deseadas o con estados fallidos).
+        </p>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: '600', color: textSec, display: 'block', marginBottom: '4px' }}>Llave JSON a evaluar (ej: call.custom_analysis_data.validacion)</label>
+            <input 
+              type="text" 
+              placeholder="Ej: call.custom_analysis_data.validacion" 
+              value={mapping['validation_key'] || ''} 
+              onChange={e => updateMapping('validation_key', e.target.value)}
+              style={inputStyle} 
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '11px', fontWeight: '600', color: textSec, display: 'block', marginBottom: '4px' }}>Valor esperado (ej: true)</label>
+            <input 
+              type="text" 
+              placeholder="Ej: true" 
+              value={mapping['validation_value'] || ''} 
+              onChange={e => updateMapping('validation_value', e.target.value)}
+              style={inputStyle} 
+            />
+          </div>
+        </div>
+      </div>
+
       <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Campos Adicionales Dinámicos</h3>
       <div style={{ background: inputBg, borderRadius: '12px', padding: '16px', border: `1px solid ${borderCol}`, marginBottom: '24px' }}>
         
         {/* Lista de mapeos adicionales ya configurados */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: Object.keys(mapping).filter(k => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre'].includes(k)).length > 0 ? '20px' : '0' }}>
-          {Object.entries(mapping).filter(([k]) => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre'].includes(k)).map(([kudenField, jsonKey]) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: Object.keys(mapping).filter(k => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value'].includes(k)).length > 0 ? '20px' : '0' }}>
+          {Object.entries(mapping).filter(([k]) => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value'].includes(k)).map(([kudenField, jsonKey]) => {
             const fieldDef = allAvailableFields.find(f => f.key === kudenField);
             return (
               <div key={kudenField} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: cardBg, padding: '10px 16px', borderRadius: '8px', border: `1px solid ${borderCol}` }}>
