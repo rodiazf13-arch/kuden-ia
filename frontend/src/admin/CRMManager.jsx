@@ -258,7 +258,41 @@ function MessageBubble({ msg, c }) {
           border: isCustomer ? 'none' : `0.5px solid ${isAI ? '#1D9E7540' : '#2563eb40'}`,
           whiteSpace: 'pre-wrap'
         }}>
-          {msg.content}
+          {msg.content && msg.content.includes('🔗 Grabación:') ? (
+            msg.content.split('\n').map((line, idx, arr) => {
+              if (line.includes('🔗 Grabación:') && line.includes('http')) {
+                const url = line.replace('🔗 Grabación:', '').trim();
+                return (
+                  <div key={idx} style={{ marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      download
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        color: '#2563eb',
+                        fontWeight: '600',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        background: 'rgba(37,99,235,0.08)',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        marginTop: '4px'
+                      }}
+                    >
+                      <i className="ti ti-download" style={{ fontSize: '14px' }}></i>
+                      Descargar Grabación
+                    </a>
+                  </div>
+                );
+              }
+              return <div key={idx}>{line}</div>;
+            })
+          ) : msg.content}
         </div>
         <p style={{ margin: '2px 0 0', fontSize: 9, color: c.subtitle, paddingLeft: isCustomer ? 0 : 2, textAlign: isCustomer ? 'right' : 'left' }}>
           {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -807,6 +841,9 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                   ['Email', contact.email],
                   ['Plan', contact.plan],
                   ['Empresa', contact.empresa],
+                  ['Lead ID (VICI)', contact.lead_id],
+                  ['Lista ID (VICI)', contact.list_id],
+                  ['Campaña ID (VICI)', contact.campaign_id_vici],
                 ].map(([l, v]) => v ? (
                   <div key={l}>
                     <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>{l}</p>

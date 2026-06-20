@@ -486,8 +486,43 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
                                     color: isCust ? '#fff' : c.title,
                                     borderBottomRightRadius: isCust ? 0 : '12px',
                                     borderBottomLeftRadius: !isCust ? 0 : '12px',
+                                    whiteSpace: 'pre-wrap'
                                   }}>
-                                    {m.content}
+                                    {m.content && m.content.includes('🔗 Grabación:') ? (
+                                      m.content.split('\n').map((line, idx, arr) => {
+                                        if (line.includes('🔗 Grabación:') && line.includes('http')) {
+                                          const url = line.replace('🔗 Grabación:', '').trim();
+                                          return (
+                                            <div key={idx} style={{ marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
+                                              <a 
+                                                href={url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                download
+                                                style={{
+                                                  display: 'inline-flex',
+                                                  alignItems: 'center',
+                                                  gap: '6px',
+                                                  color: isCust ? '#fff' : '#2563eb',
+                                                  fontWeight: '600',
+                                                  textDecoration: 'underline',
+                                                  cursor: 'pointer',
+                                                  background: isCust ? 'rgba(255,255,255,0.2)' : 'rgba(37,99,235,0.08)',
+                                                  padding: '4px 8px',
+                                                  borderRadius: '6px',
+                                                  fontSize: '12px',
+                                                  marginTop: '4px'
+                                                }}
+                                              >
+                                                <i className="ti ti-download" style={{ fontSize: '14px' }}></i>
+                                                Descargar Grabación
+                                              </a>
+                                            </div>
+                                          );
+                                        }
+                                        return <div key={idx}>{line}</div>;
+                                      })
+                                    ) : m.content}
                                   </div>
                                 </div>
                               );
