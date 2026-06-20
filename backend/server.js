@@ -2060,7 +2060,10 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     const ticketId = "VOX-" + Math.floor(100000 + Math.random() * 900000);
 
     // 3. Extraer custom fields adicionales
-    const additionalFields = {};
+    const baseContactColumns = ['email', 'rut', 'empresa', 'cargo', 'plan', 'direccion', 'comuna', 'ciudad', 'region', 'fecha_nacimiento', 'facebook', 'instagram', 'linkedin', 'twitter', 'tiktok'];
+    const contactBaseData = {};
+    const contactCustomData = {};
+
     for (const [kudenField, jsonKey] of Object.entries(mapping)) {
       if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl', 'campaign_id', 'motivo_label', 'validation_key', 'validation_value', 'logs_enabled'].includes(kudenField)) continue;
       let val = getNestedValue(payload, jsonKey);
@@ -2068,7 +2071,11 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
         if (typeof val === 'string') {
           val = decodeURIComponent(val.replace(/\+/g, ' '));
         }
-        additionalFields[kudenField] = val;
+        if (baseContactColumns.includes(kudenField)) {
+          contactBaseData[kudenField] = val;
+        } else {
+          contactCustomData[kudenField] = val;
+        }
       }
     }
 
@@ -2081,18 +2088,23 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
           tenant_id: tenantId, 
           cliente_nombre: customerName, 
           telefono: customerPhone,
-          ...additionalFields
+          ...contactBaseData,
+          custom_fields: contactCustomData
         })
         .select().single();
       if (errC) throw errC;
       contact = newContact;
     } else {
       // Si existe, actualizamos los campos mapeados (si vinieron en el payload)
-      if (Object.keys(additionalFields).length > 0 || (nameKey && payload[nameKey])) {
-         const updateData = { ...additionalFields };
-         if (nameKey && payload[nameKey]) updateData.cliente_nombre = customerName;
-         await supabase.from('contacts').update(updateData).eq('id', contact.id);
-      }
+      const existingCustomFields = contact.custom_fields || {};
+      const updatedCustomFields = { ...existingCustomFields, ...contactCustomData };
+      
+      const updateData = { 
+        ...contactBaseData,
+        custom_fields: updatedCustomFields
+      };
+      if (nameKey && getNestedValue(payload, nameKey)) updateData.cliente_nombre = customerName;
+      await supabase.from('contacts').update(updateData).eq('id', contact.id);
     }
 
     // 5. Crear la conversación de Voz (Resuelta inmediatamente)

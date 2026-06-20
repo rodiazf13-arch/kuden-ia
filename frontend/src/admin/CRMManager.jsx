@@ -841,9 +841,9 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                   ['Email', contact.email],
                   ['Plan', contact.plan],
                   ['Empresa', contact.empresa],
-                  ['Lead ID (VICI)', contact.lead_id],
-                  ['Lista ID (VICI)', contact.list_id],
-                  ['Campaña ID (VICI)', contact.campaign_id_vici],
+                  ['Lead ID (VICI)', contact.custom_fields?.lead_id],
+                  ['Lista ID (VICI)', contact.custom_fields?.list_id],
+                  ['Campaña ID (VICI)', contact.custom_fields?.campaign_id_vici],
                 ].map(([l, v]) => v ? (
                   <div key={l}>
                     <p style={{ margin: '0 0 1px', fontSize: 9, color: c.subtitle, textTransform: 'uppercase' }}>{l}</p>
