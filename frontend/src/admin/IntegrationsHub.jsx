@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import EmailAccountsManager from './EmailAccountsManager';
 import WidgetSettings from './WidgetSettings';
+import VoiceWebhookSettings from './VoiceWebhookSettings';
 
 export default function IntegrationsHub({ isDark, tenantId }) {
   const [connectingId, setConnectingId] = useState(null);
@@ -180,6 +181,11 @@ export default function IntegrationsHub({ isDark, tenantId }) {
       {/* Sección especial para el Widget Web */}
       <div style={{ marginBottom: 40 }}>
         <WidgetSettings tenantId={tenantId} isDark={isDark} inHub={true} />
+      </div>
+
+      {/* Sección especial para Webhook de Voz */}
+      <div style={{ marginBottom: 40 }}>
+        <VoiceWebhookSettings tenantId={tenantId} isDark={isDark} />
       </div>
       
       <style>{`

@@ -125,8 +125,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Aprovechar los datos base de Kimi Insights para crear un tablero en vivo con medallas (ej. "Mejor CSAT", "Resolución Ultra Rápida"). Convierte la atención al cliente en un entorno motivador y competitivo, reduciendo la rotación de personal en contact centers.
 15. **Cobros y Links de Pago en el Chat:**
     La IA detecta la intención de compra y genera automáticamente un link de pago (Transbank, Mercado Pago, Stripe) enviándolo dentro de la misma conversación para cerrar ventas sin fricción.
-16. **SLA Monitor con Semáforos y Alertas de Incumplimiento:**
-    Timer automático visual en el CRM para asegurar Acuerdos de Nivel de Servicio (ej. Verde: < 15 min, Amarillo: < 30 min, Rojo: Incumplido). Ordenará la bandeja por urgencia y disparará alertas a supervisores antes de que el SLA se venza.
+16. ✅ **SLA Monitor con Semáforos y Alertas de Incumplimiento:**
+    **COMPLETADO:** Timer automático visual (SLABadge) en el CRM para asegurar Acuerdos de Nivel de Servicio (ej. Verde: A tiempo, Amarillo: Advertencia, Rojo: Atrasado). Los umbrales de minutos se configuran dinámicamente por cada Campaña, ordenando visualmente la atención humana en las vistas de lista y Kanban.
 17. ✅ **App Móvil Ligera para Ejecutivos (Responsividad -> PWA -> Tiendas):**
     **COMPLETADO (Fase 1 y 2):** Adaptación responsiva total de la vista web actual para uso fluido en móviles/tablets. Conversión a Progressive Web App (PWA) para instalación rápida sin tiendas. Empaquetado futuro para publicación oficial en App Store y Google Play para mayor autoridad de marca.
 18. ✅ **Canal de Email Integrado Bidireccionalmente (Vía n8n):**
@@ -141,8 +141,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     API REST para conectar Kuden con ERPs o sistemas contables legacy de grandes corporativos, disparando webhooks ante eventos clave (ej. "nuevo lead calificado").
 22. **Canal SMS (Notificaciones y Marketing Outbound):**
     Adición futura de SMS como canal oficial, delegando la conectividad de los carriers a n8n, y manejando la interacción de respuesta desde la bandeja central unificada para campañas masivas de recordatorios y cobranza.
-23. **Detección de Colisión Multi-Agente:**
-    Indicador en tiempo real (ej. *"Víctor está respondiendo..."*) para evitar que dos agentes asignados al mismo grupo intenten responder al mismo ticket simultáneamente. Si un ticket está asignado a un usuario específico, se bloqueará para los demás.
+23. ✅ **Detección de Colisión Multi-Agente (Presencia Activa):**
+    **COMPLETADO:** Indicador en tiempo real usando Supabase Realtime Presence. Cuando un ejecutivo comienza a redactar un mensaje en un ticket, los demás agentes con el mismo ticket abierto verán el indicador "👨‍💼 [Nombre] está escribiendo...", bloqueando respuestas duplicadas. Adicionalmente, al enviar la primera respuesta, el ticket se auto-asigna al ejecutivo, bloqueándolo para el resto.
 24. **Respuestas Rápidas (Macros / Canned Responses):**
     Sistema de atajos de teclado (ej. `/tarifas`) configurable por el administrador, permitiendo a los agentes enviar bloques de texto o PDFs pre-aprobados en 1 segundo, sin depender siempre de la generación del LLM.
 25. ✅ **Tipificación Obligatoria y Cierre Duro:**
@@ -151,8 +151,8 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
     Botón para unificar conversaciones duplicadas generadas por el mismo cliente en el mismo canal, limpiando el ruido operativo y manteniendo el historial ordenado.
 23. **Simulador Kimi "Red Team" (Entrenamiento de Perfiles IA):**
     Entorno de simulación donde Kimi adopta personalidades desafiantes (ej. "Cliente Furioso", "Indeciso", "Troll") y chatea automáticamente contra un Perfil IA recién creado. Entrega un reporte de estrés para validar que el agente responde correctamente a casos borde antes de salir a producción.
-24. **"Shadow Kimi" (Auditoría de Calidad - QA Ciega al 100%):**
-    Un hook asíncrono evaluará cada conversación cerrada por un humano (no bot) usando un LLM rápido. Comparará la atención dada contra el Manual de Procedimientos (RAG) y el Tono de Marca, generando un "QA Score" automático. Detectará si el humano fue cortés, resolutivo o si ofreció el upsell correcto, creando un Dashboard de Calidad total para los gerentes.
+24. ✅ **"Shadow Kimi" (Auditoría de Calidad - QA Ciega al 100%):**
+    **COMPLETADO:** Un hook asíncrono evalúa cada conversación al momento de cerrarse. Kimi analiza la interacción completa y genera un resumen ejecutivo estructurado en 4 puntos (problemas, acciones, resultado, recomendación), auditable directamente en la vista del CRM. Funciona como un QA automático permanente.
 25. **Generación de Leads Outbound Autónomo (Escucha Social Activa):**
     Mediante n8n, Kuden escuchará en tiempo real APIs de redes sociales (ej. grupos de Facebook, Instagram, Reddit) buscando palabras clave o intenciones de compra relacionadas al negocio del cliente. Al detectar un lead potencial, Kuden enviará un DM automático y consultivo, transformando la plataforma de un centro reactivo a un motor activo de generación de ingresos.
 26. **Módulo Autónomo de Marketing y Publicaciones en Redes Sociales (Social Media Engine):**

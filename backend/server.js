@@ -1908,6 +1908,108 @@ app.post("/api/crm/campaigns/:id/test-n8n", async (req, res) => {
   }
 });
 
+// ─── POST /api/webhook/voice-call/:tenantId ──────────────────────────────────
+// Webhook entrante desde VICIdial/Retell AI para llamadas de voz
+app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
+  const { tenantId } = req.params;
+  const payload = req.body;
+  if (!tenantId) return res.status(400).json({ error: "Falta tenantId" });
+  
+  try {
+    const now = new Date().toISOString();
+
+    // 1. Obtener la configuración de mapeo del tenant
+    const { data: tenantData } = await supabase.from('tenants').select('voice_webhook_mapping').eq('id', tenantId).single();
+    const mapping = tenantData?.voice_webhook_mapping || {};
+
+    // 2. Extraer campos base según el mapeo
+    const phoneKey = mapping['telefono']; // La llave en el JSON que trae el teléfono
+    const nameKey = mapping['cliente_nombre'];
+    const transcriptKey = mapping['transcript'];
+    const recordingKey = mapping['recordingUrl'];
+
+    if (!phoneKey || !payload[phoneKey]) {
+      return res.status(400).json({ error: "No se encontró un número de teléfono en el payload bajo la llave configurada." });
+    }
+
+    const rawPhone = payload[phoneKey];
+    const customerPhone = normalizePhone(rawPhone);
+    const customerName = (nameKey && payload[nameKey]) ? payload[nameKey] : rawPhone;
+    const transcript = (transcriptKey && payload[transcriptKey]) ? payload[transcriptKey] : "[Llamada de Voz Registrada sin Transcripción]";
+    const recordingUrl = (recordingKey && payload[recordingKey]) ? payload[recordingKey] : null;
+
+    // 3. Extraer custom fields adicionales
+    const additionalFields = {};
+    for (const [kudenField, jsonKey] of Object.entries(mapping)) {
+      if (['telefono', 'cliente_nombre', 'transcript', 'recordingUrl'].includes(kudenField)) continue;
+      if (payload[jsonKey] !== undefined && payload[jsonKey] !== null) {
+        additionalFields[kudenField] = payload[jsonKey];
+      }
+    }
+
+    // 4. Buscar o crear el contacto
+    let { data: contact } = await supabase.from('contacts').select('*').eq('telefono', customerPhone).eq('tenant_id', tenantId).maybeSingle();
+    
+    if (!contact) {
+      const { data: newContact, error: errC } = await supabase.from('contacts')
+        .insert({ 
+          tenant_id: tenantId, 
+          cliente_nombre: customerName, 
+          telefono: customerPhone,
+          ...additionalFields
+        })
+        .select().single();
+      if (errC) throw errC;
+      contact = newContact;
+    } else {
+      // Si existe, actualizamos los campos mapeados (si vinieron en el payload)
+      if (Object.keys(additionalFields).length > 0 || (nameKey && payload[nameKey])) {
+         const updateData = { ...additionalFields };
+         if (nameKey && payload[nameKey]) updateData.cliente_nombre = customerName;
+         await supabase.from('contacts').update(updateData).eq('id', contact.id);
+      }
+    }
+
+    // 5. Crear la conversación de Voz (Resuelta inmediatamente)
+    const { data: conv, error: errConv } = await supabase.from('conversations')
+      .insert({ 
+        contact_id: contact.id, 
+        status: 'resuelto', 
+        tenant_id: tenantId, 
+        last_message_at: now, 
+        canal: 'voz',
+        metadata: { recordingUrl }
+      })
+      .select().single();
+    if (errConv) throw errConv;
+
+    // 6. Insertar el mensaje (La transcripción)
+    const messageContent = recordingUrl ? `🔗 Grabación: ${recordingUrl}\n\nTranscripción:\n${transcript}` : `Transcripción:\n${transcript}`;
+    await insertConvMessage({
+      conversationId: conv.id,
+      tenantId,
+      senderType: 'customer',
+      senderName: contact.cliente_nombre,
+      content: messageContent,
+      metadata: { recordingUrl }
+    });
+
+    // 7. Actualizar preview de la conversación
+    await supabase.from("conversations").update({
+      last_message_at: now,
+      last_message_preview: messageContent.slice(0, 100)
+    }).eq("id", conv.id);
+
+    // 8. Gatillar el resumen asincrónico (Shadow Kimi)
+    generateExecutiveSummary(conv.id, tenantId).catch(console.error);
+
+    return res.json({ success: true, conversationId: conv.id });
+  } catch (e) {
+    console.error("[POST /api/webhook/voice-call/:tenantId]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── POST /api/webhook/n8n-email ───────────────────────────────────────────────
 // Webhook entrante desde n8n para correos electrónicos
 app.post("/api/webhook/n8n-email", async (req, res) => {
