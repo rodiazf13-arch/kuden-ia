@@ -1940,6 +1940,21 @@ function getNestedValue(obj, path) {
     if (success && current !== undefined) return current;
   }
 
+  // Intento 3: si el path empieza con 'payload.' pero el objeto NO tiene un campo 'payload', intentamos quitarlo
+  if (path.startsWith('payload.') && (!obj || !('payload' in obj))) {
+    parts = path.substring(8).split('.');
+    current = obj;
+    success = true;
+    for (const part of parts) {
+      if (current === null || current === undefined || !(part in current)) {
+        success = false;
+        break;
+      }
+      current = current[part];
+    }
+    if (success && current !== undefined) return current;
+  }
+
   // Fallback original (tolerancia a undefined intermedio)
   parts = path.split('.');
   current = obj;
