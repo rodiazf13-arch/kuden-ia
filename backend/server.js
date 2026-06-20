@@ -1929,6 +1929,7 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
   
   try {
     const now = new Date().toISOString();
+    console.log(`[VoiceWebhook Inbound] tenantId: ${tenantId}, payload:`, JSON.stringify(payload));
 
     // 1. Obtener la configuración de mapeo del tenant
     const { data: tenantData } = await supabase.from('tenants').select('voice_webhook_mapping').eq('id', tenantId).single();
@@ -1942,6 +1943,8 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
       // Por defecto, si no se especifica valor esperado, asumimos "true"
       const targetValue = expectedValue !== undefined && expectedValue !== null ? expectedValue : "true";
       if (String(actualValue) !== String(targetValue)) {
+        console.log(`[VoiceWebhook Ignored] tenantId: ${tenantId}. '${validationKey}' (${actualValue}) !== '${targetValue}'`);
+        await insertAuditLog('info', 'webhook_voice', `Llamada de voz ignorada por regla de validación. Llave: ${validationKey}`, { payload, validationKey, expectedValue: targetValue, actualValue }, tenantId).catch(console.error);
         return res.json({ success: true, ignored: true, message: `Ignorado: el valor de '${validationKey}' (${actualValue}) no coincide con el esperado (${targetValue})` });
       }
     }
@@ -2068,9 +2071,13 @@ app.post("/api/webhook/voice-call/:tenantId", async (req, res) => {
     // 8. Gatillar el resumen asincrónico (Shadow Kimi)
     generateExecutiveSummary(conv.id, tenantId).catch(console.error);
 
+    // Registrar auditoría de éxito
+    await insertAuditLog('info', 'webhook_voice', `Llamada de voz procesada con éxito. Ticket: ${ticketId}`, { conversationId: conv.id, ticketId, contactId: contact.id }, tenantId).catch(console.error);
+
     return res.json({ success: true, conversationId: conv.id });
   } catch (e) {
-    console.error("[POST /api/webhook/voice-call/:tenantId]", e.message);
+    console.error("[POST /api/webhook/voice-call/:tenantId] Error:", e.message);
+    await insertAuditLog('error', 'webhook_voice', `Error en webhook de voz: ${e.message}`, { error: e.stack, payload }, tenantId).catch(console.error);
     return res.status(500).json({ error: e.message });
   }
 });
