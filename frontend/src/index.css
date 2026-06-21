@@ -1,3 +1,8 @@
+/* ═══════════════════════════════════════════════════════════════
+   KUDEN IA — Premium Design System
+   Inspired by: Apple Intelligence · Stripe · Linear · Arc Browser
+   ═══════════════════════════════════════════════════════════════ */
+
 *,
 *::before,
 *::after {
@@ -7,77 +12,110 @@
 }
 
 :root {
-  /* ── Fonts ────────────────────────────────────────── */
-  --font-display: 'Outfit', sans-serif;
+  /* ── Typography ─────────────────────────────────────── */
+  --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
 
-  /* ── Light Theme (Default) ───────────────────────── */
-  --color-background-primary: #ffffff;
-  --color-background-secondary: #f0f4ff;
-  --color-background-tertiary: #e8ecf4;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
-  --color-border-tertiary: #e5e7eb;
-  /* 318bbf e5e7eb*/
-  --color-border-secondary: #d1d5db;
+  /* ── Brand Colors ──────────────────────────────────── */
+  --color-primary: #635BFF;          /* Kuden Indigo */
+  --color-primary-hover: #7E5CFF;   /* Electric Violet */
+  --color-accent: #37D7FF;           /* Cyan Pulse */
+  --color-cta: #00A6FF;              /* Aurora Blue */
+  --color-success: #16D38A;
+  --color-warning: #F6B940;
+  --color-error: #FF5E73;
 
-  /* ── Glassmorphism ───────────────────────────────── */
+  /* ── Light Theme (Default) ─────────────────────────── */
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #EEF2F9;
+  --color-background-tertiary: #F8FAFF;
+  --color-text-primary: #101828;
+  --color-text-secondary: #667085;
+  --color-text-tertiary: #98A2B3;
+  --color-text-disabled: #D0D5DD;
+  --color-border-tertiary: #E4E7EC;
+  --color-border-secondary: rgba(99, 91, 255, 0.08);
+
+  /* ── Glassmorphism ─────────────────────────────────── */
   --glass-bg: rgba(255, 255, 255, 0.80);
   --glass-bg-card: rgba(255, 255, 255, 0.70);
-  --glass-border: rgba(0, 0, 0, 0.07);
-  --glass-blur: blur(20px);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-border: rgba(99, 91, 255, 0.08);
+  --glass-blur: blur(24px);
+  --glass-shadow: 0 8px 24px rgba(16, 24, 40, 0.10);
 
-  /* ── Gradient Backgrounds ────────────────────────── */
-  --gradient-bg-main: linear-gradient(160deg, #fefffe 20%, #a5d7e6 80%, #2dadb67d 100%);
-  --gradient-bg-sidebar: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
-  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  --gradient-success: linear-gradient(135deg, #1D9E75 0%, #059669 100%);
-  --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-  --gradient-kuden: linear-gradient(135deg, #534AB7 0%, #2563eb 50%, #1D9E75 100%);
+  /* ── Gradient Backgrounds ──────────────────────────── */
+  --gradient-bg-main: linear-gradient(160deg, #F8FAFF 0%, #EEF2F9 40%, #E8EDFF 100%);
+  --gradient-bg-sidebar: linear-gradient(180deg, #FFFFFF 0%, #F8FAFF 100%);
+  --gradient-brand: linear-gradient(135deg, #635BFF 0%, #37D7FF 100%);
+  --gradient-cta-hover: linear-gradient(135deg, #635BFF 0%, #37D7FF 100%);
+  --gradient-success: linear-gradient(135deg, #16D38A 0%, #0EA770 100%);
+  --gradient-warm: linear-gradient(135deg, #F6B940 0%, #FF5E73 100%);
+  --gradient-kuden: linear-gradient(135deg, #635BFF 0%, #7E5CFF 50%, #37D7FF 100%);
 
-  /* ── Glow Effects ────────────────────────────────── */
-  --glow-blue: 0 0 20px rgba(37, 99, 235, 0.25);
-  --glow-green: 0 0 20px rgba(29, 158, 117, 0.25);
-  --glow-purple: 0 0 20px rgba(124, 58, 237, 0.25);
-  --glow-gold: 0 0 20px rgba(245, 158, 11, 0.25);
+  /* ── Glow Effects ──────────────────────────────────── */
+  --glow-primary: 0 0 20px rgba(99, 91, 255, 0.25);
+  --glow-accent: 0 0 20px rgba(55, 215, 255, 0.25);
+  --glow-violet: 0 0 20px rgba(126, 92, 255, 0.25);
+  --glow-success: 0 0 20px rgba(22, 211, 138, 0.25);
+  --glow-warning: 0 0 20px rgba(246, 185, 64, 0.25);
+  /* Legacy aliases for components still referencing old names */
+  --glow-blue: var(--glow-primary);
+  --glow-green: var(--glow-success);
+  --glow-purple: var(--glow-violet);
+  --glow-gold: var(--glow-warning);
 
-  /* ── Radii & Shadows ─────────────────────────────── */
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 24px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
-  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* ── Radii ─────────────────────────────────────────── */
+  --border-radius-sm: 12px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
+  --border-radius-xl: 28px;
+
+  /* ── Shadows ───────────────────────────────────────── */
+  --shadow-sm: 0 4px 12px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.10);
+  --shadow-lg: 0 20px 60px rgba(16, 24, 40, 0.12);
+  --shadow-xl: 0 10px 30px rgba(99, 91, 255, 0.20);
+
+  /* ── Transitions ───────────────────────────────────── */
+  --transition-fast: all 0.2s ease-out;
   --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── Dark Mode Variables ──────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  --color-background-primary: #111111;
-  --color-background-secondary: #0a0a0a;
-  --color-background-tertiary: #1a1a1a;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-text-tertiary: #6b7280;
-  --color-border-tertiary: #222222;
-  --color-border-secondary: #333333;
-  --glass-bg: rgba(16, 16, 30, 0.85);
-  --glass-bg-card: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.07);
+  --color-background-primary: #1C2035;
+  --color-background-secondary: #171A2F;
+  --color-background-tertiary: #0D1020;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #A9B0C3;
+  --color-text-tertiary: #70768A;
+  --color-text-disabled: #4D5366;
+  --color-border-tertiary: rgba(255, 255, 255, 0.08);
+  --color-border-secondary: rgba(255, 255, 255, 0.08);
+
+  --glass-bg: rgba(28, 32, 53, 0.85);
+  --glass-bg-card: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
-  --gradient-bg-main: linear-gradient(160deg, #0c0c0c 20%, #231b45b3 80%, #102d619e 100%);
-  --gradient-bg-sidebar: linear-gradient(180deg, #12121f 0%, #0a0a0a 100%);
+
+  --gradient-bg-main: linear-gradient(160deg, #0D1020 0%, #171A2F 50%, #1C2035 100%);
+  --gradient-bg-sidebar: linear-gradient(180deg, #171A2F 0%, #0D1020 100%);
+
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.20);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 8px 32px rgba(99, 91, 255, 0.25);
 }
 
-/* ── Global Resets ────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL RESETS & BASE STYLES
+   ═══════════════════════════════════════════════════════════════ */
 body {
   font-family: var(--font-body);
   font-size: 14px;
+  line-height: 1.4;
   color: var(--color-text-primary);
   background: var(--gradient-bg-main);
   min-height: 100vh;
@@ -85,23 +123,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
+/* ── Form Elements ───────────────────────────────────── */
 input,
 select,
 textarea {
   font-family: var(--font-body);
   border: 1px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-sm);
-  padding: 8px 12px;
+  border-radius: var(--border-radius-md);
+  padding: 10px 14px;
   font-size: 13px;
   outline: none;
   background: var(--color-background-primary);
@@ -112,14 +147,19 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.10);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 button {
   font-family: var(--font-display);
   border: 1px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   background: var(--color-background-primary);
   color: var(--color-text-primary);
   cursor: pointer;
@@ -132,134 +172,73 @@ button:disabled {
   transform: none !important;
 }
 
-/* ── Animations ───────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeSlideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 22px rgba(37, 99, 235, 0.6);
-  }
+  0%, 100% { box-shadow: 0 0 8px rgba(99, 91, 255, 0.3); }
+  50%      { box-shadow: 0 0 22px rgba(99, 91, 255, 0.6); }
 }
 
 @keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  40% {
-    transform: translateY(-5px);
-  }
-
-  70% {
-    transform: translateY(-2px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  40%      { transform: translateY(-5px); }
+  70%      { transform: translateY(-2px); }
 }
 
 @keyframes orbit {
-  from {
-    transform: rotate(0deg) translateX(var(--r, 10px)) rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg) translateX(var(--r, 10px)) rotate(-360deg);
-  }
+  from { transform: rotate(0deg) translateX(var(--r, 10px)) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(var(--r, 10px)) rotate(-360deg); }
 }
 
 @keyframes orbit-reverse {
-  from {
-    transform: rotate(0deg) translateX(var(--r, 8px)) rotate(0deg);
-  }
-
-  to {
-    transform: rotate(-360deg) translateX(var(--r, 8px)) rotate(360deg);
-  }
+  from { transform: rotate(0deg) translateX(var(--r, 8px)) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(var(--r, 8px)) rotate(360deg); }
 }
 
 @keyframes kimi-pulse {
-
-  0%,
-  100% {
-    opacity: 0.75;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
 }
 
 @keyframes kimi-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
+  100% { transform: rotate(360deg); }
 }
 
 @keyframes badge-pop {
-  0% {
-    transform: scale(0.8);
-  }
-
-  60% {
-    transform: scale(1.15);
-  }
-
-  100% {
-    transform: scale(1);
-  }
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }
 
-/* ── Utility Classes ─────────────────────────────── */
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════ */
 .glass-card {
   background: var(--glass-bg-card);
   backdrop-filter: var(--glass-blur);
@@ -275,15 +254,15 @@ button:disabled {
 
 .skeleton {
   background: linear-gradient(90deg,
-      var(--color-background-tertiary) 25%,
-      var(--color-background-secondary) 50%,
-      var(--color-background-tertiary) 75%);
+    var(--color-background-tertiary) 25%,
+    var(--color-background-secondary) 50%,
+    var(--color-background-tertiary) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--border-radius-sm);
 }
 
-/* ── Custom Scrollbar ────────────────────────────── */
+/* ── Custom Scrollbar ────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -294,14 +273,17 @@ button:disabled {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: rgba(99, 91, 255, 0.20);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.7);
+  background: rgba(99, 91, 255, 0.40);
 }
-/* -- Responsive Utils ------------------------------ */
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .hide-on-mobile {
     display: none !important;
@@ -350,9 +332,10 @@ button:disabled {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(13, 16, 32, 0.6);
     z-index: 999;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s;
