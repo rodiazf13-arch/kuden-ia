@@ -335,9 +335,22 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
             <h3>Nueva Campaña</h3>
             <input placeholder="Nombre de campaña" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             <input placeholder="Descripción breve (opcional)" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-            <div className="campaign-color-row">
+            <div className="integration-form-group">
               <label className="integration-form-label">Color de campaña</label>
-              <input type="color" className="integration-color-picker-input-color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
+              <div className="integration-color-picker-container">
+                <input 
+                  type="color" 
+                  className="integration-color-picker-input-color" 
+                  value={form.color} 
+                  onChange={e => setForm({ ...form, color: e.target.value })} 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Color hex (ej: #2563eb)" 
+                  value={form.color} 
+                  onChange={e => setForm({ ...form, color: e.target.value })} 
+                />
+              </div>
             </div>
             <select value={form.ai_profile_id} onChange={e => setForm({ ...form, ai_profile_id: e.target.value })}>
               <option value="">Sin Perfil IA (Agente Genérico)</option>
