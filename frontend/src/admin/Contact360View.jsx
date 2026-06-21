@@ -13,14 +13,14 @@ const CHANNELS = [
 ];
 
 const CSAT_LABELS = ["","Muy malo","Malo","Regular","Bueno","Excelente"];
-const CSAT_COLORS = ["","#E24B4A","#D85A30","#EF9F27","#1D9E75","#534AB7"];
+const CSAT_COLORS = ["","#E24B4A","#D85A30","#EF9F27","#1D9E75","#00A6FF"];
 
 const SENTIMIENTOS = [
   { id:"muy_negativo", label:"Muy frustrado", emoji:"🤬", color:"#E24B4A", bg:"#FDECEA", pct:10 },
   { id:"negativo",     label:"Frustrado",     emoji:"😠", color:"#D85A30", bg:"#FAECE7", pct:30 },
   { id:"neutral",      label:"Neutral",       emoji:"😐", color:"#EF9F27", bg:"#FEF3E0", pct:50 },
   { id:"positivo",     label:"Satisfecho",    emoji:"🙂", color:"#1D9E75", bg:"#E1F5EE", pct:75 },
-  { id:"muy_positivo", label:"Muy satisfecho",emoji:"🤩", color:"#534AB7", bg:"#EEEDFE", pct:100 },
+  { id:"muy_positivo", label:"Muy satisfecho",emoji:"🤩", color:"#00A6FF", bg:"#EBF7FF", pct:100 },
 ];
 
 const RIESGO_FUGA = [
@@ -38,11 +38,7 @@ const segFromPlan = (plan) => {
   return { label:"Básico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial. Foco en retención." };
 };
 
-function Badge({ label, color, bg }) {
-  return <span style={{ fontSize:10, fontWeight:500, color, background:bg, border:"0.5px solid "+color+"40", borderRadius:20, padding:"2px 8px" }}>{label}</span>;
-}
-
-function DashboardPerfil({ contact, conversations, c, isDark }) {
+function DashboardPerfil({ contact, conversations }) {
   const cd = contact;
   const seg = segFromPlan(cd.plan);
   const allCSAT = conversations.map(c=>parseFloat(c.csat_final)).filter(n=>!isNaN(n));
@@ -80,118 +76,122 @@ function DashboardPerfil({ contact, conversations, c, isDark }) {
     ? n0+" tiene historial de insatisfacción. Priorizar resolución al primer contacto y seguimiento."
     : "Perfil en desarrollo. Continúa registrando interacciones para afinar la segmentación.";
 
-  const cardBg = isDark ? "rgba(255,255,255,0.02)" : "#fff";
-
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:15, paddingRight:10 }}>
-      <div style={{ background:cardBg, border:"0.5px solid "+c.border, borderRadius:"12px", padding:"14px 16px", display:"flex", alignItems:"center", gap:14 }}>
-        <div style={{ width:48, height:48, borderRadius:"50%", background:seg.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, border:"2px solid "+seg.color }}>
-          <span style={{ fontSize:20, fontWeight:600, color:seg.color }}>{(cd.cliente_nombre||"?")[0].toUpperCase()}</span>
+    <div className="contact-360-dashboard">
+      <div className="contact-360-card contact-360-header-card">
+        <div className="contact-360-header-avatar" style={{ background: seg.bg, borderColor: seg.color }}>
+          <span style={{ color: seg.color }}>{(cd.cliente_nombre||"?")[0].toUpperCase()}</span>
         </div>
-        <div style={{ flex:1 }}>
-          <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:500, color:c.title }}>{cd.cliente_nombre}</p>
-          <p style={{ margin:"0 0 5px", fontSize:12, color:c.subtitle }}>{cd.rut} • {cd.telefono}</p>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <Badge label={cd.plan||"Sin plan"} color="#534AB7" bg="#EEEDFE"/>
-            <Badge label={"Segmento "+seg.label} color={seg.color} bg={seg.bg}/>
+        <div className="contact-360-header-info">
+          <p className="contact-360-header-name">{cd.cliente_nombre}</p>
+          <p className="contact-360-header-meta">{cd.rut} • {cd.telefono}</p>
+          <div className="contact-360-header-badges">
+            <span className="contact-badge-plan">{cd.plan || 'Sin plan'}</span>
+            <span className="contact-badge-status activo" style={{ color: seg.color, background: seg.bg, borderColor: seg.color + '40' }}>
+              Segmento {seg.label}
+            </span>
           </div>
         </div>
       </div>
       
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:15 }}>
+      <div className="contact-360-dashboard-grid">
         {/* Segmento de valor */}
-        <div style={{ background:cardBg, border:"0.5px solid "+c.border, borderRadius:"12px", padding:"15px" }}>
-          <p style={{ margin:"0 0 8px", fontSize:11, color:c.subtitle, textTransform:"uppercase", letterSpacing:"0.04em" }}>Segmento de valor</p>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <div style={{ width:36, height:36, borderRadius:"50%", background:seg.bg, display:"flex", alignItems:"center", justifyContent:"center", border:"2px solid "+seg.color }}>
-              <i className="ti ti-diamond" style={{ fontSize:16, color:seg.color }} aria-hidden="true"/>
+        <div className="contact-360-card">
+          <p className="contact-360-card-title">Segmento de valor</p>
+          <div className="contact-360-card-header">
+            <div className="contact-360-card-icon-container" style={{ background: seg.bg, borderColor: seg.color }}>
+              <i className="ti ti-diamond contact-360-card-icon" style={{ color: seg.color }} aria-hidden="true" />
             </div>
             <div>
-              <p style={{ margin:0, fontSize:15, fontWeight:500, color:seg.color }}>{seg.label}</p>
-              <p style={{ margin:0, fontSize:11, color:c.subtitle }}>{seg.desc}</p>
+              <p className="contact-360-card-title-text" style={{ color: seg.color }}>{seg.label}</p>
+              <p className="contact-360-card-subtitle">{seg.desc}</p>
             </div>
           </div>
-          <div style={{ background:isDark?"#333":"#f0f0f0", borderRadius:6, height:8, overflow:"hidden" }}>
-            <div style={{ width:seg.score+"%", height:"100%", background:seg.color, borderRadius:6 }}/>
+          <div className="contact-360-progress-bg">
+            <div className="contact-360-progress-fill" style={{ width: seg.score + '%', background: seg.color }} />
           </div>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:9, color:c.subtitle }}>Básico</span>
-            <span style={{ fontSize:9, color:c.subtitle }}>Estratégico</span>
+          <div className="contact-360-progress-labels">
+            <span className="contact-360-progress-label">Básico</span>
+            <span className="contact-360-progress-label">Estratégico</span>
           </div>
         </div>
 
         {/* NPS Histórico */}
-        <div style={{ background:cardBg, border:"0.5px solid "+c.border, borderRadius:"12px", padding:"15px" }}>
-          <p style={{ margin:"0 0 8px", fontSize:11, color:c.subtitle, textTransform:"uppercase", letterSpacing:"0.04em" }}>NPS histórico</p>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:32, fontWeight:500, color:npsColor }}>{nps!==null?nps:"—"}</p>
+        <div className="contact-360-card">
+          <p className="contact-360-card-title">NPS histórico</p>
+          <div className="contact-360-card-header">
+            <p className="contact-360-card-value" style={{ color: npsColor }}>{nps!==null?nps:"—"}</p>
             <div>
-              <Badge label={npsLabel} color={npsColor} bg={npsColor+"20"}/>
-              <p style={{ margin:"4px 0 0", fontSize:10, color:c.subtitle }}>{allCSAT.length} evaluaciones</p>
+              <span className="contact-badge-nps" style={{ color: npsColor, background: npsColor + '20', borderColor: npsColor + '40' }}>
+                {npsLabel}
+              </span>
+              <p className="contact-360-card-value-meta">{allCSAT.length} evaluaciones</p>
             </div>
           </div>
-          <div style={{ display:"flex", gap:6 }}>
+          <div className="nps-breakdown-container">
             {[{l:"Promotores",c:"#1D9E75",v:prom},{l:"Pasivos",c:"#EF9F27",v:pas},{l:"Detractores",c:"#E24B4A",v:det}].map(x => (
-              <div key={x.l} style={{ flex:1, background:x.c+"18", borderRadius:"6px", padding:"5px 6px", textAlign:"center" }}>
-                <p style={{ margin:0, fontSize:14, fontWeight:500, color:x.c }}>{x.v}</p>
-                <p style={{ margin:0, fontSize:9, color:x.c }}>{x.l}</p>
+              <div key={x.l} className="nps-breakdown-item" style={{ background: x.c + '18' }}>
+                <p style={{ color: x.c }}>{x.v}</p>
+                <p style={{ color: x.c }}>{x.l}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Canal Preferido */}
-        <div style={{ background:cardBg, border:"0.5px solid "+c.border, borderRadius:"12px", padding:"15px" }}>
-          <p style={{ margin:"0 0 8px", fontSize:11, color:c.subtitle, textTransform:"uppercase", letterSpacing:"0.04em" }}>Canal preferido</p>
+        <div className="contact-360-card">
+          <p className="contact-360-card-title">Canal preferido</p>
           {cObj ? (
             <div>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                <div style={{ width:36, height:36, borderRadius:"50%", background:cObj.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <i className={"ti "+cObj.icon} style={{ fontSize:18, color:cObj.color }} aria-hidden="true"/>
+              <div className="contact-360-card-header">
+                <div className="contact-360-card-icon-container" style={{ background: cObj.bg }}>
+                  <i className={'ti ' + cObj.icon + ' contact-360-card-icon-lg'} style={{ color: cObj.color }} aria-hidden="true" />
                 </div>
                 <div>
-                  <p style={{ margin:0, fontSize:14, fontWeight:500, color:cObj.color }}>{cPref[0]}</p>
-                  <p style={{ margin:0, fontSize:11, color:c.subtitle }}>{cPref[1]} interacciones</p>
+                  <p className="contact-360-card-title-text" style={{ color: cObj.color }}>{cPref[0]}</p>
+                  <p className="contact-360-card-subtitle">{cPref[1]} interacciones</p>
                 </div>
               </div>
-              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+              <div className="contact-360-channels-list">
                 {cEntries.map(entry => {
                   const chO = CHANNELS.find(ch=>ch.label.toLowerCase().includes(entry[0].toLowerCase()) || ch.id === entry[0])||CHANNELS[0];
                   return (
-                    <div key={entry[0]} style={{ display:"flex", alignItems:"center", gap:3, background:chO.bg, borderRadius:20, padding:"2px 7px" }}>
-                      <i className={"ti "+chO.icon} style={{ fontSize:9, color:chO.color }} aria-hidden="true"/>
-                      <span style={{ fontSize:10, color:chO.color }}>{entry[0]} ({entry[1]})</span>
+                    <div key={entry[0]} className="contact-360-channel-pill" style={{ background: chO.bg }}>
+                      <i className={'ti ' + chO.icon + ' contact-360-channel-pill-icon'} style={{ color: chO.color }} aria-hidden="true" />
+                      <span className="contact-360-channel-pill-text" style={{ color: chO.color }}>{entry[0]} ({entry[1]})</span>
                     </div>
                   );
                 })}
               </div>
             </div>
-          ) : <p style={{ margin:0, fontSize:12, color:c.subtitle, fontStyle:"italic" }}>Sin historial suficiente</p>}
+          ) : <p className="contact-360-empty-text">Sin historial suficiente</p>}
         </div>
 
         {/* Score riesgo fuga */}
-        <div style={{ background:cardBg, border:"0.5px solid "+c.border, borderRadius:"12px", padding:"15px" }}>
-          <p style={{ margin:"0 0 8px", fontSize:11, color:c.subtitle, textTransform:"uppercase", letterSpacing:"0.04em" }}>Score riesgo de fuga</p>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:32, fontWeight:500, color:fColor }}>{fScore}</p>
+        <div className="contact-360-card">
+          <p className="contact-360-card-title">Score riesgo de fuga</p>
+          <div className="contact-360-card-header">
+            <p className="contact-360-card-value" style={{ color: fColor }}>{fScore}</p>
             <div>
-              <Badge label={fLabel} color={fColor} bg={fColor+"20"}/>
-              <p style={{ margin:"4px 0 0", fontSize:10, color:c.subtitle }}>Promedio acumulado</p>
+              <span className="contact-badge-risk" style={{ color: fColor, background: fColor + '20', borderColor: fColor + '40' }}>
+                {fLabel}
+              </span>
+              <p className="contact-360-card-value-meta">Promedio acumulado</p>
             </div>
           </div>
-          <div style={{ background:isDark?"#333":"#f0f0f0", borderRadius:6, height:8, overflow:"hidden", marginBottom:8 }}>
-            <div style={{ width:fScore+"%", height:"100%", background:fColor, borderRadius:6 }}/>
+          <div className="contact-360-progress-bg" style={{ marginBottom: 8 }}>
+            <div className="contact-360-progress-fill" style={{ width: fScore + '%', background: fColor }} />
           </div>
           {sEvol.length > 0 && (
             <div>
-              <p style={{ margin:"0 0 5px", fontSize:10, color:c.subtitle }}>Sentimiento por sesión (últimas 10)</p>
-              <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:32 }}>
-                {sEvol.map((s,i) => {
-                  const sO = SENTIMIENTOS.find(x=>x.id===s.sent)||SENTIMIENTOS[2];
+              <p className="contact-360-evolution-title">Sentimiento por sesión (últimas 10)</p>
+              <div className="sentiment-bar-chart">
+                {sEvol.map((s, i) => {
+                  const sO = SENTIMIENTOS.find(x => x.id === s.sent) || SENTIMIENTOS[2];
                   return (
-                    <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2 }} title={sO.label}>
-                      <div style={{ width:"100%", background:sO.color, borderRadius:"3px 3px 0 0", height:Math.max((s.score/100)*28,4)+"px", opacity:0.8 }}/>
-                      <span style={{ fontSize:9, color:c.subtitle }}>S{s.i}</span>
+                    <div key={i} className="sentiment-chart-bar" title={sO.label}>
+                      <div className="sentiment-chart-bar-fill" style={{ background: sO.color, height: Math.max(s.score, 12) + '%' }} />
+                      <span>S{s.i}</span>
                     </div>
                   );
                 })}
@@ -201,12 +201,12 @@ function DashboardPerfil({ contact, conversations, c, isDark }) {
         </div>
       </div>
       
-      <div style={{ background:"#EEEDFE", border:"0.5px solid #CECBF6", borderRadius:"12px", padding:"15px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-          <i className="ti ti-sparkles" style={{ fontSize:14, color:"#534AB7" }} aria-hidden="true"/>
-          <p style={{ margin:0, fontSize:12, fontWeight:500, color:"#26215C" }}>Recomendación KUDEN IA</p>
+      <div className="contact-360-rec-card">
+        <div className="contact-360-rec-header">
+          <i className="ti ti-sparkles" aria-hidden="true" />
+          <p>Recomendación KUDEN IA</p>
         </div>
-        <p style={{ margin:0, fontSize:12, color:"#26215C", lineHeight:1.6 }}>{rec}</p>
+        <p className="contact-360-rec-text">{rec}</p>
       </div>
     </div>
   );
@@ -314,207 +314,177 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
   };
 
   return (
-    <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
+    <div className="contact-360-wrapper">
       {/* Columna Izquierda: Perfil y Resumen */}
-      <div style={{ width: '350px', background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: c.subtitle, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}>
+      <div className="contact-360-sidebar">
+        <button onClick={onBack} className="integration-btn-link contact-360-back-btn">
           <i className="ti ti-arrow-left"></i> Volver a contactos
         </button>
 
-        <div style={{ textAlign: 'center', marginTop: '10px' }}>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', fontSize: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px', fontWeight: 'bold' }}>
+        <div className="contact-360-profile-info">
+          <div className="contact-360-avatar">
             {contact.cliente_nombre?.charAt(0).toUpperCase()}
           </div>
-          <h2 style={{ margin: '0 0 5px', color: c.title, fontSize: '20px' }}>{contact.cliente_nombre}</h2>
-          <p style={{ margin: 0, color: c.subtitle, fontSize: '14px' }}>{contact.email || contact.telefono}</p>
+          <h2>{contact.cliente_nombre}</h2>
+          <p>{contact.email || contact.telefono}</p>
         </div>
 
-        <button onClick={onEdit} style={{ width: '100%', padding: '10px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.title, cursor: 'pointer', fontWeight: 500 }}>
+        <button onClick={onEdit} className="integration-btn-secondary contact-360-sidebar-btn">
           <i className="ti ti-edit"></i> Editar Contacto
         </button>
 
-        <div style={{ background: c.sectionBg, padding: '15px', borderRadius: '8px', border: `1px solid ${c.border}` }}>
-          <h3 style={{ margin: '0 0 10px', color: c.title, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ti ti-message-share" style={{ color: '#2563eb' }}></i> Iniciar Conversación
+        <div className="contact-360-action-box">
+          <h3>
+            <i className="ti ti-message-share"></i> Iniciar Conversación
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button onClick={() => handleStartConversation('whatsapp')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#25D36620', border: '1px solid #25D366', borderRadius: '6px', color: isDark ? '#fff' : '#085041', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> Enviar un WhatsApp
+          <div className="contact-360-channels-list contact-360-action-list">
+            <button onClick={() => handleStartConversation('whatsapp')} className="contact-360-action-btn whatsapp">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> Enviar un WhatsApp
             </button>
-            <button onClick={() => handleStartConversation('email')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#3B82F620', border: '1px solid #3B82F6', borderRadius: '6px', color: isDark ? '#fff' : '#1e40af', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
+            <button onClick={() => handleStartConversation('email')} className="contact-360-action-btn email">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48"><path fill="#4caf50" d="M45,16.2l-5,2.75l-5,4.75L24,31.5L5,17V10c0-2.209,1.791-4,4-4h30c2.209,0,4,1.791,4,4V16.2z"/><path fill="#1e88e5" d="M3,16.2l5,2.75l5,4.75l11,7.8l11-7.8l5-4.75l5-2.75V38c0,2.209-1.791,4-4,4H9c-2.209,0-4-1.791-4-4V16.2z"/><path fill="#e53935" d="M24,31.5L5,17L3,16.2C3,15.709,3,15.209,3,14.71C3,12.109,5.109,10,7.71,10H14L24,31.5z"/><path fill="#ffb300" d="M45,16.2L43,17l-19,14.5l10-21.5h6.29C42.891,10,45,12.109,45,14.71C45,15.209,45,15.709,45,16.2z"/></svg> Enviar un Email
             </button>
-            <button onClick={() => handleStartConversation('instagram')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#E1306C20', border: '1px solid #E1306C', borderRadius: '6px', color: isDark ? '#fff' : '#831843', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="url(#ig-grad)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/><defs><linearGradient id="ig-grad" x1="12" x2="12" y1="2" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#f09433"/><stop offset=".25" stopColor="#e6683c"/><stop offset=".5" stopColor="#dc2743"/><stop offset=".75" stopColor="#cc2366"/><stop offset="1" stopColor="#bc1888"/></linearGradient></defs></svg> Enviar DM Instagram
+            <button onClick={() => handleStartConversation('instagram')} className="contact-360-action-btn instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="url(#ig-grad-360)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/><defs><linearGradient id="ig-grad-360" x1="12" x2="12" y1="2" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#f09433"/><stop offset=".25" stopColor="#e6683c"/><stop offset=".5" stopColor="#dc2743"/><stop offset=".75" stopColor="#cc2366"/><stop offset="1" stopColor="#bc1888"/></linearGradient></defs></svg> Enviar DM Instagram
             </button>
           </div>
         </div>
 
-        <div style={{ background: c.sectionBg, padding: '15px', borderRadius: '8px', border: `1px solid ${c.border}` }}>
-          <h3 style={{ margin: '0 0 10px', color: c.title, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <i className="ti ti-brain" style={{ color: '#7c3aed' }}></i> Resumen Global de IA
+        <div className="contact-360-summary-box">
+          <h3>
+            <i className="ti ti-brain"></i> Resumen Global de IA
           </h3>
-          <div style={{ fontSize: '13px', color: c.rowText, lineHeight: '1.5', minHeight: '60px' }}>
+          <div className="contact-360-summary-text">
             {globalSummary ? (
-              <span style={{ whiteSpace: 'pre-wrap' }}>{globalSummary}</span>
+              <span className="contact-360-summary-content">{globalSummary}</span>
             ) : (
-              <span style={{ color: c.subtitle }}>No hay un resumen generado aún.</span>
+              <span className="contact-360-summary-empty">No hay un resumen generado aún.</span>
             )}
           </div>
           <button 
             onClick={generateGlobalSummary} 
             disabled={generating}
-            style={{ marginTop: '15px', width: '100%', padding: '8px', background: '#7c3aed', border: 'none', borderRadius: '6px', color: '#fff', cursor: generating ? 'wait' : 'pointer', fontSize: '13px' }}
+            className="integration-btn-primary contact-360-sidebar-btn"
           >
             {generating ? 'Generando...' : 'Actualizar Resumen IA'}
           </button>
         </div>
 
-        <div style={{ marginTop: 'auto' }}>
-          <p style={{ margin: '0 0 5px', fontSize: '12px', color: c.subtitle }}>Plan / Producto</p>
-          <p style={{ margin: 0, color: c.title, fontWeight: 500, fontSize: '14px' }}>{contact.plan || 'No definido'}</p>
+        <div className="contact-360-sidebar-footer">
+          <p>Plan / Producto</p>
+          <p>{contact.plan || 'No definido'}</p>
         </div>
       </div>
 
       {/* Columna Derecha: Dashboard y Tabs */}
-      <div style={{ flex: 1, background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="contact-360-main-pane">
         
-        <div style={{ display: 'flex', gap: '15px', borderBottom: `1px solid ${c.border}`, paddingBottom: '10px', marginBottom: '20px' }}>
+        <div className="contact-360-tabs">
           <button 
             onClick={() => setActiveTab('perfil')}
-            style={{ 
-              background: 'none', border: 'none', padding: '0 5px 10px', fontSize: '16px', fontWeight: 500, cursor: 'pointer',
-              color: activeTab === 'perfil' ? c.title : c.subtitle,
-              borderBottom: activeTab === 'perfil' ? '2px solid #3b82f6' : '2px solid transparent',
-              marginBottom: '-11px', display: 'flex', alignItems: 'center', gap: '8px'
-            }}
+            className={`contact-360-tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
           >
             <i className="ti ti-chart-pie"></i> Perfil Analítico
           </button>
           <button 
             onClick={() => setActiveTab('historial')}
-            style={{ 
-              background: 'none', border: 'none', padding: '0 5px 10px', fontSize: '16px', fontWeight: 500, cursor: 'pointer',
-              color: activeTab === 'historial' ? c.title : c.subtitle,
-              borderBottom: activeTab === 'historial' ? '2px solid #3b82f6' : '2px solid transparent',
-              marginBottom: '-11px', display: 'flex', alignItems: 'center', gap: '8px'
-            }}
+            className={`contact-360-tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
           >
             <i className="ti ti-history"></i> Historial Omnicanal
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div className="contact-360-scrollable-content">
           {loading ? (
-            <p style={{ color: c.subtitle, textAlign: 'center', marginTop: '40px' }}>Cargando datos...</p>
+            <p className="contact-360-loading">Cargando datos...</p>
           ) : activeTab === 'perfil' ? (
-            <DashboardPerfil contact={contact} conversations={conversations} c={c} isDark={isDark} />
+            <DashboardPerfil contact={contact} conversations={conversations} />
           ) : conversations.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: c.subtitle }}>
-              <i className="ti ti-messages" style={{ fontSize: '40px', marginBottom: '10px', opacity: 0.5 }}></i>
+            <div className="contact-360-empty-state">
+              <i className="ti ti-messages" aria-hidden="true"></i>
               <p>Este cliente aún no tiene interacciones registradas.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', paddingRight: '10px' }}>
+            <div className="contact-360-history-list">
               {conversations.map(conv => {
                 const isExpanded = expandedId === conv.id;
                 return (
-                  <div key={conv.id} style={{ border: `1px solid ${c.border}`, borderRadius: '8px', overflow: 'hidden', background: c.sectionBg }}>
+                  <div key={conv.id} className="history-ticket-card">
                     {/* Header del Ticket */}
                     <div 
                       onClick={() => setExpandedId(isExpanded ? null : conv.id)}
-                      style={{ padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', background: isExpanded ? c.inputBg : 'transparent' }}
+                      className={`history-ticket-header ${isExpanded ? 'expanded' : ''}`}
                     >
-                      <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#3b82f620', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                        <i className={`ti ${conv.canal === 'whatsapp' ? 'ti-brand-whatsapp' : conv.canal === 'email' ? 'ti-mail' : 'ti-messages'}`}></i>
+                      <div className="history-ticket-icon">
+                        <i className={`ti ${conv.canal === 'whatsapp' ? 'ti-brand-whatsapp' : conv.canal === 'email' ? 'ti-mail' : 'ti-messages'}`} aria-hidden="true"></i>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <h4 style={{ margin: 0, color: c.title, fontSize: '15px' }}>{conv.motivo_label || 'Conversación'}</h4>
-                          <span style={{ fontSize: '12px', color: c.subtitle }}>{timeAgo(conv.last_message_at || conv.updated_at)}</span>
+                      <div className="history-ticket-meta">
+                        <div className="history-ticket-meta-top">
+                          <h4 className="history-ticket-title">{conv.motivo_label || 'Conversación'}</h4>
+                          <span className="history-ticket-time">{timeAgo(conv.last_message_at || conv.updated_at)}</span>
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', fontSize: '12px', color: c.subtitle }}>
+                        <div className="history-ticket-meta-bottom">
                           <span>Campaña: {conv.campaigns?.name || 'General'}</span>
                           <span>&bull;</span>
                           <span>Estado: {conv.status}</span>
                         </div>
                       </div>
-                      <i className={`ti ti-chevron-${isExpanded ? 'up' : 'down'}`} style={{ color: c.subtitle }}></i>
+                      <i className={`ti ti-chevron-${isExpanded ? 'up' : 'down'} history-ticket-chevron`} aria-hidden="true"></i>
                     </div>
 
                     {/* Contenido Expandido */}
                     {isExpanded && (
-                      <div style={{ borderTop: `1px solid ${c.border}`, padding: '15px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div className="history-ticket-body">
                         {/* Resumen IA */}
                         {conv.resumen_ejecutivo && (
-                          <div style={{ background: '#7c3aed10', border: '1px solid #7c3aed30', padding: '12px', borderRadius: '8px' }}>
-                            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 600, color: '#7c3aed', textTransform: 'uppercase' }}>Resumen Ejecutivo IA</p>
-                            <p style={{ margin: 0, fontSize: '13px', color: c.rowText, whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{conv.resumen_ejecutivo}</p>
+                          <div className="history-ticket-summary-ia">
+                            <p className="history-ticket-summary-ia-title">Resumen Ejecutivo IA</p>
+                            <p className="history-ticket-summary-ia-text">{conv.resumen_ejecutivo}</p>
                           </div>
                         )}
                         
                         {conv.follow_up_note && (
-                          <div style={{ background: '#f59e0b10', border: '1px solid #f59e0b30', padding: '12px', borderRadius: '8px' }}>
-                            <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase' }}>Nota de Seguimiento (Pendiente)</p>
-                            <p style={{ margin: '0 0 4px', fontSize: '13px', color: c.rowText }}>{conv.follow_up_note}</p>
-                            {conv.follow_up_at && <p style={{ margin: 0, fontSize: '11px', color: c.subtitle }}>Para: {new Date(conv.follow_up_at).toLocaleString()}</p>}
+                          <div className="history-ticket-followup">
+                            <p className="history-ticket-followup-title">Nota de Seguimiento (Pendiente)</p>
+                            <p className="history-ticket-followup-text">{conv.follow_up_note}</p>
+                            {conv.follow_up_at && <p className="history-ticket-followup-date">Para: {new Date(conv.follow_up_at).toLocaleString()}</p>}
                           </div>
                         )}
 
                         {/* Mensajes */}
                         <div>
-                          <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: 600, color: c.subtitle, textTransform: 'uppercase' }}>Registro de Chat</p>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: c.card, border: `1px solid ${c.border}`, padding: '15px', borderRadius: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                          <p className="history-chat-title">Registro de Chat</p>
+                          <div className="history-chat-container">
                             {conv.messages && conv.messages.length > 0 ? conv.messages.map((m, idx) => {
                               const isCust = m.sender_type === 'customer';
                               const isSys = m.sender_type === 'system';
                               if (isSys) {
                                 return (
-                                  <div key={idx} style={{ textAlign: 'center', margin: '10px 0' }}>
-                                    <span style={{ background: c.inputBg, color: c.subtitle, fontSize: '11px', padding: '4px 12px', borderRadius: '20px' }}>{m.content}</span>
+                                  <div key={idx} className="history-chat-bubble-system">
+                                    <span className="history-chat-bubble-system-text">{m.content}</span>
                                   </div>
                                 );
                               }
                               return (
-                                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: isCust ? 'flex-end' : 'flex-start' }}>
-                                  <span style={{ fontSize: '10px', color: c.subtitle, marginBottom: '2px', marginLeft: '4px', marginRight: '4px' }}>
+                                <div key={idx} className={`history-chat-bubble ${isCust ? 'customer' : 'agent'}`}>
+                                  <span className="history-chat-bubble-sender">
                                     {m.sender_name || (isCust ? 'Cliente' : 'Agente')}
                                   </span>
-                                  <div style={{ 
-                                    maxWidth: '85%', padding: '8px 12px', borderRadius: '12px', fontSize: '13px', lineHeight: '1.4',
-                                    background: isCust ? '#2563eb' : c.inputBg,
-                                    color: isCust ? '#fff' : c.title,
-                                    borderBottomRightRadius: isCust ? 0 : '12px',
-                                    borderBottomLeftRadius: !isCust ? 0 : '12px',
-                                    whiteSpace: 'pre-wrap'
-                                  }}>
+                                  <div className="history-chat-bubble-content">
                                     {m.content && m.content.includes('🔗 Grabación:') ? (
                                       m.content.split('\n').map((line, idx, arr) => {
                                         if (line.includes('🔗 Grabación:') && line.includes('http')) {
                                           const url = line.replace('🔗 Grabación:', '').trim();
                                           return (
-                                            <div key={idx} style={{ marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
+                                            <div key={idx} className="history-chat-recording-wrapper">
                                               <a 
                                                 href={url} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
                                                 download
-                                                style={{
-                                                  display: 'inline-flex',
-                                                  alignItems: 'center',
-                                                  gap: '6px',
-                                                  color: isCust ? '#fff' : '#2563eb',
-                                                  fontWeight: '600',
-                                                  textDecoration: 'underline',
-                                                  cursor: 'pointer',
-                                                  background: isCust ? 'rgba(255,255,255,0.2)' : 'rgba(37,99,235,0.08)',
-                                                  padding: '4px 8px',
-                                                  borderRadius: '6px',
-                                                  fontSize: '12px',
-                                                  marginTop: '4px'
-                                                }}
+                                                className="recording-download-btn"
                                               >
-                                                <i className="ti ti-download" style={{ fontSize: '14px' }}></i>
+                                                <i className="ti ti-download"></i>
                                                 Descargar Grabación
                                               </a>
                                             </div>
@@ -527,7 +497,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
                                 </div>
                               );
                             }) : (
-                              <p style={{ margin: 0, fontSize: '12px', color: c.subtitle, textAlign: 'center' }}>No se encontraron mensajes grabados para esta interacción.</p>
+                              <p className="history-chat-empty">No se encontraron mensajes grabados para esta interacción.</p>
                             )}
                           </div>
                         </div>
