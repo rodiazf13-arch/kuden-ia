@@ -32,22 +32,6 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
   const [toolSaving, setToolSaving] = useState(false);
   const [showToolForm, setShowToolForm] = useState(false);
 
-  const c = {
-    card: isDark ? '#111' : '#fff',
-    border: isDark ? '#222' : '#e5e7eb',
-    title: isDark ? '#fff' : '#111827',
-    subtitle: isDark ? '#aaa' : '#6b7280',
-    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#fff' : '#111827',
-    n8nBg: isDark ? '#0a1a0a' : '#f0fdf4',
-    n8nBorder: isDark ? '#1a4a1a' : '#bbf7d0',
-  };
-
-  const inp = {
-    width: '100%', padding: '8px 10px', borderRadius: 8,
-    border: `1px solid ${c.border}`, background: c.inputBg,
-    color: c.inputText, outline: 'none', boxSizing: 'border-box', fontSize: 13
-  };
 
   // ─── Loaders ─────────────────────────────────────────────────────────────────
   const loadCampaigns = async () => {
@@ -338,91 +322,92 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
     } catch (e) { console.error(e); }
   };
 
-  if (loading) return <div style={{ color: c.subtitle }}>Cargando...</div>;
+  if (loading) return <div className="integration-section-subtitle">Cargando...</div>;
 
   return (
     <div>
-      <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 20px', color: c.title }}>Gestión de Campañas</h2>
+      <h2 className="campaigns-page-title">Gestión de Campañas</h2>
 
-      <div style={{ display: 'flex', gap: 20 }}>
+      <div className="campaigns-manager-wrapper">
         {/* ── Left: Lista + Crear ── */}
-        <div style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 16 }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 14, color: c.title }}>Nueva Campaña</h3>
-            <input placeholder="Nombre de campaña" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-              style={{ ...inp, marginBottom: 8 }} />
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })}
-                style={{ width: 40, height: 32, padding: 0, border: 'none', cursor: 'pointer', borderRadius: 8, flexShrink: 0 }} />
-              <input placeholder="Descripción breve" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                style={{ ...inp, marginBottom: 0 }} />
+        <div className="campaigns-sidebar">
+          <div className="campaigns-sidebar-card">
+            <h3>Nueva Campaña</h3>
+            <input placeholder="Nombre de campaña" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <div className="integration-color-picker-container">
+              <input type="color" className="integration-color-picker-input-color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
+              <input placeholder="Descripción breve" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
             </div>
-            <select value={form.ai_profile_id} onChange={e => setForm({ ...form, ai_profile_id: e.target.value })}
-              style={{ ...inp, marginBottom: 12 }}>
+            <select value={form.ai_profile_id} onChange={e => setForm({ ...form, ai_profile_id: e.target.value })}>
               <option value="">Sin Perfil IA (Agente Genérico)</option>
               {profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
-            <button onClick={handleCreate} disabled={!form.name}
-              style={{ width: '100%', padding: '8px', background: form.name ? '#2563eb' : c.border, color: form.name ? '#fff' : c.subtitle, border: 'none', borderRadius: 8, cursor: form.name ? 'pointer' : 'not-allowed', fontWeight: 600 }}>
+            <button onClick={handleCreate} disabled={!form.name} className="integration-btn-primary">
               + Crear Campaña
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <h3 style={{ margin: '8px 0 4px', fontSize: 14, color: c.title }}>Campañas Creadas</h3>
-            {campaigns.map(cam => (
-              <div key={cam.id} onClick={() => setSelectedCam(cam)}
-                style={{ padding: '12px 16px', background: selectedCam?.id === cam.id ? `${cam.color}15` : c.card, border: `1px solid ${selectedCam?.id === cam.id ? cam.color : c.border}`, borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <i className={`ti ${cam.icon}`} style={{ color: cam.color, fontSize: 18, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: selectedCam?.id === cam.id ? cam.color : c.title, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cam.name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 11, color: c.subtitle }}>
-                      {cam.campaign_agents?.length || 0} agentes
-                      {cam.n8n_webhook_url ? ' · 🔗 n8n' : ''}
-                    </p>
+          <div className="campaigns-list-container">
+            <h3>Campañas Creadas</h3>
+            {campaigns.map(cam => {
+              const isActive = selectedCam?.id === cam.id;
+              return (
+                <div key={cam.id} onClick={() => setSelectedCam(cam)}
+                  className="campaign-list-item"
+                  style={{ 
+                    background: isActive ? `color-mix(in srgb, ${cam.color} 15%, transparent)` : undefined, 
+                    borderColor: isActive ? cam.color : undefined 
+                  }}>
+                  <div className="campaign-list-item-content">
+                    <i className={`ti ${cam.icon} campaign-list-item-icon`} style={{ color: cam.color }} />
+                    <div className="campaign-list-item-info">
+                      <p className="campaign-list-item-title" style={{ color: isActive ? cam.color : undefined }}>{cam.name}</p>
+                      <p className="campaign-list-item-subtitle">
+                        {cam.campaign_agents?.length || 0} agentes
+                        {cam.n8n_webhook_url ? ' · 🔗 n8n' : ''}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {/* ── Right: Detalle de Campaña ── */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {selectedCam ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div className="campaigns-detail-content">
 
               {/* ── Perfil IA ── */}
-              <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-                <h3 style={{ margin: '0 0 12px', fontSize: 16, color: c.title }}>Perfil de Inteligencia Artificial</h3>
-                <p style={{ margin: '0 0 16px', fontSize: 13, color: c.subtitle }}>Asigna un Perfil IA a esta campaña. Todos los canales asociados heredarán automáticamente el comportamiento de este perfil.</p>
+              <div className="campaign-detail-card">
+                <h3>Perfil de Inteligencia Artificial</h3>
+                <p className="integration-section-subtitle">Asigna un Perfil IA a esta campaña. Todos los canales asociados heredarán automáticamente el comportamiento de este perfil.</p>
                 <select
                   value={selectedCam.ai_profile_id || ''}
                   onChange={e => {
                     const newId = e.target.value;
                     setSelectedCam({ ...selectedCam, ai_profile_id: newId });
                     updateCampaignProfile(selectedCam.id, newId);
-                  }}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
+                  }}>
                   <option value="">Sin Perfil IA (Agente Genérico por Defecto)</option>
                   {profiles.map(p => <option key={p.id} value={p.id}>{p.is_router ? '🤖 ' : ''}{p.label}</option>)}
                 </select>
               </div>
 
               {/* ── SLA Config ── */}
-              <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-                <h3 style={{ margin: '0 0 12px', fontSize: 16, color: c.title }}>Configuración de SLA (Tiempos de Respuesta)</h3>
-                <p style={{ margin: '0 0 16px', fontSize: 13, color: c.subtitle }}>Define los umbrales en minutos para que los tickets cambien de color alertando sobre demoras en la atención humana.</p>
+              <div className="campaign-detail-card">
+                <h3>Configuración de SLA (Tiempos de Respuesta)</h3>
+                <p className="integration-section-subtitle">Define los umbrales en minutos para que los tickets cambien de color alertando sobre demoras en la atención humana.</p>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                  <div>
-                    <label style={{ fontSize: 12, color: c.title, display: 'block', marginBottom: 4 }}>🟡 Advertencia (minutos)</label>
-                    <input type="number" min="1" value={slaWarning} onChange={e => setSlaWarning(parseInt(e.target.value) || 0)} style={inp} />
+                <div className="integration-form-row">
+                  <div className="integration-form-group">
+                    <label className="integration-form-label">🟡 Advertencia (minutos)</label>
+                    <input type="number" min="1" value={slaWarning} onChange={e => setSlaWarning(parseInt(e.target.value) || 0)} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 12, color: c.title, display: 'block', marginBottom: 4 }}>🔴 Peligro (minutos)</label>
-                    <input type="number" min="2" value={slaDanger} onChange={e => setSlaDanger(parseInt(e.target.value) || 0)} style={inp} />
+                  <div className="integration-form-group">
+                    <label className="integration-form-label">🔴 Peligro (minutos)</label>
+                    <input type="number" min="2" value={slaDanger} onChange={e => setSlaDanger(parseInt(e.target.value) || 0)} />
                   </div>
                 </div>
                 
@@ -438,137 +423,127 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
                     }
                     updateCampaignSLA(selectedCam.id, slaWarning, slaDanger);
                   }}
-                  style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                  className="integration-btn-primary">
                   💾 Guardar SLA
                 </button>
               </div>
 
               {/* ════ AGENTE AUTÓNOMO n8n ════ */}
-              <div style={{ background: c.n8nBg, border: `2px solid ${c.n8nBorder}`, borderRadius: 12, padding: 20 }}>
+              <div className="campaign-n8n-card">
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #1D9E75, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <i className="ti ti-webhook" style={{ color: '#fff', fontSize: 20 }} />
+                <div className="campaign-n8n-header">
+                  <div className="campaign-n8n-icon-wrapper">
+                    <i className="ti ti-webhook" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, color: c.title }}>Agente Autónomo — n8n</h3>
-                    <p style={{ margin: 0, fontSize: 12, color: c.subtitle }}>Conecta esta campaña a n8n para que la IA ejecute acciones reales (agendar citas, consultar sistemas, etc.)</p>
+                  <div className="campaign-n8n-title-wrapper">
+                    <h3>Agente Autónomo — n8n</h3>
+                    <p>Conecta esta campaña a n8n para que la IA ejecute acciones reales (agendar citas, consultar sistemas, etc.)</p>
                   </div>
                   {n8nUrl && (
-                    <span style={{
-                      fontSize: 11, padding: '4px 12px', borderRadius: 20, fontWeight: 700,
-                      background: n8nStatus === 'ok' ? '#1D9E7520' : n8nStatus === 'error' ? '#E24B4A20' : '#2563eb15',
-                      color: n8nStatus === 'ok' ? '#1D9E75' : n8nStatus === 'error' ? '#E24B4A' : '#2563eb',
-                      border: '1px solid currentColor'
-                    }}>
+                    <span className={`campaign-n8n-status-badge ${n8nStatus === 'ok' ? 'ok' : n8nStatus === 'error' ? 'error' : 'configured'}`}>
                       {n8nStatus === 'ok' ? '🟢 Conectado' : n8nStatus === 'error' ? '🔴 Error de conexión' : '⚙️ Configurado'}
                     </span>
                   )}
                 </div>
 
                 {/* n8n URL + Test */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, marginBottom: 8 }}>
+                <div className="integration-banner-row">
                   <input
                     placeholder="URL base del servidor n8n (ej: https://n8n.kuden.cl)"
                     value={n8nUrl}
                     onChange={e => { setN8nUrl(e.target.value); setN8nStatus(null); }}
-                    style={inp}
                   />
-                  <button onClick={testN8nConnection} disabled={!n8nUrl || n8nTesting}
-                    style={{ padding: '8px 16px', background: n8nStatus === 'ok' ? '#1D9E75' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap', opacity: (!n8nUrl || n8nTesting) ? 0.6 : 1 }}>
+                  <button onClick={testN8nConnection} disabled={!n8nUrl || n8nTesting} className="integration-btn-primary">
                     {n8nTesting ? '⏳ Probando...' : '⚡ Probar'}
                   </button>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                  <input
-                    placeholder="ID Webhook para Cambio de Etapa (ej: 1234-abcd)"
-                    value={n8nStageWebhookId}
-                    onChange={e => setN8nStageWebhookId(e.target.value)}
-                    style={inp}
-                  />
-                  <input
-                    placeholder={n8nHasToken ? '🔐 Token guardado — nuevo lo reemplaza' : 'Token secreto (opcional)'}
-                    value={n8nToken}
-                    onChange={e => setN8nToken(e.target.value)}
-                    type="password"
-                    style={inp}
-                  />
+                <div className="integration-form-row">
+                  <div className="integration-form-group">
+                    <input
+                      placeholder="ID Webhook para Cambio de Etapa (ej: 1234-abcd)"
+                      value={n8nStageWebhookId}
+                      onChange={e => setN8nStageWebhookId(e.target.value)}
+                    />
+                  </div>
+                  <div className="integration-form-group">
+                    <input
+                      placeholder={n8nHasToken ? '🔐 Token guardado — nuevo lo reemplaza' : 'Token secreto (opcional)'}
+                      value={n8nToken}
+                      onChange={e => setN8nToken(e.target.value)}
+                      type="password"
+                    />
+                  </div>
                 </div>
-                <button onClick={saveN8nConfig} disabled={n8nSaving}
-                  style={{ padding: '9px 22px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                <button onClick={saveN8nConfig} disabled={n8nSaving} className="integration-btn-primary campaign-n8n-save-btn">
                   {n8nSaving ? 'Guardando...' : '💾 Guardar configuración n8n'}
                 </button>
 
                 {/* ── Herramientas ── */}
-                <div style={{ marginTop: 24, borderTop: `1px solid ${c.n8nBorder}`, paddingTop: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                <div className="campaign-n8n-tools-section">
+                  <div className="campaign-n8n-tools-header">
                     <div>
-                      <h4 style={{ margin: '0 0 2px', fontSize: 15, color: c.title }}>Herramientas del Agente</h4>
-                      <p style={{ margin: 0, fontSize: 12, color: c.subtitle }}>Cada herramienta es una acción que la IA puede ejecutar autónomamente vía n8n.</p>
+                      <h4>Herramientas del Agente</h4>
+                      <p>Cada herramienta es una acción que la IA puede ejecutar autónomamente vía n8n.</p>
                     </div>
                     <button
                       onClick={() => { setShowToolForm(true); setEditingToolId(null); setToolForm({ name: '', label: '', description: '', n8n_workflow_id: '', input_schema: '' }); }}
-                      style={{ padding: '7px 14px', background: '#534AB7', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 12, flexShrink: 0 }}>
+                      className="integration-btn-primary"
+                    >
                       + Nueva Herramienta
                     </button>
                   </div>
 
                   {/* Formulario de Tool */}
                   {showToolForm && (
-                    <div style={{ background: isDark ? '#111' : '#fff', border: `1px solid ${editingToolId ? '#534AB7' : c.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-                      <h5 style={{ margin: '0 0 14px', fontSize: 14, color: c.title }}>
+                    <div className="integration-form-card campaign-tool-form-card" style={{ borderColor: editingToolId ? 'var(--color-primary)' : undefined }}>
+                      <h5>
                         {editingToolId ? '✏️ Editar Herramienta' : '➕ Nueva Herramienta'}
                       </h5>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                        <div>
-                          <label style={{ fontSize: 11, color: c.subtitle, display: 'block', marginBottom: 4 }}>Nombre técnico (sin espacios) *</label>
-                          <input placeholder="ej: schedule_appointment" value={toolForm.name} onChange={e => setToolForm({ ...toolForm, name: e.target.value })} style={inp} />
+                      <div className="integration-form-row">
+                        <div className="integration-form-group">
+                          <label className="integration-form-label">Nombre técnico (sin espacios) *</label>
+                          <input placeholder="ej: schedule_appointment" value={toolForm.name} onChange={e => setToolForm({ ...toolForm, name: e.target.value })} />
                         </div>
-                        <div>
-                          <label style={{ fontSize: 11, color: c.subtitle, display: 'block', marginBottom: 4 }}>Etiqueta visible *</label>
-                          <input placeholder="ej: Agendar Cita" value={toolForm.label} onChange={e => setToolForm({ ...toolForm, label: e.target.value })} style={inp} />
+                        <div className="integration-form-group">
+                          <label className="integration-form-label">Etiqueta visible *</label>
+                          <input placeholder="ej: Agendar Cita" value={toolForm.label} onChange={e => setToolForm({ ...toolForm, label: e.target.value })} />
                         </div>
                       </div>
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 11, color: c.subtitle, display: 'block', marginBottom: 4 }}>Descripción — la IA la lee para saber cuándo usar esta herramienta *</label>
+                      <div className="integration-form-group">
+                        <label className="integration-form-label">Descripción — la IA la lee para saber cuándo usar esta herramienta *</label>
                         <input
                           placeholder="ej: Usar cuando el cliente quiera agendar una cita o reunión de forma explícita."
                           value={toolForm.description}
                           onChange={e => setToolForm({ ...toolForm, description: e.target.value })}
-                          style={inp}
                         />
                       </div>
-                      <div style={{ marginBottom: 10 }}>
-                        <label style={{ fontSize: 11, color: c.subtitle, display: 'block', marginBottom: 4 }}>ID del Webhook en n8n (path del workflow) *</label>
+                      <div className="integration-form-group">
+                        <label className="integration-form-label">ID del Webhook en n8n (path del workflow) *</label>
                         <input
                           placeholder="ej: kuden-schedule-appointment"
                           value={toolForm.n8n_workflow_id}
                           onChange={e => setToolForm({ ...toolForm, n8n_workflow_id: e.target.value })}
-                          style={inp}
                         />
                         {n8nUrl && toolForm.n8n_workflow_id && (
-                          <p style={{ margin: '4px 0 0', fontSize: 11, color: '#2563eb' }}>
-                            → Llamará a: <code style={{ fontSize: 11 }}>{n8nUrl}/webhook/{toolForm.n8n_workflow_id}</code>
+                          <p className="campaign-tool-form-help">
+                            → Llamará a: <code>{n8nUrl}/webhook/{toolForm.n8n_workflow_id}</code>
                           </p>
                         )}
                       </div>
-                      <div style={{ marginBottom: 14 }}>
-                        <label style={{ fontSize: 11, color: c.subtitle, display: 'block', marginBottom: 4 }}>Schema de parámetros (JSON) — lo que la IA debe extraer de la conversación</label>
+                      <div className="integration-form-group">
+                        <label className="integration-form-label">Schema de parámetros (JSON) — lo que la IA debe extraer de la conversación</label>
                         <textarea
                           placeholder={'{\n  "contact_name": "string",\n  "date_preference": "string",\n  "service_type": "string"\n}'}
                           value={toolForm.input_schema}
                           onChange={e => setToolForm({ ...toolForm, input_schema: e.target.value })}
                           rows={5}
-                          style={{ ...inp, resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }}
                         />
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={saveTool} disabled={toolSaving}
-                          style={{ padding: '8px 22px', background: '#534AB7', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                      <div className="campaign-tool-form-actions">
+                        <button onClick={saveTool} disabled={toolSaving} className="integration-btn-primary">
                           {toolSaving ? 'Guardando...' : '💾 Guardar'}
                         </button>
-                        <button onClick={resetToolForm}
-                          style={{ padding: '8px 14px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>
+                        <button onClick={resetToolForm} className="integration-btn-secondary">
                           Cancelar
                         </button>
                       </div>
@@ -577,40 +552,34 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
 
                   {/* Lista de Tools */}
                   {toolsLoading ? (
-                    <p style={{ fontSize: 13, color: c.subtitle }}>Cargando herramientas...</p>
+                    <p className="integration-section-subtitle">Cargando herramientas...</p>
                   ) : tools.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '24px', border: `1px dashed ${c.n8nBorder}`, borderRadius: 10 }}>
-                      <i className="ti ti-robot-off" style={{ fontSize: 30, color: c.subtitle, display: 'block', marginBottom: 8 }} />
-                      <p style={{ margin: 0, fontSize: 13, color: c.subtitle }}>Sin herramientas configuradas. La IA solo responderá, no actuará en sistemas externos.</p>
+                    <div className="agent-tools-empty-state">
+                      <i className="ti ti-robot-off" />
+                      <p>Sin herramientas configuradas. La IA solo responderá, no actuará en sistemas externos.</p>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div className="agent-tools-list">
                       {tools.map(t => (
-                        <div key={t.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                          background: t.is_active ? (isDark ? '#0d1a0d' : '#f0fdf4') : (isDark ? '#111' : '#f9fafb'),
-                          border: `1px solid ${t.is_active ? '#1D9E7540' : c.border}`,
-                          borderRadius: 10, transition: 'all 0.2s'
-                        }}>
-                          <div style={{ width: 32, height: 32, borderRadius: 8, background: t.is_active ? '#1D9E7520' : `${c.border}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <i className="ti ti-bolt" style={{ color: t.is_active ? '#1D9E75' : c.subtitle, fontSize: 17 }} />
+                        <div key={t.id} className={`agent-tool-item ${t.is_active ? 'active' : 'inactive'}`}>
+                          <div className={`agent-tool-icon-container ${t.is_active ? 'active' : 'inactive'}`}>
+                            <i className="ti ti-bolt" style={{ fontSize: 17 }} />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: t.is_active ? c.title : c.subtitle }}>{t.label}</p>
-                            <p style={{ margin: '1px 0', fontSize: 11, color: c.subtitle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.description}</p>
-                            <code style={{ fontSize: 10, color: '#2563eb', opacity: 0.8 }}>/webhook/{t.n8n_workflow_id}</code>
+                          <div className="agent-tool-details">
+                            <p className="agent-tool-title">{t.label}</p>
+                            <p className="agent-tool-description">{t.description}</p>
+                            <code className="agent-tool-code">/webhook/{t.n8n_workflow_id}</code>
                           </div>
-                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <div className="agent-tool-actions">
                             <button onClick={() => toggleTool(t)} title={t.is_active ? 'Desactivar' : 'Activar'}
-                              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none', borderRadius: 6, cursor: 'pointer', background: t.is_active ? '#1D9E7520' : '#2563eb15', color: t.is_active ? '#1D9E75' : '#2563eb' }}>
+                              className={`integration-item-badge ${t.is_active ? 'active' : 'inactive'}`}
+                              style={{ border: 'none', cursor: 'pointer' }}>
                               {t.is_active ? '● Activa' : '○ Inactiva'}
                             </button>
-                            <button onClick={() => editTool(t)} title="Editar"
-                              style={{ padding: '5px 9px', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: 6, cursor: 'pointer', color: c.subtitle, fontSize: 13 }}>
+                            <button onClick={() => editTool(t)} title="Editar" className="integration-btn-secondary">
                               <i className="ti ti-pencil" />
                             </button>
-                            <button onClick={() => deleteTool(t.id)} title="Eliminar"
-                              style={{ padding: '5px 9px', background: 'transparent', border: `1px solid #E24B4A40`, borderRadius: 6, cursor: 'pointer', color: '#E24B4A', fontSize: 13 }}>
+                            <button onClick={() => deleteTool(t.id)} title="Eliminar" className="integration-btn-secondary btn-delete">
                               <i className="ti ti-trash" />
                             </button>
                           </div>
@@ -622,46 +591,52 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
               </div>
 
               {/* ── Tipificaciones ── */}
-              <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h3 style={{ margin: 0, fontSize: 16, color: c.title }}>Tipificaciones (Cierres)</h3>
+              <div className="campaign-detail-card">
+                <div className="campaign-typifications-header">
+                  <h3>Tipificaciones (Cierres)</h3>
                   {templates.length > 0 && (
                     <select onChange={e => {
                       const t = templates.find(x => x.id === e.target.value);
                       if (t) applyTemplate(t);
                       e.target.value = "";
-                    }} style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 12 }}>
+                    }}>
                       <option value="">Aplicar plantilla...</option>
                       {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <div className="campaign-typifications-form">
                   <input placeholder="Nueva etiqueta de cierre..." value={newTypLabel} onChange={e => setNewTypLabel(e.target.value)}
-                    style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 13 }}
                     onKeyDown={e => e.key === 'Enter' && addTypification(newTypLabel)} />
-                  <button onClick={() => addTypification(newTypLabel)}
-                    style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+                  <button onClick={() => addTypification(newTypLabel)} className="integration-btn-primary">
                     Añadir
                   </button>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {typifications.length === 0 ? <p style={{ fontSize: 13, color: c.subtitle }}>No hay tipificaciones. Crea una o aplica una plantilla.</p> : null}
+                <div className="campaign-typifications-list">
+                  {typifications.length === 0 ? <p className="integration-section-subtitle">No hay tipificaciones. Crea una o aplica una plantilla.</p> : null}
                   {typifications.map((typ, idx) => (
-                    <div key={typ.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: `${selectedCam.color}15`, border: `1px solid ${selectedCam.color}40`, borderRadius: 10, color: selectedCam.color, fontSize: 13, fontWeight: 500 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ opacity: 0.5, fontSize: 11 }}>{idx + 1}.</span>
+                    <div 
+                      key={typ.id} 
+                      className="typification-item"
+                      style={{ 
+                        background: `color-mix(in srgb, ${selectedCam.color} 12%, transparent)`, 
+                        border: `1px solid color-mix(in srgb, ${selectedCam.color} 30%, transparent)`, 
+                        color: selectedCam.color 
+                      }}
+                    >
+                      <div className="typification-item-label">
+                        <span className="typification-item-number">{idx + 1}.</span>
                         {typ.label}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={() => moveTypification(idx, 'up')} disabled={idx === 0} style={{ background: 'transparent', border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', opacity: idx === 0 ? 0.3 : 0.8, color: selectedCam.color, padding: 0 }}><i className="ti ti-arrow-up" /></button>
-                        <button onClick={() => moveTypification(idx, 'down')} disabled={idx === typifications.length - 1} style={{ background: 'transparent', border: 'none', cursor: idx === typifications.length - 1 ? 'not-allowed' : 'pointer', opacity: idx === typifications.length - 1 ? 0.3 : 0.8, color: selectedCam.color, padding: 0 }}><i className="ti ti-arrow-down" /></button>
-                        <i className="ti ti-trash" style={{ cursor: 'pointer', opacity: 0.8, marginLeft: 8 }} onClick={() => removeTypification(typ.id)} />
+                      <div className="typification-item-actions">
+                        <button onClick={() => moveTypification(idx, 'up')} disabled={idx === 0} className="typification-action-btn" style={{ color: selectedCam.color }}><i className="ti ti-arrow-up" /></button>
+                        <button onClick={() => moveTypification(idx, 'down')} disabled={idx === typifications.length - 1} className="typification-action-btn" style={{ color: selectedCam.color }}><i className="ti ti-arrow-down" /></button>
+                        <i className="ti ti-trash typification-delete-icon" onClick={() => removeTypification(typ.id)} />
                       </div>
                     </div>
                   ))}
                   {typifications.length > 1 && (
-                    <button onClick={saveTypificationOrder} style={{ alignSelf: 'flex-end', padding: '6px 14px', background: selectedCam.color, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, marginTop: 8 }}>
+                    <button onClick={saveTypificationOrder} className="integration-btn-primary" style={{ alignSelf: 'flex-end', background: selectedCam.color }}>
                       💾 Guardar Orden
                     </button>
                   )}
@@ -669,33 +644,35 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
               </div>
 
               {/* ── Agentes Asignados ── */}
-              <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: 16, color: c.title }}>Agentes Asignados</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div style={{ border: `1px solid ${c.border}`, borderRadius: 8, overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 12px', background: c.inputBg, borderBottom: `1px solid ${c.border}`, fontSize: 12, fontWeight: 600, color: c.subtitle }}>Usuarios disponibles</div>
-                    <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+              <div className="campaign-detail-card">
+                <h3>Agentes Asignados</h3>
+                <div className="agents-split-grid">
+                  <div className="agents-list-card">
+                    <div className="agents-list-header available">Usuarios disponibles</div>
+                    <div className="agents-list-scroll">
                       {users.filter(u => !(selectedCam.campaign_agents || []).find(ca => ca.user_id === u.user_id)).map(u => (
-                        <div key={u.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: `1px solid ${c.border}` }}>
-                          <div>
-                            <p style={{ margin: 0, fontSize: 13, color: c.title }}>{u.display_name || u.email}</p>
-                            <p style={{ margin: 0, fontSize: 11, color: c.subtitle }}>{u.role}</p>
+                        <div key={u.user_id} className="agent-assignment-row">
+                          <div className="agent-assignment-info">
+                            <p>{u.display_name || u.email}</p>
+                            <p>{u.role}</p>
                           </div>
-                          <button onClick={() => assignAgent(u.user_id)} style={{ padding: '4px 10px', fontSize: 11, background: '#1D9E7520', color: '#1D9E75', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Asignar</button>
+                          <button onClick={() => assignAgent(u.user_id)} className="integration-btn-primary agent-assign-btn">Asignar</button>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={{ border: `1px solid ${c.border}`, borderRadius: 8, overflow: 'hidden' }}>
-                    <div style={{ padding: '8px 12px', background: `${selectedCam.color}15`, borderBottom: `1px solid ${c.border}`, fontSize: 12, fontWeight: 600, color: selectedCam.color }}>Agentes en campaña</div>
-                    <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                  <div className="agents-list-card">
+                    <div className="agents-list-header assigned" style={{ '--color-brand': selectedCam.color }}>Agentes en campaña</div>
+                    <div className="agents-list-scroll">
                       {(selectedCam.campaign_agents || []).map(ca => {
                         const user = users.find(u => u.user_id === ca.user_id);
                         if (!user) return null;
                         return (
-                          <div key={ca.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: `1px solid ${c.border}` }}>
-                            <p style={{ margin: 0, fontSize: 13, color: c.title }}>{user.display_name || user.email}</p>
-                            <button onClick={() => removeAgent(user.user_id)} style={{ padding: '4px 10px', fontSize: 11, background: '#E24B4A20', color: '#E24B4A', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Quitar</button>
+                          <div key={ca.user_id} className="agent-assignment-row">
+                            <div className="agent-assignment-info">
+                              <p>{user.display_name || user.email}</p>
+                            </div>
+                            <button onClick={() => removeAgent(user.user_id)} className="integration-btn-primary agent-remove-btn">Quitar</button>
                           </div>
                         );
                       })}
@@ -706,8 +683,8 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
 
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, color: c.subtitle, minHeight: 240 }}>
-              <div style={{ textAlign: 'center' }}>
+            <div className="campaign-detail-card-empty">
+              <div>
                 <i className="ti ti-arrow-left" style={{ fontSize: 28, display: 'block', marginBottom: 8, opacity: 0.5 }} />
                 Selecciona una campaña para configurarla
               </div>
