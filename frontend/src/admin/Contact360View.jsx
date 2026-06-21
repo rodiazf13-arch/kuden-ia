@@ -4,13 +4,15 @@ import { supabase } from '../lib/supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const CHANNELS = [
-  { id:"webchat",  label:"Web Chat",  icon:"ti-world",          color:"#1D9E75", bg:"#E1F5EE" },
-  { id:"whatsapp", label:"WhatsApp",  icon:"ti-brand-whatsapp", color:"#25D366", bg:"#E8F9EE" },
-  { id:"email",    label:"Email",     icon:"ti-mail",           color:"#3b82f6", bg:"#dbeafe" },
-  { id:"voz",      label:"Voz",       icon:"ti-phone",          color:"#534AB7", bg:"#EEEDFE" },
-  { id:"app",      label:"App Móvil", icon:"ti-device-mobile",  color:"#D85A30", bg:"#FAECE7" },
-  { id:"rrss",     label:"Redes Soc.",icon:"ti-share",          color:"#EF9F27", bg:"#FEF3E0" },
+  { id:"webchat",   label:"Web Chat",   icon:"ti-world",           color:"#1D9E75", bg:"#E1F5EE" },
+  { id:"whatsapp",  label:"WhatsApp",   icon:"ti-brand-whatsapp",  color:"#25D366", bg:"#E8F9EE" },
+  { id:"email",     label:"Email",      icon:"ti-mail",            color:"#3b82f6", bg:"#dbeafe" },
+  { id:"voz",       label:"Voz",        icon:"ti-phone",           color:"#534AB7", bg:"#EEEDFE" },
+  { id:"app",       label:"App Móvil",  icon:"ti-device-mobile",   color:"#D85A30", bg:"#FAECE7" },
+  { id:"rrss",      label:"Redes Soc.", icon:"ti-share",           color:"#EF9F27", bg:"#FEF3E0" },
+  { id:"instagram", label:"Instagram",  icon:"ti-brand-instagram", color:"#C13584", bg:"#FAE5F2" },
 ];
+const CHANNEL_DEFAULT = { icon:"ti-messages", color:"#64748B", bg:"#F1F5F9" };
 
 const CSAT_LABELS = ["","Muy malo","Malo","Regular","Bueno","Excelente"];
 const CSAT_COLORS = ["","#E24B4A","#D85A30","#EF9F27","#1D9E75","#00A6FF"];
@@ -415,9 +417,14 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
                       onClick={() => setExpandedId(isExpanded ? null : conv.id)}
                       className={`history-ticket-header ${isExpanded ? 'expanded' : ''}`}
                     >
-                      <div className="history-ticket-icon">
-                        <i className={`ti ${conv.canal === 'whatsapp' ? 'ti-brand-whatsapp' : conv.canal === 'email' ? 'ti-mail' : 'ti-messages'}`} aria-hidden="true"></i>
-                      </div>
+                      {(() => {
+                        const ch = CHANNELS.find(c => c.id === conv.canal) || CHANNEL_DEFAULT;
+                        return (
+                          <div className="history-ticket-icon" style={{ background: ch.bg, color: ch.color }}>
+                            <i className={`ti ${ch.icon}`} aria-hidden="true"></i>
+                          </div>
+                        );
+                      })()}
                       <div className="history-ticket-meta">
                         <div className="history-ticket-meta-top">
                           <h4 className="history-ticket-title">{conv.motivo_label || 'Conversación'}</h4>
