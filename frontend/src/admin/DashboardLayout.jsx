@@ -63,18 +63,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
   const isDark = theme === 'dark';
 
   // Colors adaptados al tema — con soporte glassmorphism
-  const brandColor = tenantColor || '#2563eb';
-  const textMain = isDark ? '#f9fafb' : '#111827';
-  const textSec = isDark ? '#9ca3af' : '#6b7280';
-  const borderCol = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
-
-  const sidebarBg = isDark
-    ? 'var(--gradient-bg-sidebar)'
-    : 'linear-gradient(180deg, rgba(248,250,255,0.95) 0%, rgba(255,255,255,0.98) 100%)';
-
-  const mainBg = isDark
-    ? 'var(--gradient-bg-main)'
-    : 'var(--gradient-bg-main)';
+  const brandColor = tenantColor || '#635BFF';
 
   const tabGroups = [
     {
@@ -98,7 +87,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         { id: 'ai_config', label: 'Identidad Maestra', icon: 'ti-brain', superAdminOnly: true },
         { id: 'profiles', label: 'Perfiles IA', icon: 'ti-robot', superAdminOnly: true },
         ...(copilotAccess ? [
-          { id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#2563eb' },
+          { id: 'copilot', label: 'Co-Piloto (Kimi)', icon: 'ti-bulb', badgeColor: '#635BFF' },
           { id: 'insights', label: 'Kimi Insights (BI)', icon: 'ti-chart-bar' }
         ] : [])
       ]
@@ -117,8 +106,12 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
   return (
     <div
+      className="dashboard-layout-wrapper"
       data-theme={theme}
-      style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: mainBg, color: textMain, transition: 'background 0.4s, color 0.3s' }}
+      style={{
+        '--color-brand': brandColor,
+        '--color-brand-hover': tenantColor ? `${tenantColor}dd` : 'var(--color-primary-hover)'
+      }}
     >
       {/* ── Mobile Sidebar Overlay ── */}
       <div 
@@ -127,68 +120,32 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       ></div>
 
       {/* ── Sidebar ── */}
-      <aside className={`sidebar-container ${isMobileSidebarOpen ? 'open' : ''}`} style={{
-        width: isSidebarCollapsed ? '80px' : '250px',
-        background: sidebarBg,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRight: `1px solid ${borderCol}`,
-        boxShadow: isDark ? '4px 0 24px rgba(0,0,0,0.3)' : '4px 0 24px rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s, border-color 0.3s',
-        position: 'relative',
-        zIndex: 1000,
-      }}>
+      <aside className={`sidebar-container ${isMobileSidebarOpen ? 'open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
 
         {/* Botón para colapsar/expandir */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           title={isSidebarCollapsed ? "Expandir" : "Contraer"}
-          style={{
-            position: 'absolute',
-            top: '26px',
-            right: '-14px',
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            background: isDark ? '#1a1a2e' : '#fff',
-            border: `1px solid ${borderCol}`,
-            color: textSec,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            zIndex: 20,
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = brandColor; e.currentTarget.style.borderColor = brandColor; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = textSec; e.currentTarget.style.borderColor = borderCol; }}
+          className="sidebar-collapse-btn"
         >
           <i className={`ti ti-chevron-${isSidebarCollapsed ? 'right' : 'left'}`} style={{ fontSize: '14px' }}></i>
         </button>
 
         {/* Logo */}
-        <div style={{ padding: isSidebarCollapsed ? '20px 0' : '20px 16px', borderBottom: `1px solid ${borderCol}`, display: 'flex', alignItems: 'center', gap: '12px', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+        <div className="sidebar-logo-container">
           {tenantLogo ? (
-            <img src={tenantLogo} alt="Logo Empresa" style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'contain', flexShrink: 0, background: isDark ? 'rgba(255,255,255,0.1)' : 'transparent', padding: 2 }} />
+            <img src={tenantLogo} alt="Logo Empresa" className="sidebar-tenant-logo-img" />
           ) : (
-            <div style={{
-              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-              background: `linear-gradient(135deg, ${brandColor}, ${brandColor}bb)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 4px 12px ${brandColor}40`,
-            }}>
-              <span style={{ color: '#fff', fontWeight: 800, fontSize: 17 }}>{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
+            <div className="sidebar-logo-fallback">
+              <span className="sidebar-logo-fallback-letter">{tenantName ? tenantName.charAt(0).toUpperCase() : 'K'}</span>
             </div>
           )}
           {!isSidebarCollapsed && (
             <div style={{ overflow: 'hidden' }}>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: brandColor, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 155 }}>
+              <p className="sidebar-logo-text-title">
                 {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
               </p>
-              <p style={{ margin: 0, fontSize: '11px', color: textSec }}>
+              <p className="sidebar-logo-text-subtitle">
                 {isSuperAdmin ? '⚡ Super Admin' : 'Panel de Control'}
               </p>
             </div>
@@ -197,14 +154,18 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
         {/* Empresa actual pill */}
         {tenantName && !isSidebarCollapsed && (
-          <div style={{ padding: '24px 20px', borderBottom: `1px solid ${borderCol}` }}>
+          <div className="sidebar-tenant-pill">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {tenantLogo ? <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <i className="ti ti-building" style={{ fontSize: 20, color: brandColor }}></i>}
+              <div className="sidebar-tenant-pill-avatar-container">
+                {tenantLogo ? (
+                  <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                ) : (
+                  <i className="ti ti-building" style={{ fontSize: 20, color: 'var(--color-brand)' }}></i>
+                )}
               </div>
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <h2 style={{ fontSize: 14, margin: '0 0 2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{tenantName || 'Sin Empresa'}</h2>
-                <span style={{ fontSize: 11, color: textSec, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', padding: '2px 6px', borderRadius: 10 }}>{userRole === 'admin' ? 'Administrador' : 'Agente'}</span>
+              <div className="sidebar-tenant-pill-info">
+                <h2>{tenantName || 'Sin Empresa'}</h2>
+                <span className="sidebar-tenant-pill-role-badge">{userRole === 'admin' ? 'Administrador' : 'Agente'}</span>
               </div>
             </div>
           </div>
@@ -212,15 +173,19 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
 
         {/* Empresa actual pill (Colapsado) */}
         {tenantName && isSidebarCollapsed && (
-          <div style={{ padding: '16px 0', borderBottom: `1px solid ${borderCol}`, display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.05)' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }} title={tenantName}>
-              {tenantLogo ? <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <i className="ti ti-building" style={{ fontSize: 20, color: brandColor }}></i>}
+          <div className="sidebar-tenant-pill">
+            <div className="sidebar-tenant-pill-avatar-container" title={tenantName}>
+              {tenantLogo ? (
+                <img src={tenantLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <i className="ti ti-building" style={{ fontSize: 20, color: 'var(--color-brand)' }}></i>
+              )}
             </div>
           </div>
         )}
 
         {/* Navegación */}
-        <nav style={{ flex: 1, padding: isSidebarCollapsed ? '14px 10px' : '14px 10px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto', overflowX: 'hidden' }}>
+        <nav className="sidebar-nav">
           {tabGroups.map((group, idx) => {
             const groupItems = group.items.filter(t => 
               (!t.superAdminOnly || isSuperAdmin) && 
@@ -230,53 +195,28 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
             return (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {!isSidebarCollapsed ? (
-                  <p style={{ margin: '0 0 4px 10px', fontSize: '10px', fontWeight: '700', color: textSec, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+                  <p className="sidebar-nav-group-title">
                     {group.title}
                   </p>
                 ) : (
-                  <div style={{ height: 1, background: borderCol, margin: '8px 10px' }} title={group.title} />
+                  <div className="sidebar-nav-group-divider" title={group.title} />
                 )}
                 {groupItems.map(t => {
                   const isActive = currentTab === t.id;
                   return (
                     <button key={t.id} onClick={() => setTab(t.id)} title={isSidebarCollapsed ? t.label : ''}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '9px',
-                        padding: isSidebarCollapsed ? '12px 0' : '9px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-                        justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-                        background: isActive
-                          ? `linear-gradient(135deg, ${brandColor}22, ${brandColor}11)`
-                          : 'transparent',
-                        color: isActive ? brandColor : textSec,
-                        fontWeight: isActive ? '600' : '500',
-                        fontSize: '13px', transition: 'all 0.15s', width: '100%',
-                        borderLeft: isActive && !isSidebarCollapsed ? `3px solid ${brandColor}` : '3px solid transparent',
-                        boxShadow: isActive ? `inset 0 0 0 1px ${brandColor}20` : 'none',
-                        position: 'relative'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
-                          e.currentTarget.style.color = textMain;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = textSec;
-                        }
-                      }}
+                      className={`sidebar-nav-btn ${isActive ? 'active' : ''}`}
                     >
-                      <i className={`ti ${t.icon}`} style={{ fontSize: isSidebarCollapsed ? '20px' : '15px', flexShrink: 0 }} />
+                      <i className={`ti ${t.icon}`} />
                       {!isSidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{t.label}</span>}
                       {t.superAdminOnly && !isSidebarCollapsed && (
-                        <span style={{ marginLeft: 'auto', fontSize: '9px', background: '#0b8cf51e', color: '#24b9eb', border: '1px solid #0b84f530', borderRadius: '4px', padding: '1px 5px', fontWeight: '700' }}>MASTER</span>
+                        <span className="sidebar-nav-role-badge">MASTER</span>
                       )}
                       {t.badge > 0 && !isSidebarCollapsed && (
-                        <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '700', background: t.badgeColor || '#E24B4A', color: '#fff', borderRadius: 20, padding: '1px 7px', minWidth: 20, textAlign: 'center', animation: 'badge-pop 0.3s ease-out' }}>{t.badge}</span>
+                        <span className="sidebar-nav-counter-badge" style={t.badgeColor ? { background: t.badgeColor } : {}}>{t.badge}</span>
                       )}
                       {t.badge > 0 && isSidebarCollapsed && (
-                        <div style={{ position: 'absolute', top: 6, right: 12, width: 8, height: 8, borderRadius: '50%', background: t.badgeColor || '#E24B4A' }} />
+                        <div className="sidebar-nav-counter-badge-dot" style={t.badgeColor ? { background: t.badgeColor } : {}} />
                       )}
                     </button>
                   );
@@ -287,28 +227,18 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
         </nav>
 
         {/* Footer sidebar */}
-        <div style={{ padding: isSidebarCollapsed ? '14px 10px' : '14px', borderTop: `1px solid ${borderCol}`, display: 'flex', flexDirection: 'column', alignItems: 'stretch', position: 'relative' }}>
+        <div className="sidebar-footer">
           
           {/* Profile Menu Popup */}
           {profileMenuOpen && (
-            <div style={{
-              position: 'absolute', bottom: '100%', left: '10px', right: '10px', marginBottom: '8px',
-              background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
-              borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 2000,
-              padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px'
-            }}>
+            <div className="sidebar-profile-menu">
               
               {/* Impersonation Dropdown for SuperAdmins inside Menu */}
               {(isSuperAdmin || impersonatedTenantId) && allTenants?.length > 0 && (
-                <div style={{ position: 'relative', marginBottom: '4px' }}>
+                <div className="impersonate-wrapper">
                   <button
                     onClick={() => setImpersonateOpen(!impersonateOpen)}
-                    style={{
-                      width: '100%', padding: '8px 12px', background: impersonatedTenantId ? 'rgba(239, 159, 39, 0.15)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                      border: `1px solid ${impersonatedTenantId ? '#EF9F27' : borderCol}`, borderRadius: 8, color: impersonatedTenantId ? '#EF9F27' : textSec,
-                      fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
-                      fontWeight: impersonatedTenantId ? 600 : 500
-                    }}
+                    className={`impersonate-btn ${impersonatedTenantId ? 'active' : ''}`}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
                       <i className="ti ti-eye"></i>
@@ -320,26 +250,21 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
                   </button>
 
                   {impersonateOpen && (
-                    <div style={{
-                      position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4,
-                      background: isDark ? '#1a1a2e' : '#fff', border: `1px solid ${borderCol}`,
-                      borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100,
-                      maxHeight: 200, overflowY: 'auto'
-                    }}>
+                    <div className="impersonate-dropdown">
                       <button
                         onClick={() => { setImpersonatedTenantId(null); setImpersonateOpen(false); setProfileMenuOpen(false); }}
-                        style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: !impersonatedTenantId ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', borderBottom: `1px solid ${borderCol}`, color: textMain, fontSize: 12, cursor: 'pointer' }}
+                        className={`impersonate-option ${!impersonatedTenantId ? 'active' : ''}`}
                       >
-                        <i className="ti ti-shield" style={{ marginRight: 6, color: '#2563eb' }}></i>
+                        <i className="ti ti-shield" style={{ marginRight: 6, color: 'var(--color-brand)' }}></i>
                         {originalTenantName} (Vista Original)
                       </button>
                       {allTenants.map(t => (
                         <button
                           key={t.id}
                           onClick={() => { setImpersonatedTenantId(t.id); setImpersonateOpen(false); setProfileMenuOpen(false); }}
-                          style={{ width: '100%', padding: '8px 12px', textAlign: 'left', background: impersonatedTenantId === t.id ? (isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb') : 'transparent', border: 'none', color: textMain, fontSize: 12, cursor: 'pointer' }}
+                          className={`impersonate-option ${impersonatedTenantId === t.id ? 'active' : ''}`}
                         >
-                          <i className="ti ti-building" style={{ marginRight: 6, color: textSec }}></i>
+                          <i className="ti ti-building" style={{ marginRight: 6, color: 'var(--color-text-secondary)' }}></i>
                           {t.name}
                         </button>
                       ))}
@@ -349,38 +274,24 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
               )}
 
               {deferredPrompt && (
-                <button onClick={handleInstallClick}
-                  style={{ width: '100%', padding: '8px', borderRadius: '8px', border: `1px solid #1D9E7550`, background: '#1D9E7515', color: '#1D9E75', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600', textAlign: 'left' }}
-                >
-                  <i className="ti ti-download" style={{ fontSize: '16px' }} /> Instalar App Móvil
+                <button onClick={handleInstallClick} className="profile-menu-item install-app">
+                  <i className="ti ti-download" /> Instalar App Móvil
                 </button>
               )}
 
-              <button onClick={() => { setTheme(isDark ? 'light' : 'dark'); setProfileMenuOpen(false); }}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: textMain, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                {isDark ? <i className="ti ti-sun" style={{ fontSize: '16px' }} /> : <i className="ti ti-moon" style={{ fontSize: '16px' }} />}
+              <button onClick={() => { setTheme(isDark ? 'light' : 'dark'); setProfileMenuOpen(false); }} className="profile-menu-item">
+                {isDark ? <i className="ti ti-sun" /> : <i className="ti ti-moon" />}
                 {isDark ? 'Modo Claro' : 'Modo Oscuro'}
               </button>
 
-              <button onClick={() => { setTab('profile'); setProfileMenuOpen(false); }}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: textMain, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <i className="ti ti-user" style={{ fontSize: '16px' }} /> Mi Perfil
+              <button onClick={() => { setTab('profile'); setProfileMenuOpen(false); }} className="profile-menu-item">
+                <i className="ti ti-user" /> Mi Perfil
               </button>
 
-              <div style={{ height: '1px', background: borderCol, margin: '4px 0' }}></div>
+              <div className="sidebar-nav-group-divider" style={{ margin: '4px 0' }}></div>
 
-              <button onClick={handleLogout}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', textAlign: 'left', fontWeight: '500' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <i className="ti ti-logout" style={{ fontSize: '16px' }} /> Cerrar Sesión
+              <button onClick={handleLogout} className="profile-menu-item logout">
+                <i className="ti ti-logout" /> Cerrar Sesión
               </button>
             </div>
           )}
@@ -388,57 +299,46 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
           {/* User Button */}
           <button 
             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            style={{ 
-              width: '100%', background: profileMenuOpen ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent', 
-              border: 'none', borderRadius: '10px', padding: isSidebarCollapsed ? '10px 0' : '8px 12px', 
-              display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between', 
-              cursor: 'pointer', transition: 'background 0.2s'
-            }}
-            onMouseEnter={(e) => { if (!profileMenuOpen) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'; }}
-            onMouseLeave={(e) => { if (!profileMenuOpen) e.currentTarget.style.background = 'transparent'; }}
+            className={`sidebar-user-btn ${profileMenuOpen ? 'active' : ''}`}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-              <div style={{ 
-                width: '32px', height: '32px', borderRadius: '50%', background: brandColor, 
-                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontWeight: 'bold', fontSize: '14px', flexShrink: 0
-              }}>
+            <div className="sidebar-user-btn-content">
+              <div className="sidebar-user-avatar">
                 {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
               </div>
               {!isSidebarCollapsed && (
-                <div style={{ textAlign: 'left', overflow: 'hidden' }}>
-                  <p style={{ margin: '0 0 2px', fontSize: '11px', color: textSec, fontWeight: '600' }}>Conectado como</p>
-                  <p style={{ margin: '0', fontSize: '13px', fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: textMain }}>
+                <div className="sidebar-user-info">
+                  <p className="sidebar-user-info-label">Conectado como</p>
+                  <p className="sidebar-user-info-email">
                     {userEmail}
                   </p>
                 </div>
               )}
             </div>
             {!isSidebarCollapsed && (
-              <i className="ti ti-dots-vertical" style={{ color: textSec, fontSize: '16px' }}></i>
+              <i className="ti ti-dots-vertical"></i>
             )}
           </button>
         </div>
       </aside>
 
       {/* ── Contenido principal ── */}
-      <main className="mobile-full-width" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, background: 'transparent', overflowY: 'auto', transition: 'background 0.4s' }}>
+      <main className="mobile-full-width dashboard-main-content">
         
         {/* Mobile Header (Solo visible en móvil) */}
-        <div className="mobile-only-flex mobile-header" style={{ display: 'none', alignItems: 'center', padding: '12px 16px', background: sidebarBg, borderBottom: `1px solid ${borderCol}`, zIndex: 90 }}>
+        <div className="mobile-only-flex mobile-header dashboard-mobile-header">
           <button 
             onClick={() => setIsMobileSidebarOpen(true)}
-            style={{ background: 'transparent', border: 'none', color: textMain, fontSize: 24, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+            className="mobile-sidebar-toggle"
           >
             <i className="ti ti-menu-2"></i>
           </button>
-          <div style={{ flex: 1, textAlign: 'center', fontWeight: 600, color: brandColor, fontSize: 16 }}>
+          <div className="mobile-header-title">
             {tenantName && !isSuperAdmin ? tenantName : 'KUDEN IA'}
           </div>
-          <div style={{ width: 24 }}></div> {/* Spacer para centrar título */}
+          <div style={{ width: 24 }}></div>
         </div>
 
-        <div className="mobile-p-0" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '28px 32px', maxWidth: '1640px', width: '100%', margin: '0 auto', animation: 'fadeSlideIn 0.25s ease-out' }}>
+        <div className="mobile-p-0 dashboard-page-container">
           {typeof children === 'function' ? children(isDark) : children}
         </div>
 
