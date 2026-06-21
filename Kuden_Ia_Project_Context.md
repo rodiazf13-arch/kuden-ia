@@ -41,9 +41,7 @@ Kuden cuenta con una identidad corporativa que equilibra tecnología y calidez. 
 ---
 
 ## 2. Bitácora de Desarrollo: Módulos Ya Construidos
-La plataforma interna de Kuden ya cuenta con un motor potente listo para operar las cuentas de nuestros clientes:
-
-*   ✅ **Arquitectura Avanzada de Agentes Maestros (Routing Multi-perfil):** Evolución del motor de orquestación. El sistema permite crear **múltiples Agentes Maestros (Routers) por empresa** configurables directamente desde `ProfilesManager`. Cada Agente Maestro posee una lista específica de sub-perfiles permitidos. Esta arquitectura depreca la antigua pantalla global, permitiendo asignar routers de IA específicos a cada Campaña (`CampaignsManager`) inyectándolos dinámicamente en el prompt del LLM.
+La plataforma interna de Kuden ya cuenta co*   ✅ **Arquitectura Avanzada de Agentes Maestros (Routing Multi-perfil):** Evolución del motor de orquestación. El sistema permite crear **múltiples Agentes Maestros (Routers) por empresa** configurables directamente desde `ProfilesManager`. Cada Agente Maestro posee una lista específica de sub-perfiles permitidos. Esta arquitectura depreca la antigua pantalla global, permitiendo asignar routers de IA específicos a cada Campaña (`CampaignsManager`) inyectándolos dinámicamente en el prompt del LLM.
 *   ✅ **Extracción de Datos (El CRM Invisible):** La IA inyecta silenciosamente etiquetas `[METADATOS]` que el servidor intercepta para crear registros en `ContactsManager` automáticamente.
 *   ✅ **Bandeja de Ejecutivos (`CRMManager`) y Pipeline Kanban:** Interfaz para humanos con *Takeover* (Toma de control del bot), vista de columnas Kanban colapsables con ordenamiento persistente, paneles de sentimiento en tiempo real e indicadores de riesgo de fuga. **(Actualizado)**: El chat ahora incluye un editor de texto multilínea enriquecido (textarea) con atajos (Ctrl+Enter), soporte nativo para **Emojis**, subida de **Archivos Adjuntos** directamente a Supabase Storage y gestión de **Firmas de Correo** personalizables por usuario. Además, las tarjetas de conversación (tanto en lista como en Kanban) cuentan con **fondos y bordes dinámicos semitransparentes (colores pastel) según el canal de origen** (WhatsApp, Email, Instagram, Webchat), habiendo unificado internamente el canal web bajo el ID estandarizado `webchat` para una identificación visual rápida y sin conflictos de estado.
 *   ✅ **Gatillos de Automatización y Webhooks (n8n):** Sistema de eventos de fondo (background events) que intercepta los cambios de etapa en la conversación y emite un payload estructurado hacia flujos específicos de n8n, actuando como puente entre las decisiones de la IA y el ecosistema operativo del cliente.
@@ -55,12 +53,12 @@ La plataforma interna de Kuden ya cuenta con un motor potente listo para operar 
 *   ✅ **Soporte Multi-Industria:** Las plantillas de Tenant se adaptan dinámicamente insertando custom fields específicos para inmobiliarias, salud, cobranzas o soporte.
 *   ✅ **Sistema de Suplantación Superadmin ("Done-For-You" Genuino):** Capacidad en tiempo real (`DashboardLayout.jsx` + `App.jsx`) para que los superadministradores de Kuden puedan visualizar toda la plataforma y operar el CRM, Simulador y Perfiles exactamente como si fueran uno de sus clientes, sin perder sus privilegios maestros y sin fugas de estado entre sesiones. Esto facilita enormemente la gestión y el soporte integral de la plataforma.
 *   ✅ **Selector Dinámico de Destino para Plantillas IA:** El sistema permite que los superusuarios decidan inyectar perfiles IA directamente a empresas cliente específicas, o convertirlas en "Plantillas Kuden" globales (de solo lectura), logrando una gobernanza total sobre las personalidades de la IA.
-*   ✅ **Rediseño Visual (Premium SaaS UI/UX):** Implementación de tipografías modernas (Outfit/Inter), glassmorphism, gradientes inteligentes adaptables al modo nocturno, sombras suaves, micro-interacciones globales y componentes de usabilidad avanzados (como un **Selector Visual de Íconos** interactivo para la gestión de Perfiles IA) para una experiencia de usuario de alto nivel.
+*   ✅ **Rediseño Visual Premium (Design System Kuden v2):** Implementación completa de un sistema de diseño unificado en `index.css` (tipografías Outfit/Inter, paleta cromática oficial, glassmorphism, gradientes, micro-interacciones globales). **(Actualizado Jun 2026):** Se completó la migración completa de los módulos de administración más críticos al nuevo sistema de diseño: `CampaignsManager.jsx`, `ContactsManager.jsx` y `Contact360View.jsx`. Cada módulo ahora cuenta con tablas premium con filas interactivas, headers con gradiente, pills de estado, tooltips contextuales, animaciones de transición, un **Selector Visual de Íconos** interactivo para la gestión de Perfiles IA, y una paleta de colores CSAT/Sentimiento refinada (donde "Muy Positivo" usa el azul Kuden `#00A6FF` en lugar de morado, para mayor diferenciación visual con estados negativos).
 *   ✅ **Base del Sistema RAG y Agent Assist ("Botón Mágico"):** Motor de embeddings (`ragService.js`) conectado a Supabase `pgvector`, permitiendo a los ejecutivos pedir a la IA sugerencias de respuesta en tiempo real basadas en documentos almacenados.
 *   ✅ **Gestión de Usuario y Login Premium:** Componente de autogestión de seguridad para cambios de contraseña. La pantalla de Login fue rediseñada con efectos *Glassmorphism*, gradientes profundos y el logo oficial de la marca, dando una experiencia *Enterprise* desde el primer segundo.
 *   ✅ **Control de Accesos Dinámico (Role-Based Visibility):** El menú lateral oculta módulos de uso interno (ej. *Simulador IA*, *Tarificador*, *Health Monitor*) a clientes regulares, manteniendo la interfaz limpia y enfocada en el producto terminado.
 *   ✅ **Resiliencia del Frontend (Crash Prevention):** Manejo robusto de errores asíncronos y latencias de estado (ej. carga del `tenantId`) en `CRMManager.jsx`, interceptando errores HTTP 500 y retornando estados vacíos seguros para prevenir pantallas en blanco ("White Screen of Death") tras el login.
-*   ✅ **Enrutamiento Inteligente y Sidebar:** Menú lateral categorizado por áreas de negocio (Operaciones, Motor IA, Admin) y aterrizaje directo post-login en el Dashboard de Reportes para decisiones de negocio inmediatas.
+*   ✅ **Enrutamiento Inteligente y Sidebar:** Menú lateral categorizado por áreas de negocio (Operaciones, Motor IA, Admin) y aterrizaje directo post-login en el Dashboard de Reportes para decisiones de negocio inmediatas.� lateral categorizado por áreas de negocio (Operaciones, Motor IA, Admin) y aterrizaje directo post-login en el Dashboard de Reportes para decisiones de negocio inmediatas.
 
 ---
 
@@ -182,9 +180,44 @@ Aquí es donde Kuden se vuelve imbatible. Transformar los "chats informativos" e
 - **Métricas de Contactos Macro (NPS e Inteligencia Predictiva):** Se crearon scripts de backfill y triggers en Node.js que mantienen el `nps_historico` y el `riesgo_fuga` a nivel de contacto, exponiéndolos con insignias visuales (badges) y selectores dinámicos de columnas en el `ContactsManager`.
 - **Canal de Voz y Mapeo Dinámico (VICIdial / Retell AI):** Habilitación del canal oficial `voz` con color violeta e ícono de micrófono. El CRM (`CRMManager.jsx`) ahora bloquea la entrada de mensajes regulares a solo Notas Internas en conversaciones de voz, y el Hub de Integraciones provee un "Mantenedor" para configurar el mapeo dinámico entre parámetros del JSON externo y campos Kuden.
 - **Conversaciones Outbound (Omnicanalidad Reactiva):** Se incorporaron acciones rápidas en la "Vista 360" de Contactos para que el agente dispare una nueva conversación proactiva por WhatsApp, Email o Instagram. El sistema emite un evento global e inyecta al agente de inmediato en la ventana de mensajería del CRM.
-
 - **Control de Accesos Basado en Roles (RBAC):** Se refinó el perfil "Agente (CRM + Contactos)" para ocultar módulos administrativos y restringir el acceso al gestor de campañas y usuarios, garantizando la seguridad operativa.
 - **Mejora UX en Contactos:** Se añadió la funcionalidad de descargar plantillas CSV de ejemplo directamente desde el gestor de contactos para agilizar el *onboarding*.
+
+---
+
+## 5.y Rediseño UI Premium — Módulos de Administración (Junio 2026)
+
+Se completó una migración completa de los módulos administrativos al sistema de diseño Kuden v2, alineando la experiencia de usuario con el estándar premium del resto de la plataforma. Todos los estilos residen en `index.css` (sin inline styles) siguiendo la convención de clases establecida.
+
+### `CampaignsManager.jsx` — Gestor de Campañas
+- **Tabla premium con filas interactivas:** Header con gradiente azul, filas con hover effect y transiciones suaves.
+- **Pills de estado dinámicos:** Las campañas activas/inactivas se representan con pills de color verde/rojo con ícono.
+- **Selector de color integrado en tabla:** El picker de color nativo HTML5 se encapsuló en un contenedor `.campaign-color-swatch-wrapper` que muestra el preview del color actual y expande el input al hacer clic, manteniéndose dentro de los límites de la celda de la tabla.
+- **Asignación de Agente Maestro:** Cada campaña puede tener un Agente Router IA asignado, visible desde la tabla con un badge distintivo.
+- **Modal de edición/creación premium:** Formulario completo con campos alineados al design system (border-radius, colores de focus, íconos Tabler).
+- **Campo "Descripción breve" eliminado:** Se analizó y confirmó que el campo no tenía uso funcional real en el sistema. Se eliminó del formulario para limpiar la interfaz y reducir fricción.
+
+### `ContactsManager.jsx` — Gestor de Contactos
+- **Layout de búsqueda y filtros premium:** Barra superior con input de búsqueda, selects de canal y estado, y botones de acción (Nuevo, Importar CSV, Descargar Plantilla) con diseño coherente.
+- **Tabla de contactos renovada:** Columnas con nombre + avatar generado por inicial, badges de canal con ícono y color, indicadores de NPS/Riesgo de fuga, y acción de "Vista 360" directa.
+- **Importación CSV:** Modal de importación con drag & drop visual, validación de columnas y feedback de progreso.
+- **Columnas configurables:** Selector de columnas visibles (NPS Histórico, Riesgo de Fuga, Plan, Teléfono) configurable por usuario.
+
+### `Contact360View.jsx` — Vista 360° del Contacto
+- **Layout de dos columnas premium:** Sidebar izquierdo con perfil del contacto (avatar generativo), resumen global de IA y acciones rápidas; panel derecho con tabs de navegación.
+- **Tab "Perfil Analítico":** Dashboard de métricas del contacto incluyendo CSAT histórico con paleta de colores curada, gráfico de sentimiento omnicanal (barras de colores), y distribución de canales usados.
+- **Tab "Historial Omnicanal":** Lista de tickets/conversaciones con acordeón expandible. Cada ticket muestra el resumen IA (`resumen_ejecutivo`), nota de seguimiento (`follow_up_note`) y el registro completo del chat con burbujas diferenciadas (cliente vs. agente) y botón de descarga de grabaciones de voz.
+- **Íconos dinámicos por canal:** Cada ticket en el historial omnicanal muestra un ícono y fondo de color únicos según el canal de la conversación. La lógica hace un `.find()` sobre el array `CHANNELS` (constante en el componente) y aplica un fallback neutro para canales no catalogados:
+  - 🌐 Web Chat → `ti-world` / Verde `#1D9E75`
+  - 💬 WhatsApp → `ti-brand-whatsapp` / Verde WhatsApp `#25D366`
+  - 📧 Email → `ti-mail` / Azul `#3b82f6`
+  - 📞 Voz → `ti-phone` / Púrpura `#534AB7`
+  - 📱 App Móvil → `ti-device-mobile` / Naranja `#D85A30`
+  - 🔗 Redes Soc. → `ti-share` / Amarillo `#EF9F27`
+  - 📷 Instagram → `ti-brand-instagram` / Rosa `#C13584` *(canal agregado en esta sesión)*
+  - ❓ Desconocido → `ti-messages` / Gris neutro (fallback)
+- **Paleta de sentimiento refinada:** El estado "Muy Positivo" fue actualizado de morado a **azul Kuden `#00A6FF`** para diferenciarse visualmente del rojo de estados negativos y alinearse al color principal de la marca.
+- **Generación de resumen global IA:** Botón en sidebar que invoca el LLM para generar un resumen ejecutivo del contacto basado en todas sus conversaciones.
 
 ---
 
