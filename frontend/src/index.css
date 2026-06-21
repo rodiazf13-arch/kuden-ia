@@ -1553,6 +1553,10 @@ button:disabled {
   gap: 10px;
 }
 
+.integration-banner-row input {
+  flex: 1;
+}
+
 @media (max-width: 640px) {
   .integration-banner-row {
     flex-direction: column;
