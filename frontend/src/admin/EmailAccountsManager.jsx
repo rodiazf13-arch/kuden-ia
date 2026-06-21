@@ -18,15 +18,6 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
     is_active: true
   });
 
-  // UI colors
-  const c = {
-    card: isDark ? '#111' : '#fff',
-    border: isDark ? '#222' : '#e5e7eb',
-    title: isDark ? '#fff' : '#111827',
-    subtitle: isDark ? '#aaa' : '#6b7280',
-    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#fff' : '#111827',
-  };
 
   useEffect(() => {
     if (tenantId) fetchData();
@@ -123,19 +114,19 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
     }
   };
 
-  if (loading) return <div style={{ color: c.subtitle }}>Cargando cuentas de correo...</div>;
+  if (loading) return <div className="integration-section-subtitle">Cargando cuentas de correo...</div>;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div className="integration-section-header">
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>Cuentas de Correo (n8n Bridge)</h2>
-          <p style={{ margin: 0, fontSize: 13, color: c.subtitle }}>Configura múltiples cuentas de correo y asócialas a campañas específicas.</p>
+          <h2 className="integration-section-title">Cuentas de Correo (n8n Bridge)</h2>
+          <p className="integration-section-subtitle">Configura múltiples cuentas de correo y asócialas a campañas específicas.</p>
         </div>
         {!isEditing && (
           <button 
             onClick={handleCreateNew}
-            style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}
+            className="integration-btn-primary"
           >
             <i className="ti ti-plus"></i> Nueva Cuenta
           </button>
@@ -143,27 +134,25 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
       </div>
 
       {isEditing ? (
-        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 24, maxWidth: 600 }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: 16, color: c.title }}>{currentAccount ? 'Editar Cuenta' : 'Nueva Cuenta'}</h3>
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="integration-form-card">
+          <h3 className="integration-form-title">{currentAccount ? 'Editar Cuenta' : 'Nueva Cuenta'}</h3>
+          <form onSubmit={handleSave} className="integration-form">
             
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Nombre (Ej: Soporte)</label>
+            <div className="integration-form-row">
+              <div className="integration-form-group">
+                <label className="integration-form-label">Nombre (Ej: Soporte)</label>
                 <input 
                   type="text" 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   required
                 />
               </div>
 
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Correo Electrónico</label>
+              <div className="integration-form-group">
+                <label className="integration-form-label">Correo Electrónico</label>
                 <input 
                   type="email" 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                   value={formData.email_address}
                   onChange={(e) => setFormData({...formData, email_address: e.target.value})}
                   required
@@ -171,23 +160,21 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Outbound n8n Webhook URL</label>
+            <div className="integration-form-group">
+              <label className="integration-form-label">Outbound n8n Webhook URL</label>
               <input 
                 type="url" 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                 value={formData.n8n_outbound_webhook}
                 onChange={(e) => setFormData({...formData, n8n_outbound_webhook: e.target.value})}
                 placeholder="https://n8n.kuden.cl/webhook/..."
                 required
               />
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: c.subtitle }}>El webhook específico en n8n que despacha correos para esta cuenta.</p>
+              <p className="integration-form-help">El webhook específico en n8n que despacha correos para esta cuenta.</p>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Asignar a Campaña</label>
+            <div className="integration-form-group">
+              <label className="integration-form-label">Asignar a Campaña</label>
               <select 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                 value={formData.campaign_id}
                 onChange={(e) => setFormData({...formData, campaign_id: e.target.value})}
               >
@@ -196,31 +183,30 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: c.subtitle }}>Los tickets que lleguen a este correo heredarán automáticamente esta campaña y la IA usará su contexto.</p>
+              <p className="integration-form-help">Los tickets que lleguen a este correo heredarán automáticamente esta campaña y la IA usará su contexto.</p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div className="integration-form-checkbox-container">
               <input 
                 type="checkbox" 
                 id="is_active_account"
                 checked={formData.is_active}
                 onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                style={{ cursor: 'pointer', width: 16, height: 16 }}
               />
-              <label htmlFor="is_active_account" style={{ fontSize: 14, color: c.title, cursor: 'pointer' }}>Cuenta Activa</label>
+              <label htmlFor="is_active_account">Cuenta Activa</label>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
               <button 
                 type="button" 
                 onClick={handleCancel}
-                style={{ padding: '8px 16px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
+                className="integration-btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
-                style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
+                className="integration-btn-primary"
               >
                 Guardar Cuenta
               </button>
@@ -228,39 +214,44 @@ export default function EmailAccountsManager({ tenantId, isDark = true }) {
           </form>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+        <div className="integration-grid-container">
           {accounts.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', background: c.card, border: `1px dashed ${c.border}`, borderRadius: 12 }}>
-              <p style={{ color: c.subtitle, margin: 0 }}>No hay cuentas configuradas. ¡Añade tu primer correo de soporte!</p>
+            <div className="integration-empty-state">
+              <p>No hay cuentas configuradas. ¡Añade tu primer correo de soporte!</p>
             </div>
           ) : (
             accounts.map(acc => (
-              <div key={acc.id} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: 20, flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 'bold', color: c.title, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{acc.name}</h3>
-                    <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 12, fontWeight: 'bold', background: acc.is_active ? '#1D9E7520' : '#e5e7eb', color: acc.is_active ? '#1D9E75' : '#6b7280' }}>
+              <div key={acc.id} className="integration-item-card">
+                <div className="integration-item-card-body">
+                  <div className="integration-item-card-title-row">
+                    <h3 className="integration-item-card-title">{acc.name}</h3>
+                    <span className={`integration-item-badge ${acc.is_active ? 'active' : 'inactive'}`}>
                       {acc.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
                   
-                  <div style={{ fontSize: 13, color: c.subtitle, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><i className="ti ti-mail" style={{ color: '#3b82f6' }}></i> <strong style={{ color: c.title }}>{acc.email_address}</strong></div>
-                    <div><strong style={{ color: c.title }}>Campaña:</strong> {acc.campaigns ? acc.campaigns.name : 'General'}</div>
+                  <div className="integration-item-card-details">
+                    <div className="integration-item-card-detail-item">
+                      <i className="ti ti-mail" style={{ color: 'var(--color-primary)' }}></i>
+                      <strong>{acc.email_address}</strong>
+                    </div>
+                    <div>
+                      <strong>Campaña:</strong> {acc.campaigns ? acc.campaigns.name : 'General'}
+                    </div>
                   </div>
                 </div>
                 
-                <div style={{ padding: '12px 20px', borderTop: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#1a1a1a' : '#f9fafb' }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
+                <div className="integration-item-card-footer">
+                  <div className="integration-item-card-actions">
                     <button 
                       onClick={() => handleEdit(acc)}
-                      style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: 13, fontWeight: 'bold', padding: 0 }}
+                      className="integration-btn-link"
                     >
                       Editar
                     </button>
                     <button 
                       onClick={() => handleDelete(acc.id)}
-                      style={{ background: 'none', border: 'none', color: '#E24B4A', cursor: 'pointer', fontSize: 13, fontWeight: 'bold', padding: 0 }}
+                      className="integration-btn-danger"
                     >
                       Eliminar
                     </button>

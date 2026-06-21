@@ -18,15 +18,6 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
     is_active: true
   });
 
-  // UI colors
-  const c = {
-    card: isDark ? '#111' : '#fff',
-    border: isDark ? '#222' : '#e5e7eb',
-    title: isDark ? '#fff' : '#111827',
-    subtitle: isDark ? '#aaa' : '#6b7280',
-    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#fff' : '#111827',
-  };
 
   useEffect(() => {
     if (tenantId) fetchData();
@@ -135,19 +126,19 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
     alert('¡Código copiado al portapapeles! Pégalo en el <head> o antes del cierre del <body> en tu sitio web.');
   };
 
-  if (loading) return <div style={{ color: c.subtitle }}>Cargando widgets...</div>;
+  if (loading) return <div className="integration-section-subtitle">Cargando widgets...</div>;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div className="integration-section-header">
         <div>
-          <h2 style={{ fontSize: inHub ? 18 : 24, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>{inHub ? 'Widgets Web' : 'Panel de Widgets Web'}</h2>
-          <p style={{ margin: 0, fontSize: inHub ? 13 : 14, color: c.subtitle }}>Configura y obtén el código para incrustar el chat en distintas páginas web.</p>
+          <h2 className="integration-section-title" style={{ fontSize: inHub ? 18 : 24 }}>{inHub ? 'Widgets Web' : 'Panel de Widgets Web'}</h2>
+          <p className="integration-section-subtitle" style={{ fontSize: inHub ? 13 : 14 }}>Configura y obtén el código para incrustar el chat en distintas páginas web.</p>
         </div>
         {!isEditing && (
           <button 
             onClick={handleCreateNew}
-            style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 6 }}
+            className="integration-btn-primary"
           >
             <i className="ti ti-plus"></i> Nuevo Widget
           </button>
@@ -155,34 +146,33 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
       </div>
 
       {isEditing ? (
-        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 24, maxWidth: 600 }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: 16, color: c.title }}>{currentWidget ? 'Editar Widget' : 'Nuevo Widget'}</h3>
-          <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="integration-form-card">
+          <h3 className="integration-form-title">{currentWidget ? 'Editar Widget' : 'Nuevo Widget'}</h3>
+          <form onSubmit={handleSave} className="integration-form">
             
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Nombre (Título del Chat)</label>
+            <div className="integration-form-row">
+              <div className="integration-form-group">
+                <label className="integration-form-label">Nombre (Título del Chat)</label>
                 <input 
                   type="text" 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   required
                 />
               </div>
 
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Color Principal</label>
-                <div style={{ display: 'flex', gap: 8 }}>
+              <div className="integration-form-group">
+                <label className="integration-form-label">Color Principal</label>
+                <div className="integration-color-picker-container">
                   <input 
                     type="color" 
-                    style={{ width: 42, height: 42, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer' }}
+                    className="integration-color-picker-input-color"
                     value={formData.color}
                     onChange={(e) => setFormData({...formData, color: e.target.value})}
                   />
                   <input 
                     type="text" 
-                    style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
+                    style={{ flex: 1 }}
                     value={formData.color}
                     onChange={(e) => setFormData({...formData, color: e.target.value})}
                   />
@@ -190,21 +180,19 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Mensaje de Bienvenida</label>
+            <div className="integration-form-group">
+              <label className="integration-form-label">Mensaje de Bienvenida</label>
               <input 
                 type="text" 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                 value={formData.welcome_message}
                 onChange={(e) => setFormData({...formData, welcome_message: e.target.value})}
               />
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: c.subtitle }}>Este mensaje será el primero que vea el cliente al abrir el chat.</p>
+              <p className="integration-form-help">Este mensaje será el primero que vea el cliente al abrir el chat.</p>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 6, color: c.subtitle }}>Asignar a Campaña (Opcional)</label>
+            <div className="integration-form-group">
+              <label className="integration-form-label">Asignar a Campaña (Opcional)</label>
               <select 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', boxSizing: 'border-box' }}
                 value={formData.campaign_id}
                 onChange={(e) => setFormData({...formData, campaign_id: e.target.value})}
               >
@@ -213,31 +201,30 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: c.subtitle }}>Los tickets generados por este widget heredarán automáticamente esta campaña y sus tipificaciones.</p>
+              <p className="integration-form-help">Los tickets generados por este widget heredarán automáticamente esta campaña y sus tipificaciones.</p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div className="integration-form-checkbox-container">
               <input 
                 type="checkbox" 
                 id="is_active"
                 checked={formData.is_active}
                 onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                style={{ cursor: 'pointer', width: 16, height: 16 }}
               />
-              <label htmlFor="is_active" style={{ fontSize: 14, color: c.title, cursor: 'pointer' }}>Widget Activo</label>
+              <label htmlFor="is_active">Widget Activo</label>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
               <button 
                 type="button" 
                 onClick={handleCancel}
-                style={{ padding: '8px 16px', background: 'transparent', color: c.subtitle, border: `1px solid ${c.border}`, borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
+                className="integration-btn-secondary"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
-                style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}
+                className="integration-btn-primary"
               >
                 Guardar Configuración
               </button>
@@ -245,47 +232,55 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
           </form>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+        <div className="integration-grid-container">
           {widgets.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', background: c.card, border: `1px dashed ${c.border}`, borderRadius: 12 }}>
-              <p style={{ color: c.subtitle, margin: 0 }}>No hay widgets configurados. ¡Crea el primero!</p>
+            <div className="integration-empty-state">
+              <p>No hay widgets configurados. ¡Crea el primero!</p>
             </div>
           ) : (
             widgets.map(w => (
-              <div key={w.id} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: 6, width: '100%', backgroundColor: w.color }}></div>
-                <div style={{ padding: 20, flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 'bold', color: c.title, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.name}</h3>
-                    <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 12, fontWeight: 'bold', background: w.is_active ? '#1D9E7520' : '#e5e7eb', color: w.is_active ? '#1D9E75' : '#6b7280' }}>
+              <div key={w.id} className="integration-item-card">
+                <div className="integration-item-card-color-stripe" style={{ backgroundColor: w.color }}></div>
+                <div className="integration-item-card-body">
+                  <div className="integration-item-card-title-row">
+                    <h3 className="integration-item-card-title">{w.name}</h3>
+                    <span className={`integration-item-badge ${w.is_active ? 'active' : 'inactive'}`}>
                       {w.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
                   
-                  <div style={{ fontSize: 13, color: c.subtitle, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div><strong style={{ color: c.title }}>Campaña:</strong> {w.campaigns ? w.campaigns.name : 'General'}</div>
-                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><strong style={{ color: c.title }}>Mensaje:</strong> {w.welcome_message}</div>
+                  <div className="integration-item-card-details">
+                    <div><strong>Campaña:</strong> {w.campaigns ? w.campaigns.name : 'General'}</div>
+                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <strong>Mensaje:</strong> {w.welcome_message}
+                    </div>
                   </div>
                 </div>
                 
-                <div style={{ padding: '12px 20px', borderTop: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#1a1a1a' : '#f9fafb' }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
+                <div className="integration-item-card-footer">
+                  <div className="integration-item-card-actions">
                     <button 
                       onClick={() => handleEdit(w)}
-                      style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: 13, fontWeight: 'bold', padding: 0 }}
+                      className="integration-btn-link"
                     >
                       Editar
                     </button>
                     <button 
                       onClick={() => handleDelete(w.id)}
-                      style={{ background: 'none', border: 'none', color: '#E24B4A', cursor: 'pointer', fontSize: 13, fontWeight: 'bold', padding: 0 }}
+                      className="integration-btn-danger"
                     >
                       Eliminar
                     </button>
                   </div>
                   <button 
                     onClick={() => copyScript(w)}
-                    style={{ background: isDark ? '#54326d' : '#123683', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 4 }}
+                    className="integration-btn-primary"
+                    style={{ 
+                      padding: '6px 12px', 
+                      fontSize: '12px',
+                      borderRadius: 'var(--border-radius-sm)',
+                      background: 'var(--gradient-kuden)'
+                    }}
                   >
                     <i className="ti ti-copy"></i> Copiar Script
                   </button>

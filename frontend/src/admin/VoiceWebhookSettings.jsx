@@ -10,24 +10,6 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
 
   const webhookUrl = `https://api.kuden.cl/api/webhook/voice-call/${tenantId || '{YOUR_TENANT_ID}'}`;
 
-  const textMain = isDark ? '#f9fafb' : '#111827';
-  const textSec = isDark ? '#9ca3af' : '#6b7280';
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)';
-  const borderCol = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-  const inputBg = isDark ? 'rgba(0,0,0,0.2)' : '#f9fafb';
-
-  const inputStyle = {
-    backgroundColor: inputBg,
-    border: `1px solid ${borderCol}`,
-    borderRadius: '8px',
-    padding: '10px 14px',
-    color: textMain,
-    outline: 'none',
-    fontSize: '14px',
-    width: '100%',
-    transition: 'border-color 0.2s'
-  };
-
   const baseContactFields = [
     { key: 'telefono', label: 'Teléfono (Llave Principal)', required: true },
     { key: 'cliente_nombre', label: 'Nombre del Cliente' },
@@ -114,108 +96,97 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
   const allAvailableFields = [...baseContactFields, ...customFields.map(cf => ({ key: cf.field_key, label: `[Custom] ${cf.field_label}` }))];
 
   return (
-    <div style={{
-      background: cardBg, border: `1px solid ${borderCol}`, borderRadius: '16px',
-      padding: '24px', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-      boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 8px 32px rgba(0,0,0,0.04)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '24px' }}>
-        <div style={{
-          width: '52px', height: '52px', borderRadius: '14px',
-          background: isDark ? 'rgba(37,99,235,0.1)' : '#eff6ff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: `1px solid ${isDark ? 'rgba(37,99,235,0.2)' : '#bfdbfe'}`
-        }}>
-          <i className="ti ti-microphone" style={{ fontSize: '28px', color: '#3b82f6' }}></i>
+    <div className="voice-webhook-container">
+      <div className="voice-webhook-header">
+        <div className="voice-webhook-icon-container">
+          <i className="ti ti-microphone voice-webhook-icon"></i>
         </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 6px', color: textMain }}>Webhook de Voz (Retell AI / VICIdial)</h2>
-          <p style={{ margin: 0, fontSize: '14px', color: textSec, lineHeight: '1.5' }}>
+          <h2 className="integration-section-title" style={{ fontSize: '20px' }}>Webhook de Voz (Retell AI / VICIdial)</h2>
+          <p className="integration-section-subtitle" style={{ lineHeight: '1.5' }}>
             Recibe llamadas telefónicas finalizadas en Kuden. Configura qué llaves del JSON entrante de la plataforma externa corresponden a los campos de tus contactos en el CRM.
           </p>
         </div>
       </div>
 
-      <div style={{ background: inputBg, border: `1px solid ${borderCol}`, padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-        <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '600', color: textSec, textTransform: 'uppercase' }}>URL del Webhook (POST)</p>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input type="text" readOnly value={webhookUrl} style={{ ...inputStyle, fontFamily: 'monospace', color: '#3b82f6' }} />
-          <button onClick={copyWebhookUrl} style={{ padding: '0 16px', borderRadius: '8px', background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+      <div className="integration-banner">
+        <p className="integration-banner-title">URL del Webhook (POST)</p>
+        <div className="integration-banner-row">
+          <input type="text" readOnly value={webhookUrl} style={{ fontFamily: 'monospace', color: 'var(--color-primary)' }} />
+          <button onClick={copyWebhookUrl} className="integration-btn-primary" style={{ padding: '0 16px', whiteSpace: 'nowrap' }}>
             <i className="ti ti-copy"></i> Copiar
           </button>
         </div>
       </div>
 
-      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Mapeo de Campos Estructurales</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+      <h3 className="integration-form-title" style={{ fontSize: '16px' }}>Mapeo de Campos Estructurales</h3>
+      <div className="integration-mapping-list">
         {systemFields.map(sf => (
-          <div key={sf.key} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '250px', fontSize: '14px', fontWeight: '500', color: textMain }}>
-              <i className="ti ti-point-filled" style={{ color: '#3b82f6', marginRight: '6px' }}></i>
+          <div key={sf.key} className="integration-mapping-row">
+            <div className="integration-mapping-label">
+              <i className="ti ti-point-filled" style={{ color: 'var(--color-primary)', marginRight: '6px' }}></i>
               {sf.label}
             </div>
-            <i className="ti ti-arrow-right" style={{ color: textSec }}></i>
+            <i className="ti ti-arrow-right" style={{ color: 'var(--color-text-tertiary)' }}></i>
             <input 
               type="text" 
               placeholder={`Ej: ${sf.key}`} 
               value={mapping[sf.key] || ''} 
               onChange={e => updateMapping(sf.key, e.target.value)}
-              style={{ ...inputStyle, flex: 1 }} 
+              style={{ flex: 1 }} 
             />
           </div>
         ))}
         {baseContactFields.filter(f => ['telefono', 'cliente_nombre'].includes(f.key)).map(f => (
-          <div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '250px', fontSize: '14px', fontWeight: '500', color: textMain }}>
-              <i className="ti ti-point-filled" style={{ color: '#3b82f6', marginRight: '6px' }}></i>
-              {f.label} {f.required && <span style={{color:'#ef4444'}}>*</span>}
+          <div key={f.key} className="integration-mapping-row">
+            <div className="integration-mapping-label">
+              <i className="ti ti-point-filled" style={{ color: 'var(--color-primary)', marginRight: '6px' }}></i>
+              {f.label} {f.required && <span style={{color:'var(--color-error)'}}>*</span>}
             </div>
-            <i className="ti ti-arrow-right" style={{ color: textSec }}></i>
+            <i className="ti ti-arrow-right" style={{ color: 'var(--color-text-tertiary)' }}></i>
             <input 
               type="text" 
               placeholder={`Ej: ${f.key === 'telefono' ? 'customer_phone' : 'customer_name'}`} 
               value={mapping[f.key] || ''} 
               onChange={e => updateMapping(f.key, e.target.value)}
-              style={{ ...inputStyle, flex: 1 }} 
+              style={{ flex: 1 }} 
             />
           </div>
         ))}
       </div>
 
-      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Regla de Validación / Filtro (Opcional)</h3>
-      <div style={{ background: inputBg, border: `1px solid ${borderCol}`, padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <p style={{ margin: 0, fontSize: '13px', color: textSec, lineHeight: '1.4' }}>
+      <h3 className="integration-form-title" style={{ fontSize: '16px' }}>Regla de Validación / Filtro (Opcional)</h3>
+      <div className="integration-banner" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
           Configura una llave y un valor esperado. Las llamadas que no cumplan esta condición serán ignoradas silenciosamente por el sistema (evitando procesar llamadas no deseadas o con estados fallidos).
         </p>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '11px', fontWeight: '600', color: textSec, display: 'block', marginBottom: '4px' }}>Llave JSON a evaluar (ej: call.custom_analysis_data.validacion)</label>
+        <div className="integration-form-row" style={{ marginTop: '4px' }}>
+          <div className="integration-form-group">
+            <label className="integration-form-label" style={{ fontSize: '11px', fontWeight: '600' }}>Llave JSON a evaluar (ej: call.custom_analysis_data.validacion)</label>
             <input 
               type="text" 
               placeholder="Ej: call.custom_analysis_data.validacion" 
               value={mapping['validation_key'] || ''} 
               onChange={e => updateMapping('validation_key', e.target.value)}
-              style={inputStyle} 
             />
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '11px', fontWeight: '600', color: textSec, display: 'block', marginBottom: '4px' }}>Valor esperado (ej: true)</label>
+          <div className="integration-form-group">
+            <label className="integration-form-label" style={{ fontSize: '11px', fontWeight: '600' }}>Valor esperado (ej: true)</label>
             <input 
               type="text" 
               placeholder="Ej: true" 
               value={mapping['validation_value'] || ''} 
               onChange={e => updateMapping('validation_value', e.target.value)}
-              style={inputStyle} 
             />
           </div>
         </div>
       </div>
 
-      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Registro de Logs (Auditoría)</h3>
-      <div style={{ background: inputBg, border: `1px solid ${borderCol}`, padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+      <h3 className="integration-form-title" style={{ fontSize: '16px' }}>Registro de Logs (Auditoría)</h3>
+      <div className="integration-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: '600', color: textMain }}>Logs de Auditoría Activos</p>
-          <p style={{ margin: 0, fontSize: '13px', color: textSec, lineHeight: '1.4' }}>
+          <p className="integration-form-label" style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>Logs de Auditoría Activos</p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
             Registra el éxito o validación de cada llamada en el System Health Monitor. Desactívalo para evitar saturar el visor en campañas masivas.
           </p>
         </div>
@@ -230,8 +201,8 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
               fontWeight: '600',
               fontSize: '13px',
               transition: 'all 0.2s',
-              backgroundColor: mapping['logs_enabled'] !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: mapping['logs_enabled'] !== false ? '#10b981' : '#ef4444',
+              backgroundColor: mapping['logs_enabled'] !== false ? 'rgba(22, 211, 138, 0.15)' : 'rgba(255, 94, 115, 0.15)',
+              color: mapping['logs_enabled'] !== false ? 'var(--color-success)' : 'var(--color-error)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
@@ -243,21 +214,21 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
         </div>
       </div>
 
-      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: textMain }}>Campos Adicionales Dinámicos</h3>
-      <div style={{ background: inputBg, borderRadius: '12px', padding: '16px', border: `1px solid ${borderCol}`, marginBottom: '24px' }}>
+      <h3 className="integration-form-title" style={{ fontSize: '16px' }}>Campos Adicionales Dinámicos</h3>
+      <div className="integration-banner">
         
         {/* Lista de mapeos adicionales ya configurados */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: Object.keys(mapping).filter(k => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value', 'logs_enabled'].includes(k)).length > 0 ? '20px' : '0' }}>
           {Object.entries(mapping).filter(([k]) => !['transcript', 'recordingUrl', 'telefono', 'cliente_nombre', 'validation_key', 'validation_value', 'logs_enabled'].includes(k)).map(([kudenField, jsonKey]) => {
             const fieldDef = allAvailableFields.find(f => f.key === kudenField);
             return (
-              <div key={kudenField} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: cardBg, padding: '10px 16px', borderRadius: '8px', border: `1px solid ${borderCol}` }}>
-                <span style={{ fontSize: '14px', color: textMain, fontWeight: '500', flex: 1 }}>{fieldDef?.label || kudenField}</span>
-                <i className="ti ti-arrow-left" style={{ color: textSec }}></i>
-                <span style={{ fontSize: '13px', color: '#10b981', fontFamily: 'monospace', background: 'rgba(16,185,129,0.1)', padding: '4px 8px', borderRadius: '6px', flex: 1 }}>
+              <div key={kudenField} className="integration-mapping-row" style={{ padding: '10px 16px', background: 'var(--color-background-primary)', borderRadius: '8px', border: '1px solid var(--color-border-tertiary)' }}>
+                <span style={{ fontSize: '14px', color: 'var(--color-text-primary)', fontWeight: '500', flex: 1 }}>{fieldDef?.label || kudenField}</span>
+                <i className="ti ti-arrow-left" style={{ color: 'var(--color-text-tertiary)' }}></i>
+                <span className="integration-mapping-badge">
                   {jsonKey}
                 </span>
-                <button onClick={() => removeMapping(kudenField)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}>
+                <button onClick={() => removeMapping(kudenField)} style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: '4px' }}>
                   <i className="ti ti-trash" style={{ fontSize: '18px' }}></i>
                 </button>
               </div>
@@ -266,33 +237,38 @@ export default function VoiceWebhookSettings({ isDark, tenantId }) {
         </div>
 
         {/* Agregador */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <select value={newField} onChange={e => setNewField(e.target.value)} style={{ ...inputStyle, flex: 1 }}>
+        <div className="integration-form-row" style={{ alignItems: 'center' }}>
+          <select value={newField} onChange={e => setNewField(e.target.value)} style={{ flex: 1 }}>
             <option value="">— Seleccionar Campo Kuden —</option>
             {allAvailableFields.map(f => (
               <option key={f.key} value={f.key} disabled={mapping[f.key] !== undefined}>{f.label}</option>
             ))}
           </select>
-          <span style={{ color: textSec, fontSize: '20px' }}>←</span>
+          <span style={{ color: 'var(--color-text-tertiary)', fontSize: '20px' }}>←</span>
           <input 
             type="text" 
             placeholder="Llave en JSON (ej: user_email)" 
             value={newKey} 
             onChange={e => setNewKey(e.target.value)} 
-            style={{ ...inputStyle, flex: 1 }} 
+            style={{ flex: 1 }} 
           />
-          <button onClick={handleAddNewMapping} disabled={!newField || !newKey} style={{ padding: '10px 16px', borderRadius: '8px', background: newField && newKey ? '#10b981' : '#9ca3af', color: '#fff', border: 'none', cursor: newField && newKey ? 'pointer' : 'not-allowed', fontWeight: '600' }}>
+          <button 
+            onClick={handleAddNewMapping} 
+            disabled={!newField || !newKey} 
+            className="integration-btn-primary" 
+            style={{ 
+              padding: '10px 16px', 
+              background: newField && newKey ? 'var(--gradient-success)' : 'var(--color-text-disabled)', 
+              cursor: newField && newKey ? 'pointer' : 'not-allowed' 
+            }}
+          >
             Añadir
           </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={handleSave} disabled={loading} style={{
-          backgroundColor: '#3b82f6', color: '#fff', fontWeight: '600', padding: '12px 28px',
-          borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.7 : 1, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px'
-        }}>
+        <button onClick={handleSave} disabled={loading} className="integration-btn-primary" style={{ padding: '12px 28px' }}>
           {loading ? <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }}></i> : <i className="ti ti-device-floppy"></i>}
           Guardar Configuración
         </button>
