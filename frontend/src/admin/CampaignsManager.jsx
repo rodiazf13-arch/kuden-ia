@@ -334,9 +334,10 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
           <div className="campaigns-sidebar-card">
             <h3>Nueva Campaña</h3>
             <input placeholder="Nombre de campaña" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <div className="integration-color-picker-container">
+            <input placeholder="Descripción breve (opcional)" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+            <div className="campaign-color-row">
+              <label className="integration-form-label">Color de campaña</label>
               <input type="color" className="integration-color-picker-input-color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} />
-              <input placeholder="Descripción breve" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
             </div>
             <select value={form.ai_profile_id} onChange={e => setForm({ ...form, ai_profile_id: e.target.value })}>
               <option value="">Sin Perfil IA (Agente Genérico)</option>
@@ -378,6 +379,19 @@ export default function CampaignsManager({ tenantId, isDark = true }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {selectedCam ? (
             <div className="campaigns-detail-content">
+
+              {/* ── Cabecera de Campaña ── */}
+              <div className="campaign-detail-header-card" style={{ '--color-brand': selectedCam.color }}>
+                <div className="campaign-detail-header-icon">
+                  <i className={`ti ${selectedCam.icon || 'ti-speakerphone'}`} />
+                </div>
+                <div>
+                  <h2 className="campaign-detail-header-title">{selectedCam.name}</h2>
+                  {selectedCam.description && (
+                    <p className="campaign-detail-header-desc">{selectedCam.description}</p>
+                  )}
+                </div>
+              </div>
 
               {/* ── Perfil IA ── */}
               <div className="campaign-detail-card">
