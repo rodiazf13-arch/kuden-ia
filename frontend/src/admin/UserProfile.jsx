@@ -43,13 +43,6 @@ export default function UserProfile({ isDark, userEmail, userId }) {
     }
   };
 
-  const bgCard = isDark ? '#111111' : '#ffffff';
-  const bgMain = isDark ? '#0a0a0a' : '#f3f4f6';
-  const textMain = isDark ? '#ffffff' : '#111827';
-  const textSec = isDark ? '#aaaaaa' : '#6b7280';
-  const borderCol = isDark ? '#222222' : '#e5e7eb';
-  const inputBg = isDark ? '#1a1a1a' : '#f9fafb';
-
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -77,50 +70,47 @@ export default function UserProfile({ isDark, userEmail, userId }) {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 4px', color: textMain }}>Mi Perfil</h2>
-        <p style={{ margin: 0, fontSize: 14, color: textSec }}>
+    <div className="profile-container">
+      <div className="profile-header">
+        <h2 className="profile-title">Mi Perfil</h2>
+        <p className="profile-subtitle">
           Gestiona tus datos personales y seguridad.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+      <div className="profile-grid">
         {/* Información Básica */}
-        <div style={{ background: bgCard, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px', color: textMain }}>Información Básica</h3>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: textSec, marginBottom: 6 }}>
+        <div className="profile-card">
+          <h3 className="profile-card-title">Información Básica</h3>
+          <div className="profile-field-group">
+            <label className="profile-label">
               Correo Electrónico (No editable)
             </label>
             <input
               type="text"
               value={userEmail}
               disabled
-              style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 8, border: `1px solid ${borderCol}`, background: inputBg, color: textSec, outline: 'none', boxSizing: 'border-box' }}
+              className="profile-input"
             />
           </div>
-          <p style={{ fontSize: 12, color: textSec, margin: 0 }}>
+          <p className="profile-info-text">
             Por el momento, el correo electrónico y tu rol son administrados centralizadamente por un administrador.
           </p>
         </div>
 
         {/* Seguridad */}
-        <div style={{ background: bgCard, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px', color: textMain }}>Seguridad</h3>
+        <div className="profile-card">
+          <h3 className="profile-card-title">Seguridad</h3>
           
           {msg.text && (
-            <div style={{ padding: '10px 12px', marginBottom: 16, borderRadius: 8, fontSize: 12, fontWeight: 500, 
-              background: msg.type === 'error' ? '#FDECEA' : '#E1F5EE', 
-              color: msg.type === 'error' ? '#E24B4A' : '#1D9E75',
-              border: `1px solid ${msg.type === 'error' ? '#E24B4A40' : '#1D9E7540'}` }}>
+            <div className={`profile-alert ${msg.type}`}>
               {msg.type === 'success' ? '✓ ' : '⚠️ '}{msg.text}
             </div>
           )}
 
           <form onSubmit={handleUpdatePassword}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: textSec, marginBottom: 6 }}>
+            <div className="profile-field-group">
+              <label className="profile-label">
                 Nueva Contraseña
               </label>
               <input
@@ -129,11 +119,11 @@ export default function UserProfile({ isDark, userEmail, userId }) {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 required
-                style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 8, border: `1px solid ${borderCol}`, background: inputBg, color: textMain, outline: 'none', boxSizing: 'border-box' }}
+                className="profile-input"
               />
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: textSec, marginBottom: 6 }}>
+            <div className="profile-field-group">
+              <label className="profile-label">
                 Confirmar Contraseña
               </label>
               <input
@@ -142,18 +132,13 @@ export default function UserProfile({ isDark, userEmail, userId }) {
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Repite tu nueva contraseña"
                 required
-                style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 8, border: `1px solid ${borderCol}`, background: inputBg, color: textMain, outline: 'none', boxSizing: 'border-box' }}
+                className="profile-input"
               />
             </div>
             <button
               type="submit"
               disabled={loading || !password || !confirmPassword}
-              style={{
-                padding: '10px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none',
-                background: '#2563eb', color: '#fff', cursor: loading ? 'wait' : 'pointer',
-                opacity: (loading || !password || !confirmPassword) ? 0.6 : 1,
-                width: '100%'
-              }}
+              className="profile-btn-primary"
             >
               {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
             </button>
@@ -161,21 +146,18 @@ export default function UserProfile({ isDark, userEmail, userId }) {
         </div>
 
         {/* Firma de Correo */}
-        <div style={{ background: bgCard, border: `1px solid ${borderCol}`, borderRadius: 12, padding: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 16px', color: textMain }}>Firma de Correo</h3>
+        <div className="profile-card">
+          <h3 className="profile-card-title">Firma de Correo</h3>
           
           {sigMsg.text && (
-            <div style={{ padding: '10px 12px', marginBottom: 16, borderRadius: 8, fontSize: 12, fontWeight: 500, 
-              background: sigMsg.type === 'error' ? '#FDECEA' : '#E1F5EE', 
-              color: sigMsg.type === 'error' ? '#E24B4A' : '#1D9E75',
-              border: `1px solid ${sigMsg.type === 'error' ? '#E24B4A40' : '#1D9E7540'}` }}>
+            <div className={`profile-alert ${sigMsg.type}`}>
               {sigMsg.type === 'success' ? '✓ ' : '⚠️ '}{sigMsg.text}
             </div>
           )}
 
           <form onSubmit={handleUpdateSignature}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: textSec, marginBottom: 6 }}>
+            <div className="profile-field-group">
+              <label className="profile-label">
                 Firma para respuestas
               </label>
               <textarea
@@ -183,18 +165,13 @@ export default function UserProfile({ isDark, userEmail, userId }) {
                 onChange={e => setSignature(e.target.value)}
                 placeholder={"Atentamente,\nTu Nombre\nCargo"}
                 rows={5}
-                style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 8, border: `1px solid ${borderCol}`, background: inputBg, color: textMain, outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
+                className="profile-textarea"
               />
             </div>
             <button
               type="submit"
               disabled={sigLoading}
-              style={{
-                padding: '10px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none',
-                background: '#1D9E75', color: '#fff', cursor: sigLoading ? 'wait' : 'pointer',
-                opacity: sigLoading ? 0.6 : 1,
-                width: '100%'
-              }}
+              className="profile-btn-success"
             >
               {sigLoading ? 'Guardando...' : 'Guardar Firma'}
             </button>

@@ -7086,6 +7086,7 @@ button:disabled {
   margin: 0;
   font-size: 20px;
   color: var(--color-text-primary);
+  font-family: var(--font-display);
 }
 
 .health-header-title p {
@@ -7522,4 +7523,193 @@ button:disabled {
   margin: 0;
   font-size: 12px;
   color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   USER PROFILE STYLES
+   ========================================================================== */
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+.profile-header {
+  margin-bottom: 20px;
+}
+
+.profile-title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+}
+
+.profile-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.profile-card {
+  background: var(--glass-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.profile-field-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-input,
+.profile-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 13px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: var(--transition-fast);
+}
+
+.profile-input:focus,
+.profile-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.10);
+}
+
+.profile-input:disabled {
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  border-color: var(--color-border-tertiary);
+}
+
+.profile-info-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.profile-alert {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.profile-alert.success {
+  background: rgba(22, 211, 138, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(22, 211, 138, 0.2);
+}
+
+.profile-alert.error {
+  background: rgba(255, 94, 115, 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(255, 94, 115, 0.2);
+}
+
+.profile-btn-primary {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--border-radius-md);
+  border: none;
+  background: var(--gradient-kuden);
+  color: #fff;
+  cursor: pointer;
+  transition: var(--transition-spring);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), 0 4px 12px rgba(99, 91, 255, 0.2);
+  filter: brightness(1.08);
+}
+
+.profile-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-btn-success {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--border-radius-md);
+  border: none;
+  background: var(--gradient-success);
+  color: #fff;
+  cursor: pointer;
+  transition: var(--transition-spring);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-btn-success:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), 0 4px 12px rgba(22, 211, 138, 0.2);
+  filter: brightness(1.05);
+}
+
+.profile-btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
