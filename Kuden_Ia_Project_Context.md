@@ -219,6 +219,22 @@ Se completó una migración completa de los módulos administrativos al sistema 
 - **Paleta de sentimiento refinada:** El estado "Muy Positivo" fue actualizado de morado a **azul Kuden `#00A6FF`** para diferenciarse visualmente del rojo de estados negativos y alinearse al color principal de la marca.
 - **Generación de resumen global IA:** Botón en sidebar que invoca el LLM para generar un resumen ejecutivo del contacto basado en todas sus conversaciones.
 
+### `CRMManager.jsx` — Bandeja de Ejecutivos y Pipeline Kanban
+- **Rediseño completo a Kuden v2:** Aplicación de *glassmorphism* a contenedores y tarjetas.
+- **Kanban interactivo refinado:** Columnas con fondos semi-transparentes (`var(--glass-bg)`), tarjetas de tickets (`.kanban-card`, `.ticket-list-card`) con bordes sutiles y sombras elevadas para indicar interactividad (drag & drop preservado mediante estilos inline para posición).
+- **Interfaz de Chat Premium:** Burbujas de mensajes rediseñadas. Integración coherente de colores temáticos, tipografía y avatares.
+- **Unificación de variables:** Migración a uso intensivo de propiedades CSS globales (`index.css`) eliminando colores hardcodeados para garantizar soporte nativo a temas claros/oscuros.
+
+### `SystemHealthDashboard.jsx` — Monitor de Salud del Sistema
+- **Layout y Tarjetas Analíticas Premium:** Contenedores con efecto cristal y bordes de desenfoque.
+- **Filtros interactivos:** Selector de rangos de fechas e interruptores integrados fluidamente en el header.
+- **Gráficos consistentes:** Adaptación de colores de estado (Rojo, Amarillo, Verde, Azul Kuden) en Recharts para armonizar con Kimi Insights.
+- **Integración Kimi Mascot:** La mascota alerta visualmente usando variables de la paleta oficial sin romper el esquema de diseño.
+
+### `UserProfile.jsx` — Perfil de Usuario
+- **Formularios alineados al Design System:** Campos de contraseña y configuración envueltos en contenedores de tarjeta con *glassmorphism*.
+- **Acciones:** Estandarización de botones al estilo premium Kuden, logrando consistencia visual con el panel de administración.
+
 ---
 
 ## 6. Alertas y Riesgos Arquitectónicos (Consideraciones a Futuro)

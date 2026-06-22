@@ -4,39 +4,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Tienda - Prueba del Widget KUDEN IA</title>
+  <title>Kuden IA - Prueba de Widget</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <style>
+    :root {
+      --kuden-blue: #00A6FF;
+      --kuden-dark: #0B0E14;
+      --kuden-surface: #131823;
+      --glass-bg: rgba(19, 24, 35, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--kuden-dark);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(0, 166, 255, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(29, 158, 117, 0.08), transparent 25%);
+      color: var(--text-main);
       margin: 0;
       padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .hero {
-      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-      color: white;
-      padding: 100px 20px;
       text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .kuden-logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #00A6FF 0%, #0055FF 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 166, 255, 0.3);
+    }
+
+    .kuden-logo i {
+      font-size: 28px;
+      color: white;
     }
 
     h1 {
-      margin: 0;
+      font-family: 'Outfit', sans-serif;
       font-size: 3rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      background: linear-gradient(to right, #ffffff, #94A3B8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    p {
+    p.subtitle {
       font-size: 1.2rem;
-      opacity: 0.9;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
 
-    .content {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
+    .content-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .content-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-card h2 i {
+      color: var(--kuden-blue);
+    }
+
+    .content-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    
+    .status-box {
+      margin-top: 24px;
+      padding: 16px;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background: rgba(0, 166, 255, 0.1);
+      border: 1px solid rgba(0, 166, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-box i {
+      color: var(--kuden-blue);
+      font-size: 24px;
+    }
+
+    .status-text {
+      font-size: 0.9rem;
+    }
+
+    #error-container {
+      display: none;
+      background: rgba(226, 75, 74, 0.1);
+      border: 1px solid rgba(226, 75, 74, 0.2);
+      color: #E24B4A;
+    }
+    
+    #error-container i {
+      color: #E24B4A;
     }
   </style>
 </head>
@@ -44,22 +148,85 @@
 <body>
 
   <div class="hero">
-    <h1>Bienvenido a Mi Tienda</h1>
-    <p>Página estática de prueba para verificar que el widget se incrusta correctamente.</p>
+    <div class="logo-container">
+      <div class="kuden-logo">
+        <i class="ti ti-messages"></i>
+      </div>
+      <h1 style="margin:0; font-size: 2rem;">KUDEN IA</h1>
+    </div>
+    <h1>Entorno de Pruebas</h1>
+    <p class="subtitle">Verifica el diseño y comportamiento de tu Agente IA en un entorno limpio antes de instalarlo en tu web.</p>
   </div>
 
-  <div class="content">
-    <h2>¿Cómo probar esto?</h2>
-    <p>Si estás viendo esta página, el código HTML no tiene frameworks, es una página normal de cualquier cliente.</p>
-    <p>Mira la esquina inferior derecha. Debería haber aparecido el botón del <strong>Web Chat de KUDEN IA</strong> con
-      los colores que configuraste en tu base de datos (por defecto, azul #2563eb).</p>
-    <p>Si escribes algo ahí, se enviará directo a tu CRM y la IA te responderá mágicamente.</p>
+  <div class="content-card">
+    <h2><i class="ti ti-check"></i> Widget Listo para Interactuar</h2>
+    <p>El código de tu widget ha sido inyectado dinámicamente en esta página.</p>
+    <p>Si la configuración es correcta, deberías ver el botón del chat flotando en la <strong>esquina inferior derecha</strong> de tu pantalla.</p>
+    
+    <div class="status-box" id="success-container">
+      <i class="ti ti-loader ti-spin" id="loading-icon"></i>
+      <div class="status-text">
+        <strong id="status-title">Inyectando Widget...</strong><br>
+        <span id="status-desc">Conectando con el servidor de Kuden IA</span>
+      </div>
+    </div>
+    
+    <div class="status-box" id="error-container">
+      <i class="ti ti-alert-triangle"></i>
+      <div class="status-text">
+        <strong>Error de Parámetros</strong><br>
+        <span>No se han recibido los IDs necesarios en la URL para probar el widget.</span>
+      </div>
+    </div>
   </div>
 
-  <!-- AQUI SE INYECTA EL WIDGET DE KUDEN IA -->
-  <!-- ID Inyectado Automáticamente -->
-  <script src="/kuden-widget.js" data-tenant="acfe12ae-9aa9-4c93-9662-848060ffbba6"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tenantId = urlParams.get('tenantId');
+      const widgetId = urlParams.get('widgetId');
+      const apiUrl = urlParams.get('apiUrl') || window.location.origin;
 
+      const successBox = document.getElementById('success-container');
+      const errorBox = document.getElementById('error-container');
+      const loadingIcon = document.getElementById('loading-icon');
+      const statusTitle = document.getElementById('status-title');
+      const statusDesc = document.getElementById('status-desc');
+
+      if (tenantId && widgetId) {
+        // Inyectar config
+        window.KudenWidgetInit = {
+          tenantId: tenantId,
+          widgetId: widgetId,
+          apiUrl: apiUrl
+        };
+
+        // Crear script
+        const script = document.createElement('script');
+        script.src = '/kuden-widget.js';
+        script.defer = true;
+        
+        script.onload = () => {
+          loadingIcon.className = "ti ti-device-desktop-analytics";
+          statusTitle.innerText = "Widget Cargado Exitosamente";
+          statusDesc.innerText = "El agente está conectado y listo para recibir mensajes.";
+        };
+        
+        script.onerror = () => {
+          loadingIcon.className = "ti ti-plug-x";
+          loadingIcon.style.color = "#E24B4A";
+          successBox.style.background = "rgba(226, 75, 74, 0.1)";
+          successBox.style.borderColor = "rgba(226, 75, 74, 0.2)";
+          statusTitle.innerText = "Error de Conexión";
+          statusDesc.innerText = "No se pudo cargar el script del widget.";
+        };
+
+        document.body.appendChild(script);
+      } else {
+        successBox.style.display = 'none';
+        errorBox.style.display = 'flex';
+      }
+    });
+  </script>
 </body>
-
 </html>

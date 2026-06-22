@@ -126,6 +126,12 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
     alert('¡Código copiado al portapapeles! Pégalo en el <head> o antes del cierre del <body> en tu sitio web.');
   };
 
+  const testWidget = (widget) => {
+    const backendUrl = API_URL || window.location.origin;
+    const testUrl = `/test-widget.html?tenantId=${tenantId}&widgetId=${widget.id}&apiUrl=${encodeURIComponent(backendUrl)}`;
+    window.open(testUrl, '_blank');
+  };
+
   if (loading) return <div className="integration-section-subtitle">Cargando widgets...</div>;
 
   return (
@@ -272,18 +278,37 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
                       Eliminar
                     </button>
                   </div>
-                  <button 
-                    onClick={() => copyScript(w)}
-                    className="integration-btn-primary"
-                    style={{ 
-                      padding: '6px 12px', 
-                      fontSize: '12px',
-                      borderRadius: 'var(--border-radius-sm)',
-                      background: 'var(--gradient-kuden)'
-                    }}
-                  >
-                    <i className="ti ti-copy"></i> Copiar Script
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => testWidget(w)}
+                      className="integration-btn-secondary"
+                      style={{ 
+                        padding: '6px 12px', 
+                        fontSize: '12px',
+                        borderRadius: 'var(--border-radius-sm)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <i className="ti ti-external-link"></i> Probar
+                    </button>
+                    <button 
+                      onClick={() => copyScript(w)}
+                      className="integration-btn-primary"
+                      style={{ 
+                        padding: '6px 12px', 
+                        fontSize: '12px',
+                        borderRadius: 'var(--border-radius-sm)',
+                        background: 'var(--gradient-kuden)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <i className="ti ti-copy"></i> Copiar Script
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
