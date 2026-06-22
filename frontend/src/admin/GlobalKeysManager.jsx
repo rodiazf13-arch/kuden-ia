@@ -12,15 +12,6 @@ export default function GlobalKeysManager({ isDark = true }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    inputBg:   isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#ffffff' : '#111827',
-  };
-
   useEffect(() => {
     fetchKeys();
   }, []);
@@ -61,23 +52,23 @@ export default function GlobalKeysManager({ isDark = true }) {
     }
   };
 
-  if (loading) return <div style={{ color: c.subtitle }}>Cargando configuraciones globales...</div>;
+  if (loading) return <div style={{ padding: '40px 20px', color: 'var(--color-text-secondary)', textAlign: 'center' }}>Cargando configuraciones globales...</div>;
 
   const renderKeyRow = (label, keyName, placeholder) => (
-    <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: 16, color: c.title }}>{label}</h3>
-      <div style={{ display: 'flex', gap: 12 }}>
+    <div className="keys-card">
+      <h3 className="keys-card-title">{label}</h3>
+      <div className="keys-form-row">
         <input 
           type="password"
           placeholder={placeholder}
           value={keys[keyName]}
           onChange={e => setKeys({ ...keys, [keyName]: e.target.value })}
-          style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}
+          className="keys-input"
         />
         <button 
           onClick={() => handleSave(keyName)}
           disabled={saving}
-          style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'wait' : 'pointer', fontWeight: 600 }}>
+          className="keys-btn-save">
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
       </div>
@@ -85,9 +76,9 @@ export default function GlobalKeysManager({ isDark = true }) {
   );
 
   return (
-    <div style={{ maxWidth: 800 }}>
-      <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Gestión de Llaves API Maestras</h2>
-      <p style={{ margin: '0 0 24px', color: c.subtitle }}>Estas llaves son utilizadas por el Gestor Multi-LLM para dar servicio a todos los Tenants.</p>
+    <div className="keys-container">
+      <h2 className="keys-title">Gestión de Llaves API Maestras</h2>
+      <p className="keys-subtitle">Estas llaves son utilizadas por el Gestor Multi-LLM para dar servicio a todos los Tenants.</p>
 
       {renderKeyRow("Anthropic (Claude)", "anthropic_key", "sk-ant-...")}
       {renderKeyRow("OpenAI (GPT)", "openai_key", "sk-...")}
