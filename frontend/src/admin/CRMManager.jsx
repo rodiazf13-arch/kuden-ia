@@ -110,7 +110,7 @@ function SLABadge({ lastMessageAt, warningMinutes = 15, dangerMinutes = 30 }) {
 
   let color = '#16D38A'; // Verde
   let label = 'A tiempo';
-  
+
   if (minutesPassed >= (dangerMinutes || 30)) {
     color = '#FF5E73'; // Rojo
     label = 'Atrasado';
@@ -284,10 +284,10 @@ function MessageBubble({ msg, c, isDark }) {
                 const url = line.replace('🔗 Grabación:', '').trim();
                 return (
                   <div key={idx} style={{ marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
-                    <a 
-                      href={url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       download
                       style={{
                         display: 'inline-flex',
@@ -1373,7 +1373,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>CRM Operacional</h2>
           <p style={{ margin: 0, fontSize: 14, color: c.subtitle }}>
-            {loading ? 'Cargando...' : `${conversations.length} conversacione${conversations.length !== 1 ? 's' : ''}`}
+            {loading ? 'Cargando...' : `${conversations.length} conversacion${conversations.length !== 1 ? 'es' : ''}`}
             {alerts.count > 0 && <span style={{ marginLeft: 8, color: '#F6B940', fontWeight: 600 }}>· ⚡ {alerts.count} requieren atención</span>}
           </p>
         </div>
