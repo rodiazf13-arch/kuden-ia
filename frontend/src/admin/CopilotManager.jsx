@@ -13,17 +13,6 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   const fileInputRef = useRef(null);
   const [userId, setUserId] = useState(null);
 
-  const c = {
-    bg: isDark ? '#0a0a0a' : '#f9fafb',
-    card: isDark ? '#111' : '#ffffff',
-    border: isDark ? '#222' : '#e5e7eb',
-    textMain: isDark ? '#f9fafb' : '#111827',
-    textSec: isDark ? '#9ca3af' : '#6b7280',
-    primary: '#2563eb',
-    userBubble: isDark ? '#2563eb' : '#3b82f6',
-    aiBubble: isDark ? '#1a1a1a' : '#f3f4f6',
-  };
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.id) {
@@ -188,38 +177,36 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   };
 
   return (
-    <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-      <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', background: c.bg, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-        <div style={{ padding: '20px', borderBottom: `1px solid ${c.border}`, background: c.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="copilot-container">
+      <div className="copilot-wrapper">
+        
+        {/* Cabecera */}
+        <div className="copilot-header">
+          <div className="copilot-header-info">
             <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
             <div>
-              <h2 style={{ margin: 0, fontSize: '18px', color: c.textMain }}>Co-Piloto (Kimi)</h2>
-              <p style={{ margin: 0, fontSize: '13px', color: c.textSec }}>Tu consultora estratégica y asistente interna</p>
+              <h2 className="copilot-header-title">Co-Piloto (Kimi)</h2>
+              <p className="copilot-header-subtitle">Tu consultora estratégica y asistente interna</p>
             </div>
           </div>
           {messages.length > 0 && (
-            <button
-              onClick={handleClearChat}
-              style={{ padding: '6px 12px', background: 'transparent', border: `1px solid ${c.border}`, borderRadius: '6px', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', transition: 'all 0.2s' }}
-              onMouseOver={(e) => { e.currentTarget.style.background = '#ef444422'; e.currentTarget.style.borderColor = '#ef4444'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = c.border; }}
-            >
+            <button onClick={handleClearChat} className="copilot-btn-clear">
               <i className="ti ti-trash"></i> Limpiar
             </button>
           )}
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Área de mensajes */}
+        <div className="copilot-messages-area">
           {fetching ? (
-            <div style={{ textAlign: 'center', color: c.textSec, marginTop: '40px' }}>Cargando sesión...</div>
+            <div className="copilot-fetching-state">Cargando sesión...</div>
           ) : messages.length === 0 ? (
-            <div style={{ textAlign: 'center', marginTop: '60px', color: c.textSec }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <div className="copilot-empty-state">
+              <div className="copilot-empty-icon-container">
                 <KimiMascot size={94} state="happy" />
               </div>
-              <h3 style={{ margin: '0 0 8px', color: c.textMain }}>¡Hola! Soy Kimi.</h3>
-              <p style={{ maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+              <h3 className="copilot-empty-title">¡Hola! Soy Kimi.</h3>
+              <p className="copilot-empty-desc">
                 Estoy conectada a los datos de la empresa y lista para ayudarte. Pregúntame sobre estrategias, pídeme redactar correos, o analicemos juntas las métricas de tus campañas.
               </p>
             </div>
@@ -227,54 +214,34 @@ export default function CopilotManager({ tenantId, isDark = true }) {
             messages.map((m, i) => {
               const isUser = m.sender_type === 'user';
               return (
-                <div key={i} style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-                  <div style={{
-                    maxWidth: '75%',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    background: isUser ? c.userBubble : c.aiBubble,
-                    color: isUser ? '#fff' : c.textMain,
-                    border: isUser ? 'none' : `1px solid ${c.border}`,
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                  }}>
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        p: ({ node, ...props }) => <p style={{ margin: '0 0 8px' }} {...props} />,
-                        a: ({ node, ...props }) => <a style={{ color: isUser ? '#fff' : c.primary, textDecoration: 'underline' }} {...props} />,
-                        pre: ({ node, ...props }) => <pre style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '6px', overflowX: 'auto', marginTop: '8px' }} {...props} />,
-                        code: ({ node, inline, ...props }) => inline
-                          ? <code style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 4px', borderRadius: '4px' }} {...props} />
-                          : <code {...props} />,
-                        table: ({ node, ...props }) => <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px', marginBottom: '10px' }} {...props} />,
-                        th: ({ node, ...props }) => <th style={{ borderBottom: '2px solid rgba(100,100,100,0.5)', padding: '8px', textAlign: 'left' }} {...props} />,
-                        td: ({ node, ...props }) => <td style={{ borderBottom: '1px solid rgba(100,100,100,0.2)', padding: '8px' }} {...props} />
-                      }}
-                    >
+                <div key={i} className={`copilot-message-row ${isUser ? 'user' : 'ai'}`}>
+                  <div className={`copilot-bubble ${isUser ? 'user' : 'ai'}`}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {m.content}
                     </ReactMarkdown>
+                    
                     {m.proposedProfiles && (
-                      <div style={{ marginTop: '16px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginBottom: '16px' }}>
+                      <div className="copilot-proposal-container">
+                        <div className="copilot-proposal-grid">
                           {m.proposedProfiles.map((p, idx) => (
-                            <div key={idx} style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '12px' }}>
-                              <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 'bold', color: c.textMain }}>
-                                <i className={`ti ${p.icon || 'ti-robot'}`} style={{ color: p.color || c.primary, marginRight: '6px' }}></i>
+                            <div key={idx} className="copilot-proposal-card">
+                              <p className="copilot-proposal-title">
+                                <i className={`ti ${p.icon || 'ti-robot'}`} style={{ color: p.color || 'var(--color-primary)' }}></i>
                                 {p.label}
-                                {p.is_router && <span style={{ marginLeft: 8, fontSize: 10, background: '#2563eb20', color: '#2563eb', padding: '2px 6px', borderRadius: 10 }}>ROUTER</span>}
+                                {p.is_router && <span className="copilot-proposal-router-badge">ROUTER</span>}
                               </p>
-                              <p style={{ margin: '0 0 8px', fontSize: 12, color: c.textSec }}>{p.description}</p>
+                              <p className="copilot-proposal-desc">{p.description}</p>
                               {p.is_router && p.sub_profiles && (
-                                <p style={{ margin: 0, fontSize: 11, color: '#f59e0b' }}>Deriva a: {p.sub_profiles.join(', ')}</p>
+                                <p className="copilot-proposal-router-paths">
+                                  <i className="ti ti-arrow-forward-up"></i> Deriva a: {p.sub_profiles.join(', ')}
+                                </p>
                               )}
                             </div>
                           ))}
                         </div>
                         <button 
                           onClick={() => handleCreateProfiles(m.proposedProfiles)}
-                          style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                          className="copilot-btn-create-profiles"
                         >
                           <i className="ti ti-wand"></i> Autorizar y Crear Perfiles
                         </button>
@@ -285,50 +252,34 @@ export default function CopilotManager({ tenantId, isDark = true }) {
               );
             })
           )}
+          
+          {/* Indicador de pensamiento */}
           {loading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-end', gap: '10px' }}>
+            <div className="copilot-thinking-row">
               <KimiMascot size={32} state="thinking" />
-              <div style={{ padding: '12px 16px', borderRadius: '12px', background: c.aiBubble, color: c.textSec, border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0s' }} />
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0.2s' }} />
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6b7280', display: 'inline-block', animation: 'kimiBounce 1.2s infinite ease-in-out', animationDelay: '0.4s' }} />
-                </span>
-                <span style={{ fontSize: '13px' }}>Kimi está pensando...</span>
+              <div className="copilot-thinking-bubble">
+                <div className="copilot-thinking-dots">
+                  <span className="copilot-thinking-dot" />
+                  <span className="copilot-thinking-dot" />
+                  <span className="copilot-thinking-dot" />
+                </div>
+                <span>Kimi está pensando...</span>
               </div>
             </div>
           )}
-          <style>{`
-          @keyframes kimiBounce {
-            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-6px); opacity: 1; }
-          }
-        `}</style>
           <div ref={messagesEndRef} />
         </div>
 
-        <div style={{ padding: '20px', borderTop: `1px solid ${c.border}`, background: c.card }}>
-          <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', maxWidth: '900px', margin: '0 auto' }}>
+        {/* Zona de input inferior */}
+        <div className="copilot-input-area">
+          <form onSubmit={handleSend} className="copilot-form">
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="application/pdf" onChange={handleFileUpload} />
             <button
               type="button"
               onClick={() => fileInputRef.current.click()}
               disabled={loading || fetching}
               title="Adjuntar PDF Onboarding"
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: c.bg,
-                color: c.textSec,
-                border: `1px solid ${c.border}`,
-                cursor: loading || fetching ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '20px',
-                transition: 'all 0.2s'
-              }}
+              className="copilot-btn-attach"
             >
               <i className="ti ti-paperclip"></i>
             </button>
@@ -338,34 +289,12 @@ export default function CopilotManager({ tenantId, isDark = true }) {
               value={input}
               onChange={e => setInput(e.target.value)}
               disabled={loading || fetching}
-              style={{
-                flex: 1,
-                padding: '14px 20px',
-                borderRadius: '24px',
-                border: `1px solid ${c.border}`,
-                background: c.bg,
-                color: c.textMain,
-                outline: 'none',
-                fontSize: '15px'
-              }}
+              className="copilot-input"
             />
             <button
               type="submit"
               disabled={!input.trim() || loading || fetching}
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: input.trim() && !loading ? c.primary : c.border,
-                color: '#fff',
-                border: 'none',
-                cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '20px',
-                transition: 'background 0.2s'
-              }}
+              className={`copilot-btn-send ${input.trim() && !loading && !fetching ? 'active' : ''}`}
             >
               <i className="ti ti-send"></i>
             </button>
