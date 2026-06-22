@@ -36,19 +36,6 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
   const [groupCampaigns, setGroupCampaigns] = useState([]);
   const [editingGroup, setEditingGroup] = useState(null);
 
-  const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    thead:     isDark ? '#1a1a1a' : '#f3f4f6',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    inputBg:   isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#ffffff' : '#111827',
-    rowText:   isDark ? '#ffffff' : '#111827',
-    rowMono:   isDark ? '#aaaaaa' : '#6b7280',
-    label:     isDark ? '#888888' : '#6b7280',
-  };
-
   useEffect(() => { fetchData(); }, [filterTenantId]);
 
   const fetchData = async () => {
@@ -65,7 +52,6 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
       setTenants(tRes.data || []);
 
       // Determine the tenantId to filter users and groups
-      // For SuperAdmins not impersonating, it should be null (so they see all users/groups).
       const finalTenantId = isSuperAdmin ? filterTenantId : (filterTenantId || (tRes.data?.[0]?.id || null));
       
       if (!selectedTenant && (tRes.data && tRes.data.length > 0)) {
@@ -168,7 +154,6 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
     e.preventDefault();
     setCreating(true); setError(null);
     try {
-      // Para superadmin crearemos el grupo en la empresa que haya seleccionado en el dropdown de crear, o finalTenantId
       const targetTenantId = isSuperAdmin ? selectedTenant : filterTenantId;
       if (!targetTenantId) throw new Error("Debe seleccionar una empresa para crear el grupo");
       
@@ -224,12 +209,6 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
     } catch (err) { setError(err.message); }
   };
 
-  const inputStyle = {
-    backgroundColor: c.inputBg, border: `1px solid ${c.border}`,
-    borderRadius: '8px', padding: '10px', color: c.inputText,
-    outline: 'none', fontSize: '14px', width: '100%', boxSizing: 'border-box'
-  };
-
   const filteredUsers = tenantUsers.filter(tu => {
     if (!searchQuery) return true;
     const s = searchQuery.toLowerCase();
@@ -239,255 +218,250 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
     return matchesName || matchesEmail || matchesTenant;
   });
 
-  const tabStyle = (isActive) => ({
-    padding: '10px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
-    borderBottom: isActive ? `2px solid #2563eb` : '2px solid transparent',
-    color: isActive ? '#2563eb' : c.subtitle, background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none',
-    transition: 'all 0.2s'
-  });
-
   return (
-    <div>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Usuarios y Grupos</h2>
-      <p style={{ margin: '0 0 16px', fontSize: '14px', color: c.subtitle }}>
+    <div className="users-container">
+      <h2 className="users-title">Usuarios y Grupos</h2>
+      <p className="users-subtitle">
         {isSuperAdmin
           ? 'Vista global: puedes gestionar usuarios y grupos de todas las empresas.'
           : 'Gestiona los accesos y los grupos operativos de tu empresa.'}
       </p>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '16px', borderBottom: `1px solid ${c.border}`, marginBottom: '24px' }}>
-        <button style={tabStyle(activeTab === 'users')} onClick={() => setActiveTab('users')}>Usuarios Ejecutivos</button>
-        <button style={tabStyle(activeTab === 'groups')} onClick={() => setActiveTab('groups')}>Grupos Operativos</button>
+      <div className="users-tab-group">
+        <button className={`users-tab-btn ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>Usuarios Ejecutivos</button>
+        <button className={`users-tab-btn ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>Grupos Operativos</button>
       </div>
 
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
+      {error && (
+        <div className="insights-alert-error">
+          <i className="ti ti-alert-circle" style={{ fontSize: '18px' }}></i> {error}
+        </div>
+      )}
 
       {activeTab === 'users' && (
         <>
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
-        <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: c.title }}>Crear Nuevo Usuario</h3>
-        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Nombre Completo</label>
-            <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} required placeholder="Ej: Juan Pérez" style={inputStyle} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Correo Electrónico</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Contraseña provisoria</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} style={inputStyle} />
+          <div className="users-form-card">
+            <h3 className="users-form-card-title">Crear Nuevo Usuario</h3>
+            <form onSubmit={handleCreate} className="users-form-grid-2">
+              <div className="users-form-group">
+                <label className="users-form-label">Nombre Completo</label>
+                <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} required placeholder="Ej: Juan Pérez" className="users-input" />
+              </div>
+              <div className="users-form-group">
+                <label className="users-form-label">Correo Electrónico</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="users-input" />
+              </div>
+              <div className="users-form-group">
+                <label className="users-form-label">Contraseña provisoria</label>
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} className="users-input" />
+              </div>
+
+              {/* Selector de empresa: bloqueado si no es superAdmin */}
+              <div className="users-form-group">
+                <label className="users-form-label">
+                  Empresa {!isSuperAdmin && <span style={{ color: 'var(--color-success)', textTransform: 'none' }}>(tu empresa)</span>}
+                </label>
+                <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)}
+                  disabled={!isSuperAdmin}
+                  className="users-select"
+                  style={!isSuperAdmin ? { opacity: 0.7, cursor: 'not-allowed' } : {}}>
+                  {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+
+              <div className="users-form-group">
+                <label className="users-form-label">Rol</label>
+                <select value={role} onChange={e => setRole(e.target.value)} className="users-select">
+                  <option value="agent">Agente (CRM + Contactos)</option>
+                  <option value="admin">Administrador (Acceso total)</option>
+                </select>
+              </div>
+
+              <div className="users-checkbox-banner" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" id="createCopilot" checked={copilotAccess} onChange={e => setCopilotAccess(e.target.checked)} className="users-checkbox-input" />
+                <label htmlFor="createCopilot" className="users-checkbox-label">
+                  🤖 Habilitar acceso al Co-Piloto Corporativo (Kimi)
+                </label>
+              </div>
+
+              <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="submit" disabled={creating || tenants.length === 0} className="users-btn-primary">
+                  {creating ? 'Creando...' : 'Crear Usuario'}
+                </button>
+              </div>
+            </form>
           </div>
 
-          {/* Selector de empresa: bloqueado si no es superAdmin */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>
-              Empresa {!isSuperAdmin && <span style={{ color: '#1D9E75' }}>(tu empresa)</span>}
-            </label>
-            <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)}
-              disabled={!isSuperAdmin}
-              style={{ ...inputStyle, opacity: !isSuperAdmin ? 0.7 : 1, cursor: !isSuperAdmin ? 'not-allowed' : 'auto' }}>
-              {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+          {/* Buscador y Tabla */}
+          <div className="users-table-card">
+            
+            {/* Barra de búsqueda */}
+            <div className="users-search-container">
+              <i className="ti ti-search users-search-icon"></i>
+              <input 
+                type="text" 
+                placeholder="Buscar por nombre, correo o empresa..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="users-search-input"
+              />
+            </div>
+
+            <table className="users-table">
+              <thead>
+                <tr>
+                  {isSuperAdmin && <th>Empresa</th>}
+                  <th>Usuario / Correo</th>
+                  <th>Estado</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>Cargando...</td></tr>
+                ) : tenantUsers.length === 0 ? (
+                  <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>No hay usuarios registrados</td></tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>No se encontraron resultados para "{searchQuery}"</td></tr>
+                ) : filteredUsers.map(tu => {
+                  const isActive = tu.is_active !== false;
+                  return (
+                    <tr key={tu.user_id} className={isActive ? '' : 'inactive-user'}>
+                      {isSuperAdmin && (
+                        <td style={{ fontWeight: '500' }}>
+                          {tu.tenants?.name || 'Desconocido'}
+                        </td>
+                      )}
+                      <td>
+                        <div className="users-cell-name">{tu.display_name || 'Sin Nombre'}</div>
+                        <div className="users-cell-email" style={{ fontFamily: 'monospace' }}>{tu.email || tu.user_id}</div>
+                      </td>
+                      <td>
+                        <span className={`users-badge ${isActive ? 'users-badge-active' : 'users-badge-disabled'}`}>
+                          {isActive ? 'Activo' : 'Desactivado'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`users-badge ${tu.role === 'admin' ? 'users-badge-admin' : 'users-badge-agent'}`}>
+                          {tu.role}
+                        </span>
+                      </td>
+                      <td>
+                        <button onClick={() => openEdit(tu)} className="users-btn-secondary" style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <i className="ti ti-edit"></i> Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Rol</label>
-            <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
-              <option value="agent">Agente (CRM + Contactos)</option>
-              <option value="admin">Administrador (Acceso total)</option>
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', gridColumn: '1 / -1', padding: '10px 12px', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px' }}>
-            <input type="checkbox" id="createCopilot" checked={copilotAccess} onChange={e => setCopilotAccess(e.target.checked)} style={{ cursor: 'pointer' }} />
-            <label htmlFor="createCopilot" style={{ fontSize: '13px', color: c.title, cursor: 'pointer', fontWeight: '500' }}>
-              🤖 Habilitar acceso al Co-Piloto Corporativo (Kimi)
-            </label>
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-            <button type="submit" disabled={creating || tenants.length === 0}
-              style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: '500', padding: '10px 24px', borderRadius: '8px', border: 'none', cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.7 : 1, fontSize: '14px' }}>
-              {creating ? 'Creando...' : 'Crear Usuario'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Buscador y Tabla */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
-        
-        {/* Barra de búsqueda */}
-        <div style={{ padding: '16px', borderBottom: `1px solid ${c.border}`, display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <i className="ti ti-search" style={{ color: c.subtitle, fontSize: '18px' }}></i>
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre, correo o empresa..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ 
-              ...inputStyle, 
-              border: 'none', 
-              background: 'transparent', 
-              padding: 0, 
-              fontSize: '14px', 
-              boxShadow: 'none',
-              outline: 'none'
-            }} 
-          />
-        </div>
-
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ background: c.thead, borderBottom: `1px solid ${c.border}` }}>
-              {(isSuperAdmin ? ['Empresa', 'Usuario / Correo', 'Estado', 'Rol', 'Acciones'] : ['Usuario / Correo', 'Estado', 'Rol', 'Acciones']).map(h => (
-                <th key={h} style={{ padding: '16px', color: c.subtitle, fontWeight: '500', fontSize: '12px', textTransform: 'uppercase' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: c.subtitle }}>Cargando...</td></tr>
-            ) : tenantUsers.length === 0 ? (
-              <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: c.subtitle }}>No hay usuarios registrados</td></tr>
-            ) : filteredUsers.length === 0 ? (
-              <tr><td colSpan={isSuperAdmin ? "5" : "4"} style={{ padding: '16px', textAlign: 'center', color: c.subtitle }}>No se encontraron resultados para "{searchQuery}"</td></tr>
-            ) : filteredUsers.map(tu => {
-              const isActive = tu.is_active !== false;
-              return (
-              <tr key={tu.user_id} style={{ borderBottom: `1px solid ${c.border}`, opacity: isActive ? 1 : 0.6 }}>
-                {isSuperAdmin && (
-                  <td style={{ padding: '16px', color: c.rowText, fontWeight: '500', fontSize: '14px' }}>
-                    {tu.tenants?.name || 'Desconocido'}
-                  </td>
-                )}
-                <td style={{ padding: '16px' }}>
-                  <div style={{ color: c.rowText, fontWeight: '500', fontSize: '14px', marginBottom: '2px' }}>{tu.display_name || 'Sin Nombre'}</div>
-                  <div style={{ color: c.rowMono, fontSize: '12px', fontFamily: 'monospace' }}>{tu.email || tu.user_id}</div>
-                </td>
-                <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', background: isActive ? '#1D9E7520' : '#E24B4A20', color: isActive ? '#1D9E75' : '#E24B4A', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
-                    {isActive ? 'Activo' : 'Desactivado'}
-                  </span>
-                </td>
-                <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', background: tu.role === 'admin' ? '#534AB740' : '#1D9E7540', color: tu.role === 'admin' ? '#A39DF4' : '#6BDEB9', borderRadius: '4px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>
-                    {tu.role}
-                  </span>
-                </td>
-                <td style={{ padding: '16px' }}>
-                  <button onClick={() => openEdit(tu)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-                    <i className="ti ti-edit"></i> Editar
-                  </button>
-                </td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
         </>
       )}
 
       {activeTab === 'groups' && (
         <>
-          <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
+          <div className="users-form-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: c.title }}>{editingGroup ? 'Editar Grupo' : 'Crear Nuevo Grupo'}</h3>
+              <h3 className="users-form-card-title" style={{ margin: 0 }}>
+                {editingGroup ? 'Editar Grupo' : 'Crear Nuevo Grupo'}
+              </h3>
               {editingGroup && (
-                <button onClick={() => { setEditingGroup(null); setGroupName(''); setGroupDesc(''); setGroupUsers([]); setGroupCampaigns([]); }} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '13px' }}>
+                <button onClick={() => { setEditingGroup(null); setGroupName(''); setGroupDesc(''); setGroupColor('#2563eb'); setGroupUsers([]); setGroupCampaigns([]); }} className="users-btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>
                   Cancelar Edición
                 </button>
               )}
             </div>
             <form onSubmit={editingGroup ? handleUpdateGroup : handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', color: c.label }}>Nombre del Grupo</label>
-                  <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)} required placeholder="Ej: Soporte Nivel 2" style={inputStyle} />
+              <div className="users-form-grid-2">
+                <div className="users-form-group">
+                  <label className="users-form-label">Nombre del Grupo</label>
+                  <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)} required placeholder="Ej: Soporte Nivel 2" className="users-input" />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', color: c.label }}>Color</label>
-                  <input type="color" value={groupColor} onChange={e => setGroupColor(e.target.value)} style={{ ...inputStyle, padding: 0, height: '40px' }} />
+                <div className="users-form-group">
+                  <label className="users-form-label">Color</label>
+                  <input type="color" value={groupColor} onChange={e => setGroupColor(e.target.value)} className="users-input" style={{ padding: 0, height: '40px', cursor: 'pointer' }} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: isSuperAdmin && !editingGroup ? '1fr 1fr' : '1fr', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', color: c.label }}>Descripción</label>
-                  <input type="text" value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Descripción breve" style={inputStyle} />
-                </div>
-                {isSuperAdmin && !editingGroup && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', color: c.label }}>Empresa</label>
-                    <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} style={inputStyle}>
-                      <option value="">-- Seleccionar --</option>
-                      {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                  </div>
-                )}
+              
+              <div className="users-form-group">
+                <label className="users-form-label">Descripción</label>
+                <input type="text" value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Descripción breve" className="users-input" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', color: c.label }}>Usuarios Asignados (Múltiple)</label>
-                  <select multiple value={groupUsers} onChange={e => setGroupUsers(Array.from(e.target.selectedOptions, option => option.value))} style={{ ...inputStyle, height: '100px' }}>
+
+              {isSuperAdmin && !editingGroup && (
+                <div className="users-form-group">
+                  <label className="users-form-label">Empresa</label>
+                  <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} className="users-select">
+                    <option value="">-- Seleccionar --</option>
+                    {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="users-form-grid-2">
+                <div className="users-form-group">
+                  <label className="users-form-label">Usuarios Asignados (Múltiple)</label>
+                  <select multiple value={groupUsers} onChange={e => setGroupUsers(Array.from(e.target.selectedOptions, option => option.value))} className="users-select">
                     {tenantUsers
                       .filter(u => !isSuperAdmin || !selectedTenant || u.tenant_id === selectedTenant)
                       .map(u => <option key={u.user_id} value={u.user_id}>{u.display_name || u.email}</option>)}
                   </select>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', color: c.label }}>Campañas Autorizadas (Múltiple)</label>
-                  <select multiple value={groupCampaigns} onChange={e => setGroupCampaigns(Array.from(e.target.selectedOptions, option => option.value))} style={{ ...inputStyle, height: '100px' }}>
+                <div className="users-form-group">
+                  <label className="users-form-label">Campañas Autorizadas (Múltiple)</label>
+                  <select multiple value={groupCampaigns} onChange={e => setGroupCampaigns(Array.from(e.target.selectedOptions, option => option.value))} className="users-select">
                     {campaigns
                       .filter(cam => !isSuperAdmin || !selectedTenant || cam.tenant_id === selectedTenant)
                       .map(cam => <option key={cam.id} value={cam.id}>{cam.name}</option>)}
                   </select>
-                  <p style={{ margin: 0, fontSize: '11px', color: c.subtitle }}>Si no seleccionas campañas, el grupo no verá ninguna conversación por defecto.</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--color-text-secondary)' }}>Si no seleccionas campañas, el grupo no verá ninguna conversación por defecto.</p>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button type="submit" disabled={creating || updating} style={{ backgroundColor: '#2563eb', color: '#fff', padding: '10px 24px', borderRadius: '8px', border: 'none', cursor: (creating || updating) ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                <button type="submit" disabled={creating || updating} className="users-btn-primary">
                   {editingGroup ? (updating ? 'Guardando...' : 'Guardar Cambios') : (creating ? 'Creando...' : 'Crear Grupo')}
                 </button>
               </div>
             </form>
           </div>
 
-          <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="users-table-card">
+            <table className="users-table">
               <thead>
-                <tr style={{ background: c.thead, borderBottom: `1px solid ${c.border}` }}>
-                  {['Grupo', 'Integrantes', 'Campañas Autorizadas', 'Acciones'].map(h => (
-                    <th key={h} style={{ padding: '16px', color: c.subtitle, fontWeight: '500', fontSize: '12px', textTransform: 'uppercase' }}>{h}</th>
-                  ))}
+                <tr>
+                  <th>Grupo</th>
+                  <th>Integrantes</th>
+                  <th>Campañas Autorizadas</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {groups.length === 0 ? (
-                  <tr><td colSpan="4" style={{ padding: '16px', textAlign: 'center', color: c.subtitle }}>No hay grupos creados</td></tr>
+                  <tr><td colSpan="4" style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>No hay grupos creados</td></tr>
                 ) : groups.map(g => (
-                  <tr key={g.id} style={{ borderBottom: `1px solid ${c.border}` }}>
-                    <td style={{ padding: '16px' }}>
+                  <tr key={g.id}>
+                    <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: g.color || '#2563eb' }}></div>
-                        <span style={{ color: c.rowText, fontWeight: '600', fontSize: '14px' }}>{g.name}</span>
+                        <div className="users-group-color-pill" style={{ background: g.color || '#2563eb' }}></div>
+                        <span style={{ fontWeight: '600', fontSize: '14px', color: 'var(--color-text-primary)' }}>{g.name}</span>
                       </div>
-                      <div style={{ color: c.subtitle, fontSize: '12px', marginTop: '4px' }}>{g.description}</div>
+                      <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginTop: '4px' }}>{g.description}</div>
                     </td>
-                    <td style={{ padding: '16px', color: c.rowText, fontSize: '13px' }}>
+                    <td>
                       {g.agent_group_users?.length || 0} usuarios
                     </td>
-                    <td style={{ padding: '16px', color: c.rowText, fontSize: '13px' }}>
+                    <td>
                       {g.campaign_groups?.length || 0} campañas
                     </td>
-                    <td style={{ padding: '16px' }}>
+                    <td>
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={() => openEditGroup(g)} style={{ background: 'transparent', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '13px' }}>Editar</button>
-                        <button onClick={() => handleDeleteGroup(g.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '13px' }}>Eliminar</button>
+                        <button onClick={() => openEditGroup(g)} className="users-btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>Editar</button>
+                        <button onClick={() => handleDeleteGroup(g.id)} className="users-btn-danger">Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -499,57 +473,57 @@ export default function UsersManager({ isDark = true, filterTenantId = null, isS
       )}
 
       {editingUser && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
-          <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: c.title }}>Editar Usuario</h3>
-              <button onClick={() => setEditingUser(null)} style={{ background: 'transparent', border: 'none', color: c.subtitle, cursor: 'pointer', fontSize: '20px' }}>&times;</button>
+        <div className="users-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditingUser(null); }}>
+          <div className="users-modal-card">
+            <div className="users-modal-header">
+              <h3 className="users-modal-title">Editar Usuario</h3>
+              <button onClick={() => setEditingUser(null)} className="users-modal-close-btn">&times;</button>
             </div>
             
             <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '12px', color: c.label }}>Nombre Completo</label>
-                <input type="text" value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} style={inputStyle} />
+              <div className="users-form-group">
+                <label className="users-form-label">Nombre Completo</label>
+                <input type="text" value={editDisplayName} onChange={e => setEditDisplayName(e.target.value)} className="users-input" />
               </div>
-              <div>
-                <label style={{ fontSize: '12px', color: c.label }}>Correo Electrónico</label>
-                <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${c.border}`, borderRadius: '8px', color: c.subtitle, fontSize: '12px', fontFamily: 'monospace' }}>
+              <div className="users-form-group">
+                <label className="users-form-label">Correo Electrónico</label>
+                <div style={{ padding: '10px 14px', background: 'var(--color-background-secondary)', border: '1px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-md)', color: 'var(--color-text-secondary)', fontSize: '12px', fontFamily: 'monospace' }}>
                   {editingUser.email || editingUser.user_id}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '12px', color: c.label }}>Rol</label>
-                <select value={editRole} onChange={e => setEditRole(e.target.value)} style={inputStyle}>
+              <div className="users-form-group">
+                <label className="users-form-label">Rol</label>
+                <select value={editRole} onChange={e => setEditRole(e.target.value)} className="users-select">
                   <option value="agent">Agente</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '12px', color: c.label }}>Nueva Contraseña (dejar en blanco para no cambiar)</label>
-                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} minLength={6} placeholder="••••••••" style={inputStyle} />
+              <div className="users-form-group">
+                <label className="users-form-label">Nueva Contraseña (dejar en blanco para no cambiar)</label>
+                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} minLength={6} placeholder="••••••••" className="users-input" />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px' }}>
-                <input type="checkbox" id="editCopilot" checked={editCopilotAccess} onChange={e => setEditCopilotAccess(e.target.checked)} style={{ cursor: 'pointer' }} />
-                <label htmlFor="editCopilot" style={{ fontSize: '13px', color: c.inputText, cursor: 'pointer', fontWeight: '500' }}>
+              <div className="users-checkbox-banner">
+                <input type="checkbox" id="editCopilot" checked={editCopilotAccess} onChange={e => setEditCopilotAccess(e.target.checked)} className="users-checkbox-input" />
+                <label htmlFor="editCopilot" className="users-checkbox-label">
                   🤖 Acceso al Co-Piloto Corporativo (Kimi)
                 </label>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: editActive ? 'rgba(29,158,117,0.1)' : 'rgba(226,75,74,0.1)', border: `1px solid ${editActive ? '#1D9E7550' : '#E24B4A50'}`, borderRadius: '8px' }}>
-                <input type="checkbox" id="userActive" checked={editActive} onChange={e => setEditActive(e.target.checked)} style={{ cursor: 'pointer' }} />
-                <label htmlFor="userActive" style={{ fontSize: '13px', color: c.inputText, cursor: 'pointer', fontWeight: '500' }}>
+              <div className={`users-checkbox-banner ${editActive ? 'active-status' : 'inactive-status'}`}>
+                <input type="checkbox" id="userActive" checked={editActive} onChange={e => setEditActive(e.target.checked)} className="users-checkbox-input" />
+                <label htmlFor="userActive" className="users-checkbox-label">
                   Usuario Activo (Permitir acceso)
                 </label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                <button type="button" onClick={() => setEditingUser(null)} style={{ background: 'transparent', border: `1px solid ${c.border}`, color: c.inputText, padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                <button type="button" onClick={() => setEditingUser(null)} className="users-btn-secondary">
                   Cancelar
                 </button>
-                <button type="submit" disabled={updating} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: updating ? 'not-allowed' : 'pointer', opacity: updating ? 0.7 : 1, fontSize: '14px', fontWeight: '500' }}>
+                <button type="submit" disabled={updating} className="users-btn-primary">
                   {updating ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
               </div>
