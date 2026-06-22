@@ -2799,6 +2799,8 @@ app.get("/api/widget/config", async (req, res) => {
       if (wData) widget = wData;
     }
 
+    const { data: tenant } = await supabase.from("tenants").select("name, logo_url").eq("id", tenantId).maybeSingle();
+
     if (widget) {
       return res.json({
         name: widget.name,
@@ -2806,19 +2808,22 @@ app.get("/api/widget/config", async (req, res) => {
         welcome_message: widget.welcome_message,
         campaign_id: widget.campaign_id,
         require_contact_info: widget.require_contact_info,
-        mode: "chat_only"
+        mode: "chat_only",
+        tenant_logo: tenant?.logo_url || null,
+        tenant_name: tenant?.name || null
       });
     }
 
     // Fallback absoluto a tenant_ai_config antigua
     const { data: config } = await supabase.from("tenant_ai_config").select("*").eq("tenant_id", tenantId).maybeSingle();
-    const { data: tenant } = await supabase.from("tenants").select("name").eq("id", tenantId).maybeSingle();
 
     return res.json({
       name: tenant?.name || "Asistente",
       color: config?.widget_color || "#2563eb",
       welcome_message: "¡Hola! ¿En qué podemos ayudarte?",
-      mode: config?.widget_capture_mode || "chat_only"
+      mode: config?.widget_capture_mode || "chat_only",
+      tenant_logo: tenant?.logo_url || null,
+      tenant_name: tenant?.name || null
     });
   } catch (e) {
     console.error("[GET /api/widget/config]", e.message);

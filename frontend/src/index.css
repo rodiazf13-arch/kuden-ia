@@ -1296,6 +1296,9 @@ button:disabled {
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   transition: var(--transition-fast) !important;
 }
 

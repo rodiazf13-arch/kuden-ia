@@ -282,29 +282,12 @@ export default function WidgetSettings({ tenantId, isDark = true, inHub = false 
                     <button 
                       onClick={() => testWidget(w)}
                       className="integration-btn-secondary"
-                      style={{ 
-                        padding: '6px 12px', 
-                        fontSize: '12px',
-                        borderRadius: 'var(--border-radius-sm)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
                     >
                       <i className="ti ti-external-link"></i> Probar
                     </button>
                     <button 
                       onClick={() => copyScript(w)}
                       className="integration-btn-primary"
-                      style={{ 
-                        padding: '6px 12px', 
-                        fontSize: '12px',
-                        borderRadius: 'var(--border-radius-sm)',
-                        background: 'var(--gradient-kuden)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
                     >
                       <i className="ti ti-copy"></i> Copiar Script
                     </button>
