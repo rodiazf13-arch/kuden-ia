@@ -17,36 +17,36 @@ const timeAgo = (iso) => {
 };
 
 const STATUS_CONFIG = {
-  active: { label: 'IA Activa', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-robot' },
-  waiting_human: { label: 'Esperando Humano', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
-  human_active: { label: 'Ejecutivo Activo', color: '#2563eb', bg: '#EFF6FF', icon: 'ti-user-check' },
-  pending_csat: { label: 'Pendiente CSAT', color: '#D85A30', bg: '#FAECE7', icon: 'ti-star' },
-  resolved: { label: 'Resuelto por IA', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-circle-check' },
-  closed: { label: 'Cerrado', color: '#6b7280', bg: '#f3f4f6', icon: 'ti-lock' },
-  abandoned: { label: 'Abandonado', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-circle-x' },
-  pending_followup: { label: 'Pendiente Seg.', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-clock' },
+  active: { label: 'IA Activa', color: '#16D38A', bg: 'rgba(22, 211, 138, 0.15)', icon: 'ti-robot' },
+  waiting_human: { label: 'Esperando Humano', color: '#F6B940', bg: 'rgba(246, 185, 64, 0.15)', icon: 'ti-alert-triangle' },
+  human_active: { label: 'Ejecutivo Activo', color: '#635BFF', bg: 'rgba(99, 91, 255, 0.15)', icon: 'ti-user-check' },
+  pending_csat: { label: 'Pendiente CSAT', color: '#FF8B3E', bg: 'rgba(255, 139, 62, 0.15)', icon: 'ti-star' },
+  resolved: { label: 'Resuelto por IA', color: '#16D38A', bg: 'rgba(22, 211, 138, 0.15)', icon: 'ti-circle-check' },
+  closed: { label: 'Cerrado', color: 'var(--color-text-secondary)', bg: 'var(--color-background-secondary)', icon: 'ti-lock' },
+  abandoned: { label: 'Abandonado', color: '#FF5E73', bg: 'rgba(255, 94, 115, 0.15)', icon: 'ti-circle-x' },
+  pending_followup: { label: 'Pendiente Seg.', color: '#F6B940', bg: 'rgba(246, 185, 64, 0.15)', icon: 'ti-clock' },
 };
 
 const SENTIMIENTO_CONFIG = {
-  muy_negativo: { label: 'Muy frustrado', emoji: '😠', color: '#E24B4A', bg: '#FDECEA', pct: 10 },
-  negativo: { label: 'Frustrado', emoji: '😕', color: '#D85A30', bg: '#FAECE7', pct: 30 },
-  neutral: { label: 'Neutral', emoji: '😐', color: '#EF9F27', bg: '#FEF3E0', pct: 50 },
-  positivo: { label: 'Satisfecho', emoji: '🙂', color: '#1D9E75', bg: '#E1F5EE', pct: 75 },
-  muy_positivo: { label: 'Muy satisfecho', emoji: '😊', color: '#534AB7', bg: '#EEEDFE', pct: 100 },
+  muy_negativo: { label: 'Muy frustrado', emoji: '😠', color: '#FF5E73', bg: 'rgba(255, 94, 115, 0.15)', pct: 10 },
+  negativo: { label: 'Frustrado', emoji: '😕', color: '#FF8B3E', bg: 'rgba(255, 139, 62, 0.15)', pct: 30 },
+  neutral: { label: 'Neutral', emoji: '😐', color: '#F6B940', bg: 'rgba(246, 185, 64, 0.15)', pct: 50 },
+  positivo: { label: 'Satisfecho', emoji: '🙂', color: '#16D38A', bg: 'rgba(22, 211, 138, 0.15)', pct: 75 },
+  muy_positivo: { label: 'Muy satisfecho', emoji: '😊', color: '#635BFF', bg: 'rgba(99, 91, 255, 0.15)', pct: 100 },
 };
 
 const FUGA_CONFIG = {
-  sin_riesgo: { label: 'Sin riesgo', color: '#1D9E75', bg: '#E1F5EE', icon: 'ti-shield-check' },
-  bajo: { label: 'Riesgo bajo', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
-  medio: { label: 'Riesgo medio', color: '#D85A30', bg: '#FAECE7', icon: 'ti-alert-triangle' },
-  alto: { label: 'Riesgo alto', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-flame' },
+  sin_riesgo: { label: 'Sin riesgo', color: '#16D38A', bg: 'rgba(22, 211, 138, 0.15)', icon: 'ti-shield-check' },
+  bajo: { label: 'Riesgo bajo', color: '#F6B940', bg: 'rgba(246, 185, 64, 0.15)', icon: 'ti-alert-triangle' },
+  medio: { label: 'Riesgo medio', color: '#FF8B3E', bg: 'rgba(255, 139, 62, 0.15)', icon: 'ti-alert-triangle' },
+  alto: { label: 'Riesgo alto', color: '#FF5E73', bg: 'rgba(255, 94, 115, 0.15)', icon: 'ti-flame' },
 };
 
 const CHANNEL_COLORS = {
-  email: { rgb: '59, 130, 246' }, // Azul
+  email: { rgb: '99, 91, 255' }, // Kuden Indigo
   whatsapp: { rgb: '37, 211, 102' }, // Verde
   instagram: { rgb: '225, 48, 108' }, // Rosado
-  webchat: { rgb: '234, 179, 8' },  // Amarillo
+  webchat: { rgb: '55, 215, 255' },  // Cyan Pulse
   voz: { rgb: '139, 92, 246' }  // Morado (Violeta)
 };
 
@@ -58,21 +58,22 @@ const normalizeCanal = (canal) => {
 };
 
 const getChannelBg = (canal, c, state = 'normal') => {
-  if (state === 'selected') return '#2563eb15';
+  if (state === 'selected') return 'rgba(99, 91, 255, 0.15)';
   const color = CHANNEL_COLORS[normalizeCanal(canal)];
   if (!color) {
     if (state === 'hover') return c.inputBg;
     if (state === 'kanban-normal') return c.inputBg;
     return 'transparent';
   }
-  if (state === 'hover') return `rgba(${color.rgb}, 0.3)`;
-  return `rgba(${color.rgb}, 0.2)`;
+  if (state === 'hover') return `rgba(${color.rgb}, 0.25)`;
+  if (state === 'kanban-normal') return `rgba(${color.rgb}, 0.08)`;
+  return `rgba(${color.rgb}, 0.08)`;
 };
 
 const getChannelBorder = (canal, c) => {
   const color = CHANNEL_COLORS[normalizeCanal(canal)];
   if (!color) return c.border;
-  return `rgba(${color.rgb}, 0.5)`;
+  return `rgba(${color.rgb}, 0.25)`;
 };
 
 function StatusBadge({ status }) {
@@ -81,7 +82,8 @@ function StatusBadge({ status }) {
     <span style={{
       fontSize: 10, fontWeight: 600, color: s.color, background: s.bg,
       border: `0.5px solid ${s.color}40`, borderRadius: 20, padding: '2px 8px',
-      display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
+      display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+      fontFamily: 'var(--font-body)'
     }}>
       <i className={`ti ${s.icon}`} style={{ fontSize: 10 }} />
       {s.label}
@@ -106,14 +108,14 @@ function SLABadge({ lastMessageAt, warningMinutes = 15, dangerMinutes = 30 }) {
 
   if (!lastMessageAt) return null;
 
-  let color = '#1D9E75'; // Verde
+  let color = '#16D38A'; // Verde
   let label = 'A tiempo';
   
   if (minutesPassed >= (dangerMinutes || 30)) {
-    color = '#E24B4A'; // Rojo
+    color = '#FF5E73'; // Rojo
     label = 'Atrasado';
   } else if (minutesPassed >= (warningMinutes || 15)) {
-    color = '#EF9F27'; // Amarillo
+    color = '#F6B940'; // Amarillo
     label = 'Advertencia';
   }
 
@@ -129,16 +131,16 @@ function SLABadge({ lastMessageAt, warningMinutes = 15, dangerMinutes = 30 }) {
 }
 
 // ── Panel de Inteligencia IA (derecha en el detalle) ─────────────────────────
-function IntelPanel({ conv, c }) {
+function IntelPanel({ conv, c, isDark }) {
   const sent = SENTIMIENTO_CONFIG[conv.sentimiento_final] || SENTIMIENTO_CONFIG.neutral;
   const fuga = FUGA_CONFIG[conv.fuga_final] || FUGA_CONFIG.sin_riesgo;
 
   const segScore = (() => {
     const plan = conv.contacts?.plan || '';
-    if (plan.includes('Empresas') || plan.includes('1GB')) return { label: 'Estratégico', color: '#534AB7', score: 100 };
-    if (plan.includes('500MB') || plan.includes('VIP')) return { label: 'Alto', color: '#1D9E75', score: 75 };
-    if (plan.includes('200MB')) return { label: 'Medio', color: '#EF9F27', score: 50 };
-    return { label: 'Básico', color: '#D85A30', score: 25 };
+    if (plan.includes('Empresas') || plan.includes('1GB')) return { label: 'Estratégico', color: '#635BFF', score: 100 };
+    if (plan.includes('500MB') || plan.includes('VIP')) return { label: 'Alto', color: '#16D38A', score: 75 };
+    if (plan.includes('200MB')) return { label: 'Medio', color: '#F6B940', score: 50 };
+    return { label: 'Básico', color: '#FF8B3E', score: 25 };
   })();
 
   const rec = conv.fuga_final === 'alto'
@@ -176,7 +178,7 @@ function IntelPanel({ conv, c }) {
       <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 10, padding: '10px 12px' }}>
         <p style={{ margin: '0 0 5px', fontSize: 10, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intención detectada</p>
         {conv.intencion
-          ? <span style={{ fontSize: 11, fontWeight: 500, color: '#085041', background: '#E1F5EE', border: '0.5px solid #1D9E7540', borderRadius: 20, padding: '2px 8px' }}>{conv.intencion}</span>
+          ? <span style={{ fontSize: 11, fontWeight: 500, color: '#0B6642', background: 'rgba(22, 211, 138, 0.12)', border: '0.5px solid rgba(22, 211, 138, 0.25)', borderRadius: 20, padding: '2px 8px' }}>{conv.intencion}</span>
           : <p style={{ margin: 0, fontSize: 11, color: c.subtitle, fontStyle: 'italic' }}>Sin datos</p>}
       </div>
 
@@ -193,19 +195,23 @@ function IntelPanel({ conv, c }) {
       </div>
 
       {/* Recomendación IA */}
-      <div style={{ background: '#EEEDFE', border: '0.5px solid #CECBF6', borderRadius: 10, padding: '10px 12px' }}>
+      <div style={{
+        background: isDark ? 'rgba(99, 91, 255, 0.12)' : '#EEEDFE',
+        border: `0.5px solid ${isDark ? 'rgba(99, 91, 255, 0.25)' : '#CECBF6'}`,
+        borderRadius: 10, padding: '10px 12px'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-          <i className="ti ti-sparkles" style={{ fontSize: 13, color: '#534AB7' }} />
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 500, color: '#26215C' }}>Recomendación KUDEN</p>
+          <i className="ti ti-sparkles" style={{ fontSize: 13, color: isDark ? '#9E99FF' : '#534AB7' }} />
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 500, color: isDark ? '#FFFFFF' : '#26215C' }}>Recomendación KUDEN</p>
         </div>
-        <p style={{ margin: 0, fontSize: 11, color: '#26215C', lineHeight: 1.5 }}>{rec}</p>
+        <p style={{ margin: 0, fontSize: 11, color: isDark ? '#A9B0C3' : '#26215C', lineHeight: 1.5 }}>{rec}</p>
       </div>
 
       {/* CSAT */}
       {conv.csat_final && (
         <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
           <p style={{ margin: '0 0 2px', fontSize: 10, color: c.subtitle, textTransform: 'uppercase' }}>CSAT</p>
-          <p style={{ margin: 0, fontSize: 22, fontWeight: 500, color: '#EF9F27' }}>{parseFloat(conv.csat_final).toFixed(1)} ★</p>
+          <p style={{ margin: 0, fontSize: 22, fontWeight: 500, color: '#F6B940' }}>{parseFloat(conv.csat_final).toFixed(1)} ★</p>
         </div>
       )}
     </div>
@@ -213,7 +219,7 @@ function IntelPanel({ conv, c }) {
 }
 
 // ── Burbuja de mensaje ────────────────────────────────────────────────────────
-function MessageBubble({ msg, c }) {
+function MessageBubble({ msg, c, isDark }) {
   const isCustomer = msg.sender_type === 'customer';
   const isAI = msg.sender_type === 'ai';
   const isHuman = msg.sender_type === 'human_agent';
@@ -227,9 +233,13 @@ function MessageBubble({ msg, c }) {
   );
 
   if (isNote) return (
-    <div style={{ background: '#FEF9C3', border: '1px solid #FDE047', borderRadius: 10, padding: '8px 12px', margin: '4px 0' }}>
-      <p style={{ margin: '0 0 3px', fontSize: 10, fontWeight: 600, color: '#92400E' }}>🔒 NOTA INTERNA · {msg.sender_name}</p>
-      <p style={{ margin: 0, fontSize: 12, color: '#78350F', lineHeight: 1.5 }}>{msg.content}</p>
+    <div style={{
+      background: isDark ? '#3A331A' : '#FEF9C3',
+      border: `1px solid ${isDark ? '#856A15' : '#FDE047'}`,
+      borderRadius: 10, padding: '8px 12px', margin: '4px 0'
+    }}>
+      <p style={{ margin: '0 0 3px', fontSize: 10, fontWeight: 600, color: isDark ? '#FCD34D' : '#92400E' }}>🔒 NOTA INTERNA · {msg.sender_name}</p>
+      <p style={{ margin: 0, fontSize: 12, color: isDark ? '#FFF' : '#78350F', lineHeight: 1.5 }}>{msg.content}</p>
     </div>
   );
 
@@ -238,7 +248,7 @@ function MessageBubble({ msg, c }) {
       {!isCustomer && (
         <div style={{
           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginRight: 6, alignSelf: 'flex-end',
-          background: isAI ? '#1D9E75' : '#2563eb',
+          background: isAI ? '#16D38A' : '#635BFF',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <i className={`ti ${isAI ? 'ti-robot' : 'ti-user'}`} style={{ fontSize: 13, color: '#fff' }} />
@@ -253,9 +263,19 @@ function MessageBubble({ msg, c }) {
         <div style={{
           padding: '8px 12px', fontSize: 13, lineHeight: 1.5,
           borderRadius: isCustomer ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-          background: isCustomer ? '#e5e7eb' : isAI ? '#1D9E7520' : '#2563eb20',
-          color: isCustomer ? '#111' : isAI ? '#085041' : '#1e40af',
-          border: isCustomer ? 'none' : `0.5px solid ${isAI ? '#1D9E7540' : '#2563eb40'}`,
+          background: isCustomer
+            ? (isDark ? '#2D324F' : '#e5e7eb')
+            : isAI
+              ? (isDark ? 'rgba(22, 211, 138, 0.12)' : 'rgba(22, 211, 138, 0.08)')
+              : (isDark ? 'rgba(99, 91, 255, 0.12)' : 'rgba(99, 91, 255, 0.08)'),
+          color: isCustomer
+            ? (isDark ? '#FFFFFF' : '#101828')
+            : isAI
+              ? (isDark ? '#16D38A' : '#0B6642')
+              : (isDark ? '#9E99FF' : '#3F35E0'),
+          border: isCustomer
+            ? `1px solid ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'}`
+            : `0.5px solid ${isAI ? 'rgba(22, 211, 138, 0.25)' : 'rgba(99, 91, 255, 0.25)'}`,
           whiteSpace: 'pre-wrap'
         }}>
           {msg.content && msg.content.includes('🔗 Grabación:') ? (
@@ -273,11 +293,11 @@ function MessageBubble({ msg, c }) {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        color: '#2563eb',
+                        color: '#635BFF',
                         fontWeight: '600',
                         textDecoration: 'underline',
                         cursor: 'pointer',
-                        background: 'rgba(37,99,235,0.08)',
+                        background: 'rgba(99,91,255,0.08)',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '12px',
@@ -303,7 +323,7 @@ function MessageBubble({ msg, c }) {
 }
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
-function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360, hasTooManyForgotten = false, forgottenCount = 0 }) {
+function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360, hasTooManyForgotten = false, forgottenCount = 0, isDark }) {
   const [data, setData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -559,12 +579,12 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             disabled={hasTooManyForgotten}
             style={{
               padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: hasTooManyForgotten ? 'not-allowed' : 'pointer',
-              background: hasTooManyForgotten ? '#9CA3AF' : (status === 'waiting_human' ? '#EF9F27' : '#2563eb'), color: '#fff', opacity: hasTooManyForgotten ? 0.6 : 1
+              background: hasTooManyForgotten ? '#9CA3AF' : (status === 'waiting_human' ? '#F6B940' : '#635BFF'), color: '#fff', opacity: hasTooManyForgotten ? 0.6 : 1
             }}
             title={hasTooManyForgotten ? `Bloqueado. Tienes ${forgottenCount} tickets olvidados.` : ''}>
             🖐 Tomar Control
           </button>
-          {hasTooManyForgotten && <span style={{ fontSize: 10, color: '#DC2626', fontWeight: 600 }}>Limpia tus tickets olvidados primero.</span>}
+          {hasTooManyForgotten && <span style={{ fontSize: 10, color: '#FF5E73', fontWeight: 600 }}>Limpia tus tickets olvidados primero.</span>}
         </div>
       )}
       {status === 'human_active' && isMyConv && !closingMode && !pendingMode && (
@@ -574,7 +594,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             🤖 Devolver a IA
           </button>
           <button onClick={() => setPendingMode(true)}
-            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: `1px solid ${c.border}`, cursor: 'pointer', background: '#FEF3E0', color: '#EF9F27' }}>
+            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: `1px solid ${c.border}`, cursor: 'pointer', background: isDark ? 'rgba(246, 185, 64, 0.15)' : '#FEF3E0', color: '#F6B940' }}>
             ⏳ Dejar Pendiente
           </button>
           <button onClick={async () => {
@@ -584,7 +604,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             } else { setTypifications([]); }
             setClosingMode(true);
           }}
-            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: '#1D9E75', color: '#fff' }}>
+            style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', background: '#16D38A', color: '#fff' }}>
             ✅ Cerrar
           </button>
         </>
@@ -602,25 +622,25 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             doAction('close', closeReason, { motivoLabel: selectedTyp, force: isOutbound });
           }}
             disabled={!conv.campaign_id || (!selectedTyp && typifications.length > 0)}
-            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 'not-allowed' : 'pointer', background: '#1D9E75', color: '#fff', opacity: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 0.5 : 1 }}>
+            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 'not-allowed' : 'pointer', background: '#16D38A', color: '#fff', opacity: (!conv.campaign_id || (!selectedTyp && typifications.length > 0)) ? 0.5 : 1 }}>
             Confirmar
           </button>
-          {!conv.campaign_id && <span style={{ fontSize: 10, color: '#E24B4A' }}>⚠️ Asigna una campaña primero</span>}
+          {!conv.campaign_id && <span style={{ fontSize: 10, color: '#FF5E73' }}>⚠️ Asigna una campaña primero</span>}
           <button onClick={() => setClosingMode(false)} style={{ background: 'transparent', border: 'none', color: c.subtitle, cursor: 'pointer', fontSize: 11 }}>Cancelar</button>
         </div>
       )}
       {status === 'human_active' && isMyConv && pendingMode && (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', background: '#FEF3E0', padding: '4px 8px', borderRadius: 8, border: `1px solid #EF9F27` }}>
-          <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333' }} />
-          <input type="time" value={followUpTime} onChange={e => setFollowUpTime(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333' }} />
-          <input type="text" placeholder="Nota..." value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid #EF9F27`, background: '#fff', color: '#333', width: 120 }} />
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', background: isDark ? 'rgba(246, 185, 64, 0.15)' : '#FEF3E0', padding: '4px 8px', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(246, 185, 64, 0.3)' : '#F6B940'}` }}>
+          <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#F6B940'}`, background: isDark ? '#1C2035' : '#fff', color: isDark ? '#fff' : '#333' }} />
+          <input type="time" value={followUpTime} onChange={e => setFollowUpTime(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#F6B940'}`, background: isDark ? '#1C2035' : '#fff', color: isDark ? '#fff' : '#333' }} />
+          <input type="text" placeholder="Nota..." value={followUpNote} onChange={e => setFollowUpNote(e.target.value)} style={{ fontSize: 11, padding: '4px', borderRadius: 4, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#F6B940'}`, background: isDark ? '#1C2035' : '#fff', color: isDark ? '#fff' : '#333', width: 120 }} />
 
           <button onClick={() => doAction('close', 'Conversación dejada en pendiente.', { isPending: true, followUpAt: new Date(`${followUpDate}T${followUpTime}`).toISOString(), followUpNote })}
             disabled={!followUpDate || !followUpTime}
-            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!followUpDate || !followUpTime) ? 'not-allowed' : 'pointer', background: '#EF9F27', color: '#fff', opacity: (!followUpDate || !followUpTime) ? 0.5 : 1 }}>
+            style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 6, border: 'none', cursor: (!followUpDate || !followUpTime) ? 'not-allowed' : 'pointer', background: '#F6B940', color: '#fff', opacity: (!followUpDate || !followUpTime) ? 0.5 : 1 }}>
             Confirmar
           </button>
-          <button onClick={() => setPendingMode(false)} style={{ background: 'transparent', border: 'none', color: '#EF9F27', cursor: 'pointer', fontSize: 11 }}>Cancelar</button>
+          <button onClick={() => setPendingMode(false)} style={{ background: 'transparent', border: 'none', color: '#F6B940', cursor: 'pointer', fontSize: 11 }}>Cancelar</button>
         </div>
       )}
       {status === 'pending_csat' && canAct && (
@@ -708,7 +728,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
           title={showInfo ? 'Ocultar panel' : 'Ver ficha y análisis IA'}
           style={{
             padding: '5px 10px', fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`,
-            background: showInfo ? '#2563eb15' : 'transparent', color: showInfo ? '#2563eb' : c.subtitle,
+            background: showInfo ? 'rgba(99, 91, 255, 0.15)' : 'transparent', color: showInfo ? '#635BFF' : c.subtitle,
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0
           }}
         >
@@ -717,7 +737,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         </button>
         {renderActions()}
       </div>
-      {actionMsg && <div style={{ padding: '8px 16px', background: '#1D9E7515', borderBottom: `1px solid ${c.border}`, fontSize: 12, color: '#1D9E75' }}>✓ {actionMsg}</div>}
+      {actionMsg && <div style={{ padding: '8px 16px', background: 'rgba(22, 211, 138, 0.15)', borderBottom: `1px solid ${c.border}`, fontSize: 12, color: '#16D38A' }}>✓ {actionMsg}</div>}
 
       {/* Body: Chat + Panel colapsable */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
@@ -725,7 +745,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
         {/* Chat */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-            {messages.map(m => <MessageBubble key={m.id} msg={m} c={c} />)}
+            {messages.map(m => <MessageBubble key={m.id} msg={m} c={c} isDark={isDark} />)}
             {typingUsers.length > 0 && (
               <div style={{ fontSize: 11, color: c.subtitle, fontStyle: 'italic', marginBottom: 8, paddingLeft: 4 }}>
                 👨‍💼 {typingUsers.join(', ')} {typingUsers.length === 1 ? 'está escribiendo...' : 'están escribiendo...'}
@@ -739,18 +759,18 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
               <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                 {conv.canal !== 'voz' && (
                   <button onClick={() => setIsNote(false)}
-                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${!isNote ? '#2563eb' : c.border}`, background: !isNote ? '#2563eb15' : 'transparent', color: !isNote ? '#2563eb' : c.subtitle, cursor: 'pointer' }}>
+                    style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${!isNote ? '#635BFF' : c.border}`, background: !isNote ? 'rgba(99, 91, 255, 0.15)' : 'transparent', color: !isNote ? '#635BFF' : c.subtitle, cursor: 'pointer' }}>
                     💬 Mensaje
                   </button>
                 )}
                 <button onClick={() => setIsNote(true)}
-                  style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isNote ? '#EF9F27' : c.border}`, background: isNote ? '#EF9F2715' : 'transparent', color: isNote ? '#EF9F27' : c.subtitle, cursor: 'pointer' }}>
+                  style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${isNote ? '#F6B940' : c.border}`, background: isNote ? 'rgba(246, 185, 64, 0.15)' : 'transparent', color: isNote ? '#F6B940' : c.subtitle, cursor: 'pointer' }}>
                   🔒 Nota interna {conv.canal === 'voz' && '(Llamada de Voz)'}
                 </button>
                 {conv.canal !== 'voz' && (
                   <>
                     <button onClick={handleSuggestAI} disabled={suggesting}
-                      style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid #1D9E75`, background: '#1D9E7515', color: '#1D9E75', cursor: suggesting ? 'wait' : 'pointer', opacity: suggesting ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid #16D38A`, background: 'rgba(22, 211, 138, 0.15)', color: '#16D38A', cursor: suggesting ? 'wait' : 'pointer', opacity: suggesting ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}>
                       {suggesting ? <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }} /> : <i className="ti ti-sparkles" />} Sugerencia IA
                     </button>
                     {emailSignature && !isNote && (
@@ -811,11 +831,11 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
                     onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendMessage(); } }}
                     placeholder={isNote ? 'Nota interna (no visible al cliente)...' : 'Escribe un mensaje... (Ctrl + Enter para enviar)'}
                     rows={2}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isNote ? '#FDE047' : c.border}`, background: isNote ? '#FEF9C3' : c.inputBg, color: c.inputText, fontSize: 13, outline: 'none', resize: 'vertical', minHeight: '40px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isNote ? (isDark ? '#856A15' : '#FDE047') : c.border}`, background: isNote ? (isDark ? '#3A331A' : '#FEF9C3') : c.inputBg, color: isNote ? (isDark ? '#fff' : '#78350F') : c.inputText, fontSize: 13, outline: 'none', resize: 'vertical', minHeight: '40px', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
 
                 <button onClick={sendMessage} disabled={sending || (!input.trim() && attachments.length === 0)}
-                  style={{ padding: '8px 16px', background: isNote ? '#EF9F27' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: (input.trim() || attachments.length > 0) ? 'pointer' : 'not-allowed', opacity: (input.trim() || attachments.length > 0) ? 1 : 0.5, height: 'fit-content' }}>
+                  style={{ padding: '8px 16px', background: isNote ? '#F6B940' : '#635BFF', color: '#fff', border: 'none', borderRadius: 8, cursor: (input.trim() || attachments.length > 0) ? 'pointer' : 'not-allowed', opacity: (input.trim() || attachments.length > 0) ? 1 : 0.5, height: 'fit-content' }}>
                   <i className="ti ti-send" style={{ fontSize: 14 }} />
                 </button>
               </div>
@@ -884,8 +904,8 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             {conv.resumen_ejecutivo && (
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}` }}>
                 <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resumen Ejecutivo</p>
-                <div style={{ background: '#f8fafc', border: `1px solid #e2e8f0`, borderRadius: 8, padding: '10px' }}>
-                  <p style={{ margin: 0, fontSize: 11, color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                <div style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', border: `1px solid ${c.border}`, borderRadius: 8, padding: '10px' }}>
+                  <p style={{ margin: 0, fontSize: 11, color: c.subtitle, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
                     {conv.resumen_ejecutivo}
                   </p>
                 </div>
@@ -894,7 +914,7 @@ function ConversationDetail({ convId, tenantId, userId, displayName, userRole, i
             {/* Panel de Inteligencia IA */}
             <div style={{ padding: '10px 12px' }}>
               <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: c.subtitle, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inteligencia IA</p>
-              <IntelPanel conv={conv} c={c} />
+              <IntelPanel conv={conv} c={c} isDark={isDark} />
             </div>
           </div>
         )}
@@ -917,7 +937,7 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
     <div onClick={onClick} style={{
       padding: '10px 12px', borderBottom: `1px solid ${getChannelBorder(conv.canal, c)}`, cursor: 'pointer',
       background: getChannelBg(conv.canal, c, isSelected ? 'selected' : 'normal'),
-      borderLeft: isSelected ? '3px solid #2563eb' : '3px solid transparent',
+      borderLeft: isSelected ? '3px solid #635BFF' : '3px solid transparent',
       transition: 'background 0.1s',
     }}
       onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = getChannelBg(conv.canal, c, 'hover'); }}
@@ -925,7 +945,7 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         {/* Avatar */}
         <div style={{
-          width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: '#fff',
+          width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--color-primary),var(--color-accent))', color: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0
         }}>
           {initials(contact.cliente_nombre)}
@@ -941,9 +961,9 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
             {conv.last_message_preview || 'Sin mensajes aún'}
           </p>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-            {normalizeCanal(conv.canal) === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#3b82f6' }} title="Email" />}
+            {normalizeCanal(conv.canal) === 'email' && <i className="ti ti-mail" style={{ fontSize: 13, color: '#635BFF' }} title="Email" />}
             {normalizeCanal(conv.canal) === 'whatsapp' && <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25D366' }} title="WhatsApp" />}
-            {normalizeCanal(conv.canal) === 'webchat' && <i className="ti ti-world" style={{ fontSize: 13, color: '#1D9E75' }} title="Web Chat" />}
+            {normalizeCanal(conv.canal) === 'webchat' && <i className="ti ti-world" style={{ fontSize: 13, color: '#37D7FF' }} title="Web Chat" />}
             {normalizeCanal(conv.canal) === 'instagram' && <i className="ti ti-brand-instagram" style={{ fontSize: 13, color: '#E1306C' }} title="Instagram" />}
             {normalizeCanal(conv.canal) === 'voz' && <i className="ti ti-microphone" style={{ fontSize: 13, color: '#8b5cf6' }} title="Llamada de Voz" />}
             <StatusBadge status={conv.status} />
@@ -959,7 +979,7 @@ function ConvRow({ conv, isSelected, onClick, c, groups = [], tenantUsers = [] }
               </span>
             )}
             {user && (
-              <span style={{ fontSize: 9, fontWeight: 600, color: '#2563eb', background: '#2563eb15', border: `0.5px solid #2563eb40`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Ejecutivo asignado">
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#635BFF', background: 'rgba(99, 91, 255, 0.15)', border: `0.5px solid rgba(99, 91, 255, 0.25)`, borderRadius: 10, padding: '1px 5px', display: 'flex', alignItems: 'center', gap: 2 }} title="Ejecutivo asignado">
                 <i className="ti ti-user" style={{ fontSize: 10 }} /> {user.display_name.split(' ')[0]}
               </span>
             )}
@@ -1009,10 +1029,10 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
   if (!stats) return null;
 
   const kpis = [
-    { l: 'Total conversaciones', v: stats.total, color: '#534AB7', icon: 'ti-messages', action: () => onNavigate && onNavigate('all') },
-    { l: 'Tasa FCR (IA)', v: stats.fcrRate + '%', color: '#1D9E75', icon: 'ti-robot' },
-    { l: 'Tasa escalación', v: stats.escalationRate + '%', color: '#D85A30', icon: 'ti-user-check' },
-    { l: 'CSAT promedio', v: stats.csatAvg ? stats.csatAvg + ' ★' : '—', color: '#EF9F27', icon: 'ti-star' },
+    { l: 'Total conversaciones', v: stats.total, color: '#635BFF', icon: 'ti-messages', action: () => onNavigate && onNavigate('all') },
+    { l: 'Tasa FCR (IA)', v: stats.fcrRate + '%', color: '#16D38A', icon: 'ti-robot' },
+    { l: 'Tasa escalación', v: stats.escalationRate + '%', color: '#FF8B3E', icon: 'ti-user-check' },
+    { l: 'CSAT promedio', v: stats.csatAvg ? stats.csatAvg + ' ★' : '—', color: '#F6B940', icon: 'ti-star' },
   ];
 
   const renderRechartsBar = (obj, colorMap, label, onBarClick) => {
@@ -1020,7 +1040,7 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
       id: k,
       name: colorMap?.[k]?.label || k,
       value: v,
-      fill: colorMap?.[k]?.color || '#2563eb'
+      fill: colorMap?.[k]?.color || '#635BFF'
     }));
     return (
       <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '14px 16px', height: 260, display: 'flex', flexDirection: 'column' }}>
@@ -1047,7 +1067,7 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
       id: k,
       name: colorMap?.[k]?.label || k,
       value: v,
-      color: colorMap?.[k]?.color || '#2563eb'
+      color: colorMap?.[k]?.color || '#635BFF'
     }));
     return (
       <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '14px 16px', height: 260, display: 'flex', flexDirection: 'column' }}>
@@ -1072,7 +1092,7 @@ function ReportPanel({ tenantId, c, campaigns, onNavigate }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {[['today', 'Hoy'], ['week', 'Semana'], ['month', 'Mes']].map(([p, l]) => (
           <button key={p} onClick={() => setPeriod(p)}
-            style={{ padding: '5px 14px', fontSize: 12, borderRadius: 20, border: `1px solid ${period === p ? '#2563eb' : c.border}`, background: period === p ? '#2563eb' : 'transparent', color: period === p ? '#fff' : c.subtitle, cursor: 'pointer' }}>
+            style={{ padding: '5px 14px', fontSize: 12, borderRadius: 20, border: `1px solid ${period === p ? '#635BFF' : c.border}`, background: period === p ? '#635BFF' : 'transparent', color: period === p ? '#fff' : c.subtitle, cursor: 'pointer' }}>
             {l}
           </button>
         ))}
@@ -1124,7 +1144,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
   if (!typifications || typifications.length === 0) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: c.subtitle, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <i className="ti ti-layout-kanban" style={{ fontSize: 48, display: 'block', marginBottom: 16, color: '#2563eb' }} />
+        <i className="ti ti-layout-kanban" style={{ fontSize: 48, display: 'block', marginBottom: 16, color: '#635BFF' }} />
         <h3 style={{ margin: '0 0 8px', fontSize: 18, color: c.title }}>Vista Kanban no disponible</h3>
         <p style={{ margin: 0, fontSize: 14 }}>Por favor, selecciona una <strong>Campaña</strong> específica en los filtros para ver el tablero con sus etapas.</p>
       </div>
@@ -1160,7 +1180,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
         if (isCollapsed) {
           return (
             <div key={col.id} onClick={() => toggleCollapse(col.id)} style={{ width: 60, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}`, cursor: 'pointer', transition: 'all 0.2s', alignItems: 'center', padding: '12px 0' }}>
-              <i className="ti ti-arrows-maximize" style={{ fontSize: 16, color: '#2563eb', marginBottom: 16 }} />
+              <i className="ti ti-arrows-maximize" style={{ fontSize: 16, color: '#635BFF', marginBottom: 16 }} />
               <span style={{ fontSize: 11, fontWeight: 600, color: c.subtitle, background: c.inputBg, padding: '4px 8px', borderRadius: 12, border: `1px solid ${c.border}`, marginBottom: 16 }}>
                 {grouped[col.id].length}
               </span>
@@ -1173,7 +1193,7 @@ function KanbanBoard({ conversations, typifications, c, onClick }) {
 
         return (
           <div key={col.id} style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', background: c.card, borderRadius: 12, border: `1px solid ${c.border}`, transition: 'all 0.2s' }}>
-            <div style={{ padding: '12px 16px', borderBottom: `2px solid #2563eb`, background: c.inputBg, borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 16px', borderBottom: `2px solid #635BFF`, background: c.inputBg, borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: c.title, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {col.label}
               </h3>
@@ -1250,12 +1270,12 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
   const displayName = userEmail?.split('@')[0] || 'Ejecutivo';
 
   const c = {
-    card: isDark ? '#111' : '#ffffff',
-    border: isDark ? '#222' : '#e5e7eb',
-    title: isDark ? '#ffffff' : '#111827',
-    subtitle: isDark ? '#aaaaaa' : '#6b7280',
-    inputBg: isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#ffffff' : '#111827',
+    card: isDark ? '#0D1020' : '#ffffff',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(99, 91, 255, 0.08)',
+    title: isDark ? '#ffffff' : '#101828',
+    subtitle: isDark ? '#A9B0C3' : '#667085',
+    inputBg: isDark ? '#171A2F' : '#EEF2F9',
+    inputText: isDark ? '#ffffff' : '#101828',
   };
 
   const fetchConversations = useCallback(async () => {
@@ -1354,7 +1374,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
           <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 4px', color: c.title }}>CRM Operacional</h2>
           <p style={{ margin: 0, fontSize: 14, color: c.subtitle }}>
             {loading ? 'Cargando...' : `${conversations.length} conversacione${conversations.length !== 1 ? 's' : ''}`}
-            {alerts.count > 0 && <span style={{ marginLeft: 8, color: '#EF9F27', fontWeight: 600 }}>· ⚡ {alerts.count} requieren atención</span>}
+            {alerts.count > 0 && <span style={{ marginLeft: 8, color: '#F6B940', fontWeight: 600 }}>· ⚡ {alerts.count} requieren atención</span>}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -1362,8 +1382,8 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
             <button key={id} onClick={() => { setTab(id); setSelectedId(null); }}
               style={{
                 padding: '8px 16px', fontSize: 13, fontWeight: tab === id ? 600 : 400, borderRadius: 8,
-                border: `1px solid ${tab === id ? '#2563eb' : c.border}`,
-                background: tab === id ? '#2563eb' : 'transparent',
+                border: `1px solid ${tab === id ? '#635BFF' : c.border}`,
+                background: tab === id ? '#635BFF' : 'transparent',
                 color: tab === id ? '#fff' : c.subtitle, cursor: 'pointer'
               }}>
               {label}
@@ -1394,22 +1414,22 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
         <>
           {/* Panel de alertas */}
           {alerts.count > 0 && (
-            <div style={{ background: '#FEF3E0', border: '1px solid #EF9F2760', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
+            <div style={{ background: isDark ? 'rgba(246, 185, 64, 0.15)' : '#FEF3E0', border: `1px solid ${isDark ? 'rgba(246, 185, 64, 0.3)' : '#EF9F2760'}`, borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <i className="ti ti-alert-triangle" style={{ fontSize: 16, color: '#EF9F27' }} />
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#92400E' }}>{alerts.count} conversacion{alerts.count > 1 ? 'es requieren' : ' requiere'} atención humana</p>
+                <i className="ti ti-alert-triangle" style={{ fontSize: 16, color: '#F6B940' }} />
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: isDark ? '#F6B940' : '#92400E' }}>{alerts.count} conversacion{alerts.count > 1 ? 'es requieren' : ' requiere'} atención humana</p>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {alerts.alerts.slice(0, 3).map(a => (
                   <div key={a.id} onClick={() => setSelectedId(a.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.6)', borderRadius: 8, cursor: 'pointer' }}>
-                    <i className={`ti ${a.fuga_final === 'alto' ? 'ti-flame' : 'ti-user-question'}`} style={{ fontSize: 14, color: a.fuga_final === 'alto' ? '#E24B4A' : '#EF9F27' }} />
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)', borderRadius: 8, cursor: 'pointer' }}>
+                    <i className={`ti ${a.fuga_final === 'alto' ? 'ti-flame' : 'ti-user-question'}`} style={{ fontSize: 14, color: a.fuga_final === 'alto' ? '#FF5E73' : '#F6B940' }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#78350F' }}>{a.contacts?.cliente_nombre || '—'}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: '#92400E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.last_message_preview}</p>
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: isDark ? '#FFF' : '#78350F' }}>{a.contacts?.cliente_nombre || '—'}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: isDark ? 'var(--color-text-secondary)' : '#92400E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.last_message_preview}</p>
                     </div>
-                    <span style={{ fontSize: 10, color: '#92400E' }}>{timeAgo(a.last_message_at)}</span>
-                    <button style={{ fontSize: 11, padding: '3px 10px', background: '#EF9F27', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontWeight: 600 }}>
+                    <span style={{ fontSize: 10, color: isDark ? 'var(--color-text-tertiary)' : '#92400E' }}>{timeAgo(a.last_message_at)}</span>
+                    <button style={{ fontSize: 11, padding: '3px 10px', background: '#F6B940', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontWeight: 600 }}>
                       → Atender
                     </button>
                   </div>
@@ -1437,15 +1457,15 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                 {/* Filtros */}
                 <div style={{ padding: '10px 12px', borderBottom: `1px solid ${c.border}`, background: isDark ? '#0f0f0f' : '#f9fafb' }}>
                   {forgottenTickets.length > 0 && (
-                    <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '12px 16px', margin: '0 0 16px 0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ background: isDark ? 'rgba(255, 94, 115, 0.15)' : '#FEF2F2', border: `1px solid ${isDark ? 'rgba(255, 94, 115, 0.3)' : '#FCA5A5'}`, padding: '12px 16px', margin: '0 0 16px 0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '20px' }}>🚨</span>
                         <div>
-                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#991B1B' }}>¡Alerta de Cierre de Tickets!</p>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#B91C1C' }}>Tienes {forgottenTickets.length} conversación{forgottenTickets.length !== 1 ? 'es' : ''} inactiva{forgottenTickets.length !== 1 ? 's' : ''} por más de {forgottenThreshold} horas. Tipifíca{forgottenTickets.length !== 1 ? 'las' : 'la'} y ciérra{forgottenTickets.length !== 1 ? 'las' : 'la'}.</p>
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: isDark ? '#FF5E73' : '#991B1B' }}>¡Alerta de Cierre de Tickets!</p>
+                          <p style={{ margin: 0, fontSize: '12px', color: isDark ? 'var(--color-text-secondary)' : '#B91C1C' }}>Tienes {forgottenTickets.length} conversación{forgottenTickets.length !== 1 ? 'es' : ''} inactiva{forgottenTickets.length !== 1 ? 's' : ''} por más de {forgottenThreshold} horas. Tipifíca{forgottenTickets.length !== 1 ? 'las' : 'la'} y ciérra{forgottenTickets.length !== 1 ? 'las' : 'la'}.</p>
                         </div>
                       </div>
-                      <button onClick={() => { setViewMode('list'); setFilterStatus('human_active'); setFilterCanal('all'); setFilterCampaign(''); }} style={{ padding: '8px 14px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => { setViewMode('list'); setFilterStatus('human_active'); setFilterCanal('all'); setFilterCampaign(''); }} style={{ padding: '8px 14px', background: '#FF5E73', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                         Filtrar Mis Tickets Olvidados
                       </button>
                     </div>
@@ -1456,11 +1476,11 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     {/* View Toggle */}
                     <div style={{ display: 'flex', background: c.inputBg, borderRadius: 8, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
                       <button onClick={() => setViewMode('list')} title="Vista de Lista"
-                        style={{ padding: '0 10px', background: viewMode === 'list' ? '#2563eb' : 'transparent', color: viewMode === 'list' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer' }}>
+                        style={{ padding: '0 10px', background: viewMode === 'list' ? '#635BFF' : 'transparent', color: viewMode === 'list' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer' }}>
                         <i className="ti ti-list" style={{ fontSize: 16 }} />
                       </button>
                       <button onClick={() => setViewMode('board')} title="Vista de Tablero Kanban"
-                        style={{ padding: '0 10px', background: viewMode === 'board' ? '#2563eb' : 'transparent', color: viewMode === 'board' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer', borderLeft: `1px solid ${c.border}` }}>
+                        style={{ padding: '0 10px', background: viewMode === 'board' ? '#635BFF' : 'transparent', color: viewMode === 'board' ? '#fff' : c.subtitle, border: 'none', cursor: 'pointer', borderLeft: `1px solid ${c.border}` }}>
                         <i className="ti ti-layout-kanban" style={{ fontSize: 16 }} />
                       </button>
                     </div>
@@ -1469,12 +1489,12 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     {FILTER_TABS.map(f => (
                       <button key={f.id} onClick={() => setFilterStatus(f.id)}
                         style={{
-                          fontSize: 10, padding: '3px 8px', borderRadius: 20, border: `1px solid ${filterStatus === f.id ? '#2563eb' : c.border}`,
-                          background: filterStatus === f.id ? '#2563eb' : 'transparent',
+                          fontSize: 10, padding: '3px 8px', borderRadius: 20, border: `1px solid ${filterStatus === f.id ? '#635BFF' : c.border}`,
+                          background: filterStatus === f.id ? '#635BFF' : 'transparent',
                           color: filterStatus === f.id ? '#fff' : c.subtitle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap'
                         }}>
                         {f.label}
-                        {f.badge > 0 && <span style={{ background: '#EF9F27', color: '#fff', borderRadius: 10, fontSize: 9, padding: '0 4px' }}>{f.badge}</span>}
+                        {f.badge > 0 && <span style={{ background: '#F6B940', color: '#fff', borderRadius: 10, fontSize: 9, padding: '0 4px' }}>{f.badge}</span>}
                       </button>
                     ))}
                   </div>
@@ -1552,6 +1572,7 @@ export default function CRMManager({ tenantId, isDark = true, userId, userEmail,
                     onView360={(cId) => setView360Contact(cId)}
                     hasTooManyForgotten={hasTooManyForgotten}
                     forgottenCount={forgottenTickets.length}
+                    isDark={isDark}
                   />
                 </div>
               )}

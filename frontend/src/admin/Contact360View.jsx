@@ -4,43 +4,51 @@ import { supabase } from '../lib/supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const CHANNELS = [
-  { id:"webchat",   label:"Web Chat",   icon:"ti-world",           color:"#1D9E75", bg:"#E1F5EE" },
-  { id:"whatsapp",  label:"WhatsApp",   icon:"ti-brand-whatsapp",  color:"#25D366", bg:"#E8F9EE" },
-  { id:"email",     label:"Email",      icon:"ti-mail",            color:"#3b82f6", bg:"#dbeafe" },
-  { id:"voz",       label:"Voz",        icon:"ti-phone",           color:"#534AB7", bg:"#EEEDFE" },
-  { id:"app",       label:"App Móvil",  icon:"ti-device-mobile",   color:"#D85A30", bg:"#FAECE7" },
-  { id:"rrss",      label:"Redes Soc.", icon:"ti-share",           color:"#EF9F27", bg:"#FEF3E0" },
-  { id:"instagram", label:"Instagram",  icon:"ti-brand-instagram", color:"#C13584", bg:"#FAE5F2" },
+  { id:"webchat",   label:"Web Chat",   icon:"ti-world",           color:"#37D7FF", bg:"rgba(55, 215, 255, 0.15)" },
+  { id:"whatsapp",  label:"WhatsApp",   icon:"ti-brand-whatsapp",  color:"#25D366", bg:"rgba(37, 211, 102, 0.15)" },
+  { id:"email",     label:"Email",      icon:"ti-mail",            color:"#635BFF", bg:"rgba(99, 91, 255, 0.15)" },
+  { id:"voz",       label:"Voz",        icon:"ti-phone",           color:"#8b5cf6", bg:"rgba(139, 92, 246, 0.15)" },
+  { id:"app",       label:"App Móvil",  icon:"ti-device-mobile",   color:"#FF8B3E", bg:"rgba(255, 139, 62, 0.15)" },
+  { id:"rrss",      label:"Redes Soc.", icon:"ti-share",           color:"#F6B940", bg:"rgba(246, 185, 64, 0.15)" },
+  { id:"instagram", label:"Instagram",  icon:"ti-brand-instagram", color:"#E1306C", bg:"rgba(225, 48, 108, 0.15)" },
 ];
 const CHANNEL_DEFAULT = { icon:"ti-messages", color:"#64748B", bg:"#F1F5F9" };
 
 const CSAT_LABELS = ["","Muy malo","Malo","Regular","Bueno","Excelente"];
-const CSAT_COLORS = ["","#E24B4A","#D85A30","#EF9F27","#1D9E75","#00A6FF"];
+const CSAT_COLORS = ["","#FF5E73","#FF8B3E","#F6B940","#16D38A","#00A6FF"];
 
 const SENTIMIENTOS = [
-  { id:"muy_negativo", label:"Muy frustrado", emoji:"🤬", color:"#E24B4A", bg:"#FDECEA", pct:10 },
-  { id:"negativo",     label:"Frustrado",     emoji:"😠", color:"#D85A30", bg:"#FAECE7", pct:30 },
-  { id:"neutral",      label:"Neutral",       emoji:"😐", color:"#EF9F27", bg:"#FEF3E0", pct:50 },
-  { id:"positivo",     label:"Satisfecho",    emoji:"🙂", color:"#1D9E75", bg:"#E1F5EE", pct:75 },
-  { id:"muy_positivo", label:"Muy satisfecho",emoji:"🤩", color:"#00A6FF", bg:"#EBF7FF", pct:100 },
+  { id:"muy_negativo", label:"Muy frustrado", emoji:"🤬", color:"#FF5E73", bg:"rgba(255, 94, 115, 0.15)", pct:10 },
+  { id:"negativo",     label:"Frustrado",     emoji:"😠", color:"#FF8B3E", bg:"rgba(255, 139, 62, 0.15)", pct:30 },
+  { id:"neutral",      label:"Neutral",       emoji:"😐", color:"#F6B940", bg:"rgba(246, 185, 64, 0.15)", pct:50 },
+  { id:"positivo",     label:"Satisfecho",    emoji:"🙂", color:"#16D38A", bg:"rgba(22, 211, 138, 0.15)", pct:75 },
+  { id:"muy_positivo", label:"Muy satisfecho",emoji:"🤩", color:"#635BFF", bg:"rgba(99, 91, 255, 0.15)", pct:100 },
 ];
 
 const RIESGO_FUGA = [
-  { id:"sin_riesgo", label:"Sin riesgo",   color:"#1D9E75", bg:"#E1F5EE", icon:"ti-shield-check"   },
-  { id:"bajo",       label:"Riesgo bajo",  color:"#EF9F27", bg:"#FEF3E0", icon:"ti-alert-triangle" },
-  { id:"medio",      label:"Riesgo medio", color:"#D85A30", bg:"#FAECE7", icon:"ti-alert-triangle" },
-  { id:"alto",       label:"Riesgo alto",  color:"#E24B4A", bg:"#FDECEA", icon:"ti-flame"          },
+  { id:"sin_riesgo", label:"Sin riesgo",   color:"#16D38A", bg:"rgba(22, 211, 138, 0.15)", icon:"ti-shield-check"   },
+  { id:"bajo",       label:"Riesgo bajo",  color:"#F6B940", bg:"rgba(246, 185, 64, 0.15)", icon:"ti-alert-triangle" },
+  { id:"medio",      label:"Riesgo medio", color:"#FF8B3E", bg:"rgba(255, 139, 62, 0.15)", icon:"ti-alert-triangle" },
+  { id:"alto",       label:"Riesgo alto",  color:"#FF5E73", bg:"rgba(255, 94, 115, 0.15)", icon:"ti-flame"          },
 ];
 
 const segFromPlan = (plan) => {
-  if (!plan) return { label:"Básico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial." };
-  if (plan.includes("Empresas")||plan.includes("1GB")) return { label:"Estratégico", color:"#534AB7", bg:"#EEEDFE", score:100, desc:"Cliente de alto valor. Prioridad máxima." };
-  if (plan.includes("500MB")||plan.includes("VIP"))    return { label:"Alto",        color:"#1D9E75", bg:"#E1F5EE", score:75,  desc:"Cliente consolidado. Buena rentabilidad." };
-  if (plan.includes("200MB"))                          return { label:"Medio",       color:"#EF9F27", bg:"#FEF3E0", score:50,  desc:"Cliente en desarrollo. Potencial de upsell." };
-  return { label:"Básico", color:"#D85A30", bg:"#FAECE7", score:25, desc:"Cliente inicial. Foco en retención." };
+  if (!plan) return { label:"Básico", color:"#FF8B3E", bg:"rgba(255, 139, 62, 0.15)", score:25, desc:"Cliente inicial." };
+  if (plan.includes("Empresas")||plan.includes("1GB")) return { label:"Estratégico", color:"#635BFF", bg:"rgba(99, 91, 255, 0.15)", score:100, desc:"Cliente de alto valor. Prioridad máxima." };
+  if (plan.includes("500MB")||plan.includes("VIP"))    return { label:"Alto",        color:"#16D38A", bg:"rgba(22, 211, 138, 0.15)", score:75,  desc:"Cliente consolidado. Buena rentabilidad." };
+  if (plan.includes("200MB"))                          return { label:"Medio",       color:"#F6B940", bg:"rgba(246, 185, 64, 0.15)", score:50,  desc:"Cliente en desarrollo. Potencial de upsell." };
+  return { label:"Básico", color:"#FF8B3E", bg:"rgba(255, 139, 62, 0.15)", score:25, desc:"Cliente inicial. Foco en retención." };
 };
 
-function DashboardPerfil({ contact, conversations }) {
+function DashboardPerfil({ contact, conversations, isDark, c }) {
+  const themeColors = c || {
+    card: isDark ? '#171A2F' : '#ffffff',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(99, 91, 255, 0.08)',
+    title: isDark ? '#ffffff' : '#101828',
+    subtitle: isDark ? '#A9B0C3' : '#667085',
+    inputBg: isDark ? '#171A2F' : '#EEF2F9',
+    inputText: isDark ? '#ffffff' : '#101828',
+  };
   const cd = contact;
   const seg = segFromPlan(cd.plan);
   const allCSAT = conversations.map(c=>parseFloat(c.csat_final)).filter(n=>!isNaN(n));
@@ -48,7 +56,7 @@ function DashboardPerfil({ contact, conversations }) {
   const det  = allCSAT.filter(c=>c<=2).length;
   const pas  = allCSAT.filter(c=>c===3||c===4).length;
   const nps  = allCSAT.length ? Math.round(((prom-det)/allCSAT.length)*100) : null;
-  const npsColor = nps===null?"#aaa":nps>=50?"#1D9E75":nps>=0?"#EF9F27":"#E24B4A";
+  const npsColor = nps===null?(isDark ? '#70768A' : '#667085'):nps>=50?"#16D38A":nps>=0?"#F6B940":"#FF5E73";
   const npsLabel = nps===null?"Sin datos":nps>=50?"Promotor":nps>=0?"Pasivo":"Detractor";
   
   const cFreq = {};
@@ -63,7 +71,7 @@ function DashboardPerfil({ contact, conversations }) {
   const fScores = { sin_riesgo:0, bajo:25, medio:60, alto:100 };
   const fVals   = conversations.map(c=>fScores[c.fuga_final]||0);
   const fScore  = fVals.length ? Math.round(fVals.reduce((a,b)=>a+b,0)/fVals.length) : 0;
-  const fColor  = fScore>=70?"#E24B4A":fScore>=40?"#D85A30":fScore>=15?"#EF9F27":"#1D9E75";
+  const fColor  = fScore>=70?"#FF5E73":fScore>=40?"#FF8B3E":fScore>=15?"#F6B940":"#16D38A";
   const fLabel  = fScore>=70?"Alto riesgo":fScore>=40?"Riesgo medio":fScore>=15?"Riesgo bajo":"Sin riesgo";
   
   const sScores = { muy_negativo:0, negativo:25, neutral:50, positivo:75, muy_positivo:100 };
@@ -80,7 +88,7 @@ function DashboardPerfil({ contact, conversations }) {
 
   return (
     <div className="contact-360-dashboard">
-      <div className="contact-360-card contact-360-header-card">
+      <div className="contact-360-card contact-360-header-card" style={{ background: themeColors.card, borderColor: themeColors.border }}>
         <div className="contact-360-header-avatar" style={{ background: seg.bg, borderColor: seg.color }}>
           <span style={{ color: seg.color }}>{(cd.cliente_nombre||"?")[0].toUpperCase()}</span>
         </div>
@@ -98,7 +106,7 @@ function DashboardPerfil({ contact, conversations }) {
       
       <div className="contact-360-dashboard-grid">
         {/* Segmento de valor */}
-        <div className="contact-360-card">
+        <div className="contact-360-card" style={{ background: themeColors.card, borderColor: themeColors.border }}>
           <p className="contact-360-card-title">Segmento de valor</p>
           <div className="contact-360-card-header">
             <div className="contact-360-card-icon-container" style={{ background: seg.bg, borderColor: seg.color }}>
@@ -109,8 +117,8 @@ function DashboardPerfil({ contact, conversations }) {
               <p className="contact-360-card-subtitle">{seg.desc}</p>
             </div>
           </div>
-          <div className="contact-360-progress-bg">
-            <div className="contact-360-progress-fill" style={{ width: seg.score + '%', background: seg.color }} />
+          <div className="contact-360-progress-bg" style={{ background: themeColors.inputBg, borderRadius: 4, height: 6, overflow: 'hidden', marginTop: 8 }}>
+            <div className="contact-360-progress-fill" style={{ width: seg.score + '%', background: seg.color, height: '100%', borderRadius: 4 }} />
           </div>
           <div className="contact-360-progress-labels">
             <span className="contact-360-progress-label">Básico</span>
@@ -119,7 +127,7 @@ function DashboardPerfil({ contact, conversations }) {
         </div>
 
         {/* NPS Histórico */}
-        <div className="contact-360-card">
+        <div className="contact-360-card" style={{ background: themeColors.card, borderColor: themeColors.border }}>
           <p className="contact-360-card-title">NPS histórico</p>
           <div className="contact-360-card-header">
             <p className="contact-360-card-value" style={{ color: npsColor }}>{nps!==null?nps:"—"}</p>
@@ -131,8 +139,8 @@ function DashboardPerfil({ contact, conversations }) {
             </div>
           </div>
           <div className="nps-breakdown-container">
-            {[{l:"Promotores",c:"#1D9E75",v:prom},{l:"Pasivos",c:"#EF9F27",v:pas},{l:"Detractores",c:"#E24B4A",v:det}].map(x => (
-              <div key={x.l} className="nps-breakdown-item" style={{ background: x.c + '18' }}>
+            {[{l:"Promotores",c:"#16D38A",v:prom},{l:"Pasivos",c:"#F6B940",v:pas},{l:"Detractores",c:"#FF5E73",v:det}].map(x => (
+              <div key={x.l} className="nps-breakdown-item" style={{ background: x.c + '18', border: `1px solid ${x.c}20` }}>
                 <p style={{ color: x.c }}>{x.v}</p>
                 <p style={{ color: x.c }}>{x.l}</p>
               </div>
@@ -141,12 +149,12 @@ function DashboardPerfil({ contact, conversations }) {
         </div>
 
         {/* Canal Preferido */}
-        <div className="contact-360-card">
+        <div className="contact-360-card" style={{ background: themeColors.card, borderColor: themeColors.border }}>
           <p className="contact-360-card-title">Canal preferido</p>
           {cObj ? (
             <div>
               <div className="contact-360-card-header">
-                <div className="contact-360-card-icon-container" style={{ background: cObj.bg }}>
+                <div className="contact-360-card-icon-container" style={{ background: cObj.bg, borderColor: cObj.color + '30' }}>
                   <i className={'ti ' + cObj.icon + ' contact-360-card-icon-lg'} style={{ color: cObj.color }} aria-hidden="true" />
                 </div>
                 <div>
@@ -158,7 +166,7 @@ function DashboardPerfil({ contact, conversations }) {
                 {cEntries.map(entry => {
                   const chO = CHANNELS.find(ch=>ch.label.toLowerCase().includes(entry[0].toLowerCase()) || ch.id === entry[0])||CHANNELS[0];
                   return (
-                    <div key={entry[0]} className="contact-360-channel-pill" style={{ background: chO.bg }}>
+                    <div key={entry[0]} className="contact-360-channel-pill" style={{ background: chO.bg, border: `1px solid ${chO.color}25` }}>
                       <i className={'ti ' + chO.icon + ' contact-360-channel-pill-icon'} style={{ color: chO.color }} aria-hidden="true" />
                       <span className="contact-360-channel-pill-text" style={{ color: chO.color }}>{entry[0]} ({entry[1]})</span>
                     </div>
@@ -170,7 +178,7 @@ function DashboardPerfil({ contact, conversations }) {
         </div>
 
         {/* Score riesgo fuga */}
-        <div className="contact-360-card">
+        <div className="contact-360-card" style={{ background: themeColors.card, borderColor: themeColors.border }}>
           <p className="contact-360-card-title">Score riesgo de fuga</p>
           <div className="contact-360-card-header">
             <p className="contact-360-card-value" style={{ color: fColor }}>{fScore}</p>
@@ -181,19 +189,19 @@ function DashboardPerfil({ contact, conversations }) {
               <p className="contact-360-card-value-meta">Promedio acumulado</p>
             </div>
           </div>
-          <div className="contact-360-progress-bg" style={{ marginBottom: 8 }}>
-            <div className="contact-360-progress-fill" style={{ width: fScore + '%', background: fColor }} />
+          <div className="contact-360-progress-bg" style={{ background: themeColors.inputBg, borderRadius: 4, height: 6, overflow: 'hidden', marginTop: 8, marginBottom: 12 }}>
+            <div className="contact-360-progress-fill" style={{ width: fScore + '%', background: fColor, height: '100%', borderRadius: 4 }} />
           </div>
           {sEvol.length > 0 && (
             <div>
               <p className="contact-360-evolution-title">Sentimiento por sesión (últimas 10)</p>
-              <div className="sentiment-bar-chart">
+              <div className="sentiment-bar-chart" style={{ background: themeColors.inputBg, borderRadius: 8, padding: '6px 8px', height: 42, display: 'flex', alignItems: 'flex-end', gap: 4 }}>
                 {sEvol.map((s, i) => {
                   const sO = SENTIMIENTOS.find(x => x.id === s.sent) || SENTIMIENTOS[2];
                   return (
-                    <div key={i} className="sentiment-chart-bar" title={sO.label}>
-                      <div className="sentiment-chart-bar-fill" style={{ background: sO.color, height: Math.max(s.score, 12) + '%' }} />
-                      <span>S{s.i}</span>
+                    <div key={i} className="sentiment-chart-bar" title={sO.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <div className="sentiment-chart-bar-fill" style={{ background: sO.color, height: Math.max(s.score, 12) + '%', width: '100%', borderRadius: '2px 2px 0 0', opacity: 0.8 }} />
+                      <span style={{ fontSize: 8, marginTop: 2 }}>S{s.i}</span>
                     </div>
                   );
                 })}
@@ -203,18 +211,31 @@ function DashboardPerfil({ contact, conversations }) {
         </div>
       </div>
       
-      <div className="contact-360-rec-card">
+      <div className="contact-360-rec-card" style={{
+        background: isDark ? 'rgba(99, 91, 255, 0.12)' : '#EEEDFE',
+        border: `0.5px solid ${isDark ? 'rgba(99, 91, 255, 0.25)' : '#CECBF6'}`,
+        borderRadius: 16,
+        padding: 16
+      }}>
         <div className="contact-360-rec-header">
-          <i className="ti ti-sparkles" aria-hidden="true" />
-          <p>Recomendación KUDEN IA</p>
+          <i className="ti ti-sparkles" style={{ fontSize: 14, color: isDark ? '#9E99FF' : '#534AB7' }} aria-hidden="true" />
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: isDark ? '#FFFFFF' : '#26215C' }}>Recomendación KUDEN IA</p>
         </div>
-        <p className="contact-360-rec-text">{rec}</p>
+        <p className="contact-360-rec-text" style={{ margin: 0, fontSize: 12, color: isDark ? '#A9B0C3' : '#26215C', lineHeight: 1.6 }}>{rec}</p>
       </div>
     </div>
   );
 }
 
 export default function Contact360View({ contact, onBack, onEdit, isDark, c, tenantId, userId }) {
+  const themeColors = c || {
+    card: isDark ? '#171A2F' : '#ffffff',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(99, 91, 255, 0.08)',
+    title: isDark ? '#ffffff' : '#101828',
+    subtitle: isDark ? '#A9B0C3' : '#667085',
+    inputBg: isDark ? '#171A2F' : '#EEF2F9',
+    inputText: isDark ? '#ffffff' : '#101828',
+  };
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalSummary, setGlobalSummary] = useState(contact.global_summary || '');
@@ -335,7 +356,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
           <i className="ti ti-edit"></i> Editar Contacto
         </button>
 
-        <div className="contact-360-action-box">
+        <div className="contact-360-action-box" style={{ background: themeColors.card, borderColor: themeColors.border }}>
           <h3>
             <i className="ti ti-message-share"></i> Iniciar Conversación
           </h3>
@@ -356,7 +377,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
           <h3>
             <i className="ti ti-brain"></i> Resumen Global de IA
           </h3>
-          <div className="contact-360-summary-text">
+          <div className="contact-360-summary-text" style={{ background: themeColors.inputBg, borderColor: themeColors.border }}>
             {globalSummary ? (
               <span className="contact-360-summary-content">{globalSummary}</span>
             ) : (
@@ -400,7 +421,7 @@ export default function Contact360View({ contact, onBack, onEdit, isDark, c, ten
           {loading ? (
             <p className="contact-360-loading">Cargando datos...</p>
           ) : activeTab === 'perfil' ? (
-            <DashboardPerfil contact={contact} conversations={conversations} />
+            <DashboardPerfil contact={contact} conversations={conversations} isDark={isDark} c={themeColors} />
           ) : conversations.length === 0 ? (
             <div className="contact-360-empty-state">
               <i className="ti ti-messages" aria-hidden="true"></i>
