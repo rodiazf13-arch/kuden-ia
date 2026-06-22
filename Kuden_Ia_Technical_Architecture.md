@@ -113,14 +113,15 @@ Cuando el LLM determina que el usuario quiere ejecutar una acción (ej. agendar 
 Almacenamiento relacional, authtenticación basada en JWT, y almacenamiento vectorial en una sola plataforma.
 
 ### 5.1. Esquema Relacional Principal
-*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n, `forgotten_ticket_hours_threshold` (Umbral configurable de horas límite para tickets inactivos), y **`voice_webhook_mapping`** (JSONB) que almacena el diccionario de traducción de campos externos para el webhook de llamadas de voz.
+*   `tenants`: Entidades comerciales. Campos: `id`, `name`, `assistant_prompt` (instrucciones base), `llm_provider`, configuraciones de Webhooks de n8n, `forgotten_ticket_hours_threshold` (Umbral configurable de horas límite para tickets inactivos), `industry_type` (Rubro de industria del tenant), y **`voice_webhook_mapping`** (JSONB) que almacena el diccionario de traducción de campos externos para el webhook de llamadas de voz.
 *   `tenant_users`: Los ejecutivos/administradores de la plataforma. Relación M:1 con `tenants`.
 *   `agent_groups`: Grupos operativos (Ej. Nivel 1, Ventas VIP).
 
 *   `agent_group_users`: Relación N:M que define la pertenencia de un `tenant_user` a un `agent_group`.
 *   `campaigns`: Los temas o departamentos lógicos.
 *   `campaign_groups`: Relación N:M que autoriza a un `agent_group` a atender conversaciones de una `campaign`. Soporta `is_default` para enrutamiento inicial automático.
-*   `contacts`: Listado global de contactos. Almacena las propiedades demográficas y columnas cacheadas de BI como `nps_historico` y `riesgo_fuga` (que se auto-calculan a partir de la historia transaccional).
+*   `contacts`: Listado global de contactos. Almacena las propiedades demográficas, columnas cacheadas de BI como `nps_historico` y `riesgo_fuga` (que se auto-calculan a partir de la historia transaccional), y el campo **`custom_fields`** (JSONB) que almacena los valores de campos personalizados mapeados dinámicamente según las definiciones de la empresa.
+*   `tenant_field_definitions` [NEW]: Define los campos de contacto dinámicos y personalizados configurados para cada tenant. Campos: `id`, `tenant_id` (Relación M:1 con `tenants`), `field_key` (Código único), `field_label` (Nombre visual), `field_type` (text, number, date, select), `options` (Valores de lista separados por coma), `is_required` (Booleano), `sort_order` (Entero de ordenamiento), `created_at`.
 *   `conversations` (Leads): Los tickets/chats de contacto. Campos: `id`, `tenant_id`, `contact_id`, `status` (Etapa del Kanban), `canal`, `campaign_id`, `assigned_group_id` (Grupo asignado), `assigned_to` (Ejecutivo), `ticket_id` (ID autogenerado para rastreo), `resumen_ejecutivo`.
 *   `conversation_messages`: Los mensajes de cada conversación. Campos: `conversation_id`, `sender` (user/agent/system), `content` (Texto), `attached_files` (Array JSON), `timestamp`.
 *   `knowledge_documents` & `document_chunks`: Base RAG. `document_chunks` utiliza el índice **HNSW** (`vector_cosine_ops`) sobre vectores fijos de 768 dimensiones para garantizar velocidad de recuperación a gran escala.

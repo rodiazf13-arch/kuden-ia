@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function AIConfigManager({ tenantId, isDark = true }) {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,17 +29,6 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionAiProfile, setSuggestionAiProfile] = useState({});
-
-  const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    inputBg:   isDark ? '#1a1a1a' : '#f9fafb',
-    inputText: isDark ? '#ffffff' : '#111827',
-    label:     isDark ? '#888888' : '#6b7280',
-    sectionHd: isDark ? '#cccccc' : '#374151',
-  };
 
   useEffect(() => {
     if (tenantId) {
@@ -193,50 +184,52 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
     }
   };
 
-  const inputStyle = {
-    backgroundColor: c.inputBg,
-    border: `1px solid ${c.border}`,
-    borderRadius: '8px',
-    padding: '10px',
-    color: c.inputText,
-    outline: 'none',
-    fontSize: '14px',
-    width: '100%',
-    boxSizing: 'border-box'
-  };
-
   if (!tenantId) return (
-    <div style={{ color: c.subtitle, padding: '40px', textAlign: 'center' }}>
+    <div className="aiconfig-subtitle" style={{ padding: '40px', textAlign: 'center' }}>
       Tu cuenta no está vinculada a ninguna empresa. Contacta al administrador.
     </div>
   );
 
-  if (loading) return <p style={{ color: c.subtitle }}>Cargando configuración maestra...</p>;
+  if (loading) return <p className="aiconfig-subtitle">Cargando configuración maestra...</p>;
 
   return (
-    <div style={{ maxWidth: '800px' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Inteligencia Interna Kuden</h2>
-      <p style={{ margin: '0 0 24px', fontSize: '14px', color: c.subtitle, lineHeight: 1.5 }}>
+    <div className="aiconfig-container">
+      <h2 className="aiconfig-title">Inteligencia Interna Kuden</h2>
+      <p className="aiconfig-subtitle">
         Configura qué modelos procesan las tareas internas de la plataforma (como reportería, análisis y Kimi Co-Piloto).
       </p>
 
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
-      {success && <div style={{ background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.5)', color: '#1D9E75', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>✅ Configuración de Inteligencia Interna actualizada correctamente.</div>}
+      {error && (
+        <div className="aiconfig-alert error">
+          <i className="ti ti-alert-triangle"></i>
+          {error}
+        </div>
+      )}
+      
+      {success && (
+        <div className="aiconfig-alert success">
+          <i className="ti ti-circle-check"></i>
+          Configuración de Inteligencia Interna actualizada correctamente.
+        </div>
+      )}
 
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px' }}>
-        <h3 style={{ margin: '0 0 20px', fontSize: '16px', color: c.sectionHd }}>Modelos de Inteligencia Interna</h3>
-        <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
+      <div className="aiconfig-card">
+        <h3 className="aiconfig-section-title">Modelos de Inteligencia Interna</h3>
+        <p className="aiconfig-section-subtitle">
           Elige los proveedores y modelos que Kuden utilizará por detrás para realizar tareas operativas. Elegir modelos económicos para resúmenes puede ahorrar mucho presupuesto.
         </p>
 
-        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <form onSubmit={handleSave} className="aiconfig-form-grid">
           
           {/* KIMI COPILOT */}
-          <div style={{ gridColumn: '1 / -1', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', padding: '16px', borderRadius: '8px' }}>
-            <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#2563eb' }}>Kimi Co-Piloto</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Proveedor LLM</label>
+          <div className="aiconfig-sub-card kimi">
+            <h4 className="aiconfig-sub-card-title">
+              <i className="ti ti-cpu"></i>
+              Kimi Co-Piloto
+            </h4>
+            <div className="aiconfig-sub-grid">
+              <div className="aiconfig-input-wrapper">
+                <label className="aiconfig-label">Proveedor LLM</label>
                 <select value={kimiProvider} onChange={e => {
                   setKimiProvider(e.target.value);
                   if (e.target.value === 'anthropic') setKimiModel('claude-sonnet-4-6');
@@ -247,7 +240,7 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                     if (openRouterModels.length > 0) setKimiModel(openRouterModels[0].id);
                     else setKimiModel('');
                   }
-                }} style={inputStyle}>
+                }}>
                   <option value="anthropic">Anthropic</option>
                   <option value="openai">OpenAI</option>
                   <option value="gemini">Google</option>
@@ -255,9 +248,9 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                   <option value="openrouter">OpenRouter</option>
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Modelo Específico</label>
-                <select value={kimiModel} onChange={e => setKimiModel(e.target.value)} disabled={loadingModels} style={inputStyle}>
+              <div className="aiconfig-input-wrapper">
+                <label className="aiconfig-label">Modelo Específico</label>
+                <select value={kimiModel} onChange={e => setKimiModel(e.target.value)} disabled={loadingModels}>
                   {kimiProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
                   {kimiProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
                   {kimiProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
@@ -269,11 +262,14 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
           </div>
 
           {/* SUMMARY ANALYST */}
-          <div style={{ gridColumn: '1 / -1', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', padding: '16px', borderRadius: '8px' }}>
-            <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#d97706' }}>Analista de Resúmenes (Cierre de Tickets)</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Proveedor LLM</label>
+          <div className="aiconfig-sub-card summary">
+            <h4 className="aiconfig-sub-card-title">
+              <i className="ti ti-notes"></i>
+              Analista de Resúmenes (Cierre de Tickets)
+            </h4>
+            <div className="aiconfig-sub-grid">
+              <div className="aiconfig-input-wrapper">
+                <label className="aiconfig-label">Proveedor LLM</label>
                 <select value={summaryProvider} onChange={e => {
                   setSummaryProvider(e.target.value);
                   if (e.target.value === 'anthropic') setSummaryModel('claude-haiku-4-5-20251001');
@@ -284,7 +280,7 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                     if (openRouterModels.length > 0) setSummaryModel(openRouterModels[0].id);
                     else setSummaryModel('');
                   }
-                }} style={inputStyle}>
+                }}>
                   <option value="anthropic">Anthropic</option>
                   <option value="openai">OpenAI</option>
                   <option value="gemini">Google</option>
@@ -292,9 +288,9 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                   <option value="openrouter">OpenRouter</option>
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: c.label, marginBottom: 4 }}>Modelo Específico</label>
-                <select value={summaryModel} onChange={e => setSummaryModel(e.target.value)} disabled={loadingModels} style={inputStyle}>
+              <div className="aiconfig-input-wrapper">
+                <label className="aiconfig-label">Modelo Específico</label>
+                <select value={summaryModel} onChange={e => setSummaryModel(e.target.value)} disabled={loadingModels}>
                   {summaryProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
                   {summaryProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
                   {summaryProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
@@ -305,51 +301,59 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
             </div>
           </div>
 
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-            <button type="submit" disabled={saving}
-              style={{ backgroundColor: '#1D9E75', color: '#fff', fontWeight: '500', padding: '10px 28px', borderRadius: '8px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontSize: '14px' }}>
-              {saving ? 'Guardando...' : 'Guardar Configuración'}
+          <div className="aiconfig-footer">
+            <button type="submit" disabled={saving} className="aiconfig-btn-primary">
+              {saving ? (
+                <>
+                  <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite' }}></i>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <i className="ti ti-device-floppy"></i>
+                  Guardar Configuración
+                </>
+              )}
             </button>
           </div>
         </form>
       </div>
 
       {/* BUZÓN RAG AUTO-DIDACTA */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '24px', marginTop: '24px' }}>
-        <h3 style={{ margin: '0 0 8px', fontSize: '16px', color: c.sectionHd, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <i className="ti ti-bulb" style={{ color: '#eab308', fontSize: '18px' }}></i>
+      <div className="aiconfig-card">
+        <h3 className="aiconfig-rag-header">
+          <i className="ti ti-bulb"></i>
           Buzón de Entrenamiento Auto-Didacta (RAG)
         </h3>
-        <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
+        <p className="aiconfig-section-subtitle">
           Kimi analiza las conversaciones de los humanos e identifica soluciones nuevas que no estaban en su base de datos. Aprueba las sugerencias y asígnalas a un perfil para que las memorice automáticamente.
         </p>
 
         {loadingSuggestions ? (
-          <p style={{ fontSize: '13px', color: c.subtitle }}>Buscando sugerencias...</p>
+          <p className="aiconfig-section-subtitle">Buscando sugerencias...</p>
         ) : suggestions.length === 0 ? (
-          <p style={{ fontSize: '13px', color: c.subtitle, fontStyle: 'italic', background: c.inputBg, padding: '16px', borderRadius: '8px', border: `1px dashed ${c.border}` }}>
+          <p className="aiconfig-rag-empty">
             No hay sugerencias nuevas. La IA sigue analizando tickets.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="aiconfig-rag-list">
             {suggestions.map(sug => (
-              <div key={sug.id} style={{ background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '16px' }}>
+              <div key={sug.id} className="aiconfig-rag-item">
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '12px', color: c.label, fontWeight: 'bold' }}>Pregunta Detectada (Cliente):</label>
-                  <p style={{ margin: '4px 0 0', fontSize: '14px', color: c.title }}>{sug.suggested_question}</p>
+                  <span className="aiconfig-rag-item-label">Pregunta Detectada (Cliente)</span>
+                  <p className="aiconfig-rag-item-text">{sug.suggested_question}</p>
                 </div>
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ fontSize: '12px', color: c.label, fontWeight: 'bold' }}>Solución Dada (Humano):</label>
-                  <p style={{ margin: '4px 0 0', fontSize: '14px', color: c.title, background: isDark ? '#262626' : '#e5e7eb', padding: '10px', borderRadius: '6px' }}>{sug.suggested_answer}</p>
+                  <span className="aiconfig-rag-item-label">Solución Dada (Humano)</span>
+                  <p className="aiconfig-rag-item-answer">{sug.suggested_answer}</p>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderTop: `1px solid ${c.border}`, paddingTop: '16px' }}>
-                  <div style={{ flex: '1 1 200px' }}>
-                    <label style={{ fontSize: '11px', color: c.label, display: 'block', marginBottom: '4px' }}>Asignar conocimiento a:</label>
+                <div className="aiconfig-rag-assignment-row">
+                  <div className="aiconfig-rag-select-group">
+                    <span className="aiconfig-rag-item-label">Asignar conocimiento a</span>
                     <select 
                       value={suggestionAiProfile[sug.id] || ''}
                       onChange={e => setSuggestionAiProfile({...suggestionAiProfile, [sug.id]: e.target.value})}
-                      style={{ ...inputStyle, padding: '8px' }}
                     >
                       <option value="">-- Seleccionar Perfil IA --</option>
                       {dbProfiles.map(p => (
@@ -358,17 +362,18 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                     </select>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                  <div className="aiconfig-rag-actions">
                     <button 
                       onClick={() => handleRejectSuggestion(sug.id)}
-                      style={{ background: 'transparent', border: `1px solid #ef4444`, color: '#ef4444', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+                      className="aiconfig-btn-reject"
                     >
                       Descartar
                     </button>
                     <button 
                       onClick={() => handleApproveSuggestion(sug)}
-                      style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
+                      className="aiconfig-btn-approve"
                     >
+                      <i className="ti ti-circle-check"></i>
                       Aprobar e Inyectar
                     </button>
                   </div>
@@ -381,3 +386,4 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
     </div>
   );
 }
+
