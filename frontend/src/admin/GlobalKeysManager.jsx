@@ -54,26 +54,41 @@ export default function GlobalKeysManager({ isDark = true }) {
 
   if (loading) return <div style={{ padding: '40px 20px', color: 'var(--color-text-secondary)', textAlign: 'center' }}>Cargando configuraciones globales...</div>;
 
-  const renderKeyRow = (label, keyName, placeholder) => (
-    <div className="keys-card">
-      <h3 className="keys-card-title">{label}</h3>
-      <div className="keys-form-row">
-        <input 
-          type="password"
-          placeholder={placeholder}
-          value={keys[keyName]}
-          onChange={e => setKeys({ ...keys, [keyName]: e.target.value })}
-          className="keys-input"
-        />
-        <button 
-          onClick={() => handleSave(keyName)}
-          disabled={saving}
-          className="keys-btn-save">
-          {saving ? 'Guardando...' : 'Guardar'}
-        </button>
+  const renderKeyRow = (label, keyName, placeholder) => {
+    const isConfigured = keys[keyName] && keys[keyName].length > 0;
+    
+    return (
+      <div className="keys-card">
+        <div className="keys-card-header">
+          <h3 className="keys-card-title">{label}</h3>
+          {isConfigured ? (
+            <span className="keys-badge configured">
+              <i className="ti ti-check"></i> Configurada
+            </span>
+          ) : (
+            <span className="keys-badge missing">
+              <i className="ti ti-x"></i> Sin configurar
+            </span>
+          )}
+        </div>
+        <div className="keys-form-row">
+          <input 
+            type="password"
+            placeholder={placeholder}
+            value={keys[keyName]}
+            onChange={e => setKeys({ ...keys, [keyName]: e.target.value })}
+            className="keys-input"
+          />
+          <button 
+            onClick={() => handleSave(keyName)}
+            disabled={saving}
+            className="keys-btn-save">
+            {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="keys-container">
