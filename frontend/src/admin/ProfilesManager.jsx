@@ -179,126 +179,135 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
     } catch (err) { alert('Error al eliminar: ' + err.message); }
   };
 
-  const inputStyle = {
-    backgroundColor: c.inputBg, border: `1px solid ${c.border}`,
-    borderRadius: '8px', padding: '10px', color: c.inputText,
-    outline: 'none', fontSize: '14px', width: '100%', boxSizing: 'border-box'
+  const ProfileCard = ({ p, isOwnProfile = true }) => {
+    const cardBgColor = isDark ? 'rgba(255, 255, 255, 0.04)' : p.bg;
+    const cardBorderColor = isDark ? `${p.color}40` : `${p.color}60`;
+
+    return (
+      <div
+        className={`profiles-item-card ${isDark ? 'dark-mode-card' : 'light-mode-card'}`}
+        style={{
+          background: cardBgColor,
+          borderColor: cardBorderColor,
+          borderLeft: isDark ? `4px solid ${p.color}` : `1px solid ${cardBorderColor}`
+        }}
+      >
+        {/* Badge global */}
+        {p.is_global && (
+          <span className="profiles-badge-global">
+            ⭐ Plantilla Kuden
+          </span>
+        )}
+
+        {/* Badge Router */}
+        {p.is_router && (
+          <span className="profiles-badge-router" style={{ left: p.is_global ? '120px' : '10px' }}>
+            🤖 Agente Maestro
+          </span>
+        )}
+
+        {/* Acciones (solo para propios) */}
+        {isOwnProfile && (
+          <div className="profiles-item-actions">
+            {isSuperAdmin && (
+              <button onClick={() => toggleGlobal(p)} title={p.is_global ? 'Quitar de plantillas globales' : 'Publicar como plantilla global'}
+                className={`profiles-action-btn btn-star ${p.is_global ? 'active' : ''}`}>
+                {p.is_global ? '★' : '☆'}
+              </button>
+            )}
+            <button onClick={() => editProfile(p)} title="Editar" className="profiles-action-btn">
+              <i className="ti ti-pencil"></i>
+            </button>
+            <button onClick={() => handleDelete(p.id)} title="Eliminar" className="profiles-action-btn btn-delete">
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className={`profiles-item-header ${(p.is_global || p.is_router || isOwnProfile) ? 'has-badges' : ''}`}>
+          <div className="profiles-icon-container" style={{ background: p.color }}>
+            <i className={`ti ${p.icon}`}></i>
+          </div>
+          <div className="profiles-item-name-group">
+            <p className="profiles-item-label-row">
+              {p.label}
+              <span className="profiles-item-provider-badge">{p.llm_provider || 'anthropic'}</span>
+            </p>
+            <p className="profiles-item-desc">{p.description}</p>
+          </div>
+        </div>
+
+        <div className={`profiles-quote-box ${isDark ? 'dark-mode-quote' : 'light-mode-quote'}`}>
+          <p className="profiles-quote-title" style={{ color: p.color }}>📋 Cómo responde KUDEN</p>
+          <p className="profiles-quote-text">"{p.persona_prompt}"</p>
+        </div>
+
+        <div className={`profiles-quote-box ${isDark ? 'dark-mode-quote' : 'light-mode-quote'}`}>
+          <p className="profiles-quote-title" style={{ color: p.color }}>💬 Ejemplo de mensaje del cliente</p>
+          <p className="profiles-quote-text italic">"{p.hint_text}"</p>
+        </div>
+      </div>
+    );
   };
 
-  const ProfileCard = ({ p, isOwnProfile = true }) => (
-    <div style={{ background: p.bg, border: `2px solid ${p.color}30`, borderRadius: '12px', padding: '20px', position: 'relative' }}>
-
-      {/* Badge global */}
-      {p.is_global && (
-        <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#f59e0b20', color: '#f59e0b', border: '1px solid #f59e0b40', fontWeight: '700' }}>
-          ⭐ Plantilla Kuden
-        </span>
-      )}
-
-      {/* Badge Router */}
-      {p.is_router && (
-        <span style={{ position: 'absolute', top: '10px', left: p.is_global ? '120px' : '10px', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#2563eb20', color: '#2563eb', border: '1px solid #2563eb40', fontWeight: '700' }}>
-          🤖 Agente Maestro
-        </span>
-      )}
-
-      {/* Acciones (solo para propios) */}
-      {isOwnProfile && (
-        <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '6px' }}>
-          {isSuperAdmin && (
-            <button onClick={() => toggleGlobal(p)} title={p.is_global ? 'Quitar de plantillas globales' : 'Publicar como plantilla global'}
-              style={{ background: p.is_global ? '#f59e0b20' : 'rgba(0,0,0,0.1)', border: `1px solid ${p.is_global ? '#f59e0b60' : 'transparent'}`, color: p.is_global ? '#f59e0b' : '#555', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px', fontSize: '12px' }}>
-              {p.is_global ? '⭐' : '☆'}
-            </button>
-          )}
-          <button onClick={() => editProfile(p)} title="Editar"
-            style={{ background: 'rgba(0,0,0,0.1)', border: 'none', color: '#555', cursor: 'pointer', borderRadius: '6px', width: '24px', height: '24px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <i className="ti ti-pencil"></i>
-          </button>
-          <button onClick={() => handleDelete(p.id)} title="Eliminar"
-            style={{ background: 'rgba(0,0,0,0.1)', border: 'none', color: '#555', cursor: 'pointer', borderRadius: '6px', width: '24px', height: '24px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', marginTop: (p.is_global || p.is_router || isOwnProfile) ? '18px' : '0' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <i className={`ti ${p.icon}`} style={{ fontSize: '18px', color: '#fff' }}></i>
-        </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
-            {p.label}
-            <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.1)', padding: '2px 6px', borderRadius: 10, color: '#4b5563' }}>{p.llm_provider || 'anthropic'}</span>
-          </p>
-          <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>{p.description}</p>
-        </div>
-      </div>
-
-      <div style={{ background: 'rgba(255,255,255,0.65)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-        <p style={{ margin: '0 0 4px', fontSize: '10px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.06em', color: p.color }}>📋 Cómo responde KUDEN</p>
-        <p style={{ margin: 0, fontSize: '12px', color: '#333', lineHeight: 1.5 }}>"{p.persona_prompt}"</p>
-      </div>
-
-      <div style={{ background: 'rgba(255,255,255,0.65)', borderRadius: '8px', padding: '10px' }}>
-        <p style={{ margin: '0 0 4px', fontSize: '10px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.06em', color: p.color }}>💬 Ejemplo de mensaje del cliente</p>
-        <p style={{ margin: 0, fontSize: '12px', color: '#555', fontStyle: 'italic' }}>"{p.hint_text}"</p>
-      </div>
-    </div>
-  );
-
   if (!tenantId) return (
-    <div style={{ color: c.subtitle, padding: '40px', textAlign: 'center' }}>
+    <div className="profiles-subtitle" style={{ padding: '40px', textAlign: 'center' }}>
       Tu cuenta no está vinculada a ninguna empresa. Contacta al administrador.
     </div>
   );
 
   return (
-    <div>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Perfiles del Agente IA</h2>
-      <p style={{ margin: '0 0 24px', fontSize: '14px', color: c.subtitle }}>
+    <div className="profiles-container">
+      <h2 className="profiles-title">Perfiles del Agente IA</h2>
+      <p className="profiles-subtitle">
         Define cómo responde <strong>KUDEN</strong> según el tipo de atención. El cliente siempre es humano; estos perfiles le indican a la IA su tono y enfoque.
-        {isSuperAdmin && <span style={{ color: '#24b9eb' }}> Como Super Admin, puedes publicar perfiles como <strong>Plantillas Kuden</strong> para que estén disponibles en todas las empresas.</span>}
+        {isSuperAdmin && <span style={{ color: 'var(--color-cta)', marginLeft: '4px' }}> Como Super Admin, puedes publicar perfiles como <strong>Plantillas Kuden</strong> para que estén disponibles en todas las empresas.</span>}
       </p>
 
-      {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', padding: '12px', borderRadius: '8px', marginBottom: '20px' }}>{error}</div>}
+      {error && <div className="profiles-alert error"><i className="ti ti-alert-triangle" style={{ fontSize: '16px' }}></i>{error}</div>}
 
       {/* ── Formulario ── */}
-      <div style={{ background: c.card, border: `1px solid ${editingId ? '#2563eb' : c.border}`, borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-          <h3 style={{ margin: 0, fontSize: '16px', color: editingId ? '#2563eb' : c.sectionHd }}>{editingId ? 'Editar Perfil' : 'Crear Nuevo Perfil'}</h3>
-          {editingId && <button onClick={resetForm} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "12px", textDecoration: "underline" }}>Cancelar edición</button>}
+      <div className={`profiles-card ${editingId ? 'editing' : ''}`}>
+        <div className="profiles-card-header">
+          <h3 className={`profiles-card-title ${editingId ? 'editing' : ''}`}>
+            {editingId ? 'Editar Perfil' : 'Crear Nuevo Perfil'}
+          </h3>
+          {editingId && (
+            <button onClick={resetForm} className="profiles-cancel-btn">
+              Cancelar edición
+            </button>
+          )}
         </div>
-        <p style={{ margin: '0 0 20px', fontSize: '13px', color: c.subtitle }}>
+        <p className="profiles-form-desc">
           Ejemplos: <em>"Soporte Técnico Empático"</em>, <em>"Ventas Primer Contacto"</em>, <em>"Retención VIP"</em>, <em>"Reclamos Alta Frustración"</em>.
         </p>
-        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <form onSubmit={handleCreate} className="profiles-form-grid">
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Nombre del Perfil</label>
-            <input type="text" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Soporte Técnico Empático" required style={inputStyle} />
+          <div className="profiles-input-wrapper">
+            <label className="profiles-label">Nombre del Perfil</label>
+            <input type="text" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Soporte Técnico Empático" required className="profiles-input" />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Descripción Corta</label>
-            <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ej: Para clientes con problemas de servicio" required style={inputStyle} />
+          <div className="profiles-input-wrapper">
+            <label className="profiles-label">Descripción Corta</label>
+            <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ej: Para clientes con problemas de servicio" required className="profiles-input" />
           </div>
 
-          <div style={{ gridColumn: '1 / -1', background: isRouter ? (isDark ? 'rgba(37,99,235,0.05)' : '#eff6ff') : 'transparent', border: `1px solid ${isRouter ? '#2563eb50' : c.border}`, borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-              <input type="checkbox" checked={isRouter} onChange={e => setIsRouter(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: c.title }}>🤖 Configurar este perfil como Agente Maestro (Router)</span>
+          <div className={`profiles-checkbox-card ${isRouter ? 'active' : ''}`}>
+            <label className="profiles-checkbox-label">
+              <input type="checkbox" checked={isRouter} onChange={e => setIsRouter(e.target.checked)} className="profiles-checkbox-input" />
+              <span className="profiles-checkbox-text">🤖 Configurar este perfil como Agente Maestro (Router)</span>
             </label>
 
             {isRouter && (
-              <div style={{ marginLeft: 24 }}>
-                <p style={{ margin: '0 0 10px', fontSize: 12, color: c.subtitle }}>Selecciona a qué otros perfiles podrá enrutar las conversaciones este Agente Maestro:</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="profiles-router-sub-container">
+                <p className="profiles-router-sub-text">Selecciona a qué otros perfiles podrá enrutar las conversaciones este Agente Maestro:</p>
+                <div className="profiles-router-badge-group">
                   {profiles.filter(p => p.id !== editingId).map(p => {
                     const isSelected = subProfileIds.includes(p.id);
                     return (
-                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: isSelected ? '#2563eb20' : (isDark ? '#222' : '#f0f0f0'), border: `1px solid ${isSelected ? '#2563eb' : c.border}`, padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, color: isSelected ? (isDark ? '#60a5fa' : '#2563eb') : c.inputText }}>
+                      <label key={p.id} className={`profiles-router-tag-label ${isSelected ? 'active' : ''}`}>
                         <input type="checkbox" checked={isSelected}
                           onChange={e => {
                             if (e.target.checked) setSubProfileIds([...subProfileIds, p.id]);
@@ -315,99 +324,98 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, gridColumn: '1 / -1' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>Proveedor de Inteligencia (LLM)</label>
-              <select value={llmProvider} onChange={e => {
-                setLlmProvider(e.target.value);
-                if (e.target.value === 'anthropic') setLlmModel('claude-3-5-sonnet-20240620');
-                else if (e.target.value === 'openai') setLlmModel('gpt-4o-mini');
-                else if (e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
-                else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
-                else if (e.target.value === 'openrouter') {
-                  if (openRouterModels.length > 0) setLlmModel(openRouterModels[0].id);
-                  else setLlmModel('');
-                }
-              }} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
-                <option value="anthropic">Anthropic (Claude)</option>
-                <option value="openai">OpenAI (GPT)</option>
-                <option value="gemini">Google (Gemini)</option>
-                <option value="groq">Groq (Llama 3)</option>
-                <option value="openrouter">OpenRouter (Universal)</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, color: c.label, marginBottom: 4 }}>
-                Modelo Específico {loadingModels && <span style={{fontSize: 10, color: '#2563eb'}}>(Cargando...)</span>}
-              </label>
-              <select value={llmModel} onChange={e => setLlmModel(e.target.value)} disabled={loadingModels} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
-                {llmProvider === 'anthropic' && (
-                  <>
-                    <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Inteligente)</option>
-                    <option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku (Rápido)</option>
-                  </>
-                )}
-                {llmProvider === 'openai' && (
-                  <>
-                    <option value="gpt-5">GPT-5 (Inteligente)</option>
-                    <option value="gpt-5-mini">GPT-5 Mini (Rápido)</option>
-                  </>
-                )}
-                {llmProvider === 'gemini' && (
-                  <>
-                    <option value="gemini-3.1-pro">Gemini 3.1 Pro (Inteligente)</option>
-                    <option value="gemini-3.5-flash">Gemini 3.5 Flash (Rápido)</option>
-                  </>
-                )}
-                {llmProvider === 'groq' && (
-                  <>
-                    <option value="llama-4-70b-8192">Llama 4 70B (Inteligente)</option>
-                    <option value="llama-4-8b-8192">Llama 4 8B (Rápido)</option>
-                  </>
-                )}
-                {llmProvider === 'openrouter' && openRouterModels.map(m => (
-                  <option key={m.id} value={m.id}>{m.id} ({m.pricing?.prompt ? `$${(m.pricing.prompt * 1000000).toFixed(2)}/1M` : 'Gratis'})</option>
-                ))}
-              </select>
-            </div>
+          {/* Provider and Model selectors */}
+          <div className="profiles-input-wrapper">
+            <label className="profiles-label">Proveedor de Inteligencia (LLM)</label>
+            <select value={llmProvider} onChange={e => {
+              setLlmProvider(e.target.value);
+              if (e.target.value === 'anthropic') setLlmModel('claude-3-5-sonnet-20240620');
+              else if (e.target.value === 'openai') setLlmModel('gpt-4o-mini');
+              else if (e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
+              else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
+              else if (e.target.value === 'openrouter') {
+                if (openRouterModels.length > 0) setLlmModel(openRouterModels[0].id);
+                else setLlmModel('');
+              }
+            }} className="profiles-select">
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI (GPT)</option>
+              <option value="gemini">Google (Gemini)</option>
+              <option value="groq">Groq (Llama 3)</option>
+              <option value="openrouter">OpenRouter (Universal)</option>
+            </select>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: '1 / -1' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>
+          <div className="profiles-input-wrapper">
+            <label className="profiles-label">
+              Modelo Específico {loadingModels && <span style={{ fontSize: 10, color: 'var(--color-primary)' }}>(Cargando...)</span>}
+            </label>
+            <select value={llmModel} onChange={e => setLlmModel(e.target.value)} disabled={loadingModels} className="profiles-select">
+              {llmProvider === 'anthropic' && (
+                <>
+                  <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Inteligente)</option>
+                  <option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku (Rápido)</option>
+                </>
+              )}
+              {llmProvider === 'openai' && (
+                <>
+                  <option value="gpt-5">GPT-5 (Inteligente)</option>
+                  <option value="gpt-5-mini">GPT-5 Mini (Rápido)</option>
+                </>
+              )}
+              {llmProvider === 'gemini' && (
+                <>
+                  <option value="gemini-3.1-pro">Gemini 3.1 Pro (Inteligente)</option>
+                  <option value="gemini-3.5-flash">Gemini 3.5 Flash (Rápido)</option>
+                </>
+              )}
+              {llmProvider === 'groq' && (
+                <>
+                  <option value="llama-4-70b-8192">Llama 4 70B (Inteligente)</option>
+                  <option value="llama-4-8b-8192">Llama 4 8B (Rápido)</option>
+                </>
+              )}
+              {llmProvider === 'openrouter' && openRouterModels.map(m => (
+                <option key={m.id} value={m.id}>{m.id} ({m.pricing?.prompt ? `$${(m.pricing.prompt * 1000000).toFixed(2)}/1M` : 'Gratis'})</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="profiles-input-wrapper full-width">
+            <label className="profiles-label">
               {isRouter ? 'Instrucciones Base (Routing Prompt)' : 'Instrucciones para KUDEN — ¿Cómo debe responder el agente IA?'}
             </label>
             <textarea value={persona} onChange={e => setPersona(e.target.value)} rows={3}
               placeholder={isRouter ? "Ej: Eres el recepcionista central. Saluda y deriva al perfil correspondiente." : "Ej: Responde con empatía y paciencia..."}
-              required style={{ ...inputStyle, resize: 'vertical' }} />
+              required className="profiles-textarea" />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: '1 / -1' }}>
-            <label style={{ fontSize: '12px', color: c.label }}>Mensaje de muestra del cliente</label>
+          <div className="profiles-input-wrapper full-width">
+            <label className="profiles-label">Mensaje de muestra del cliente</label>
             <input type="text" value={hint} onChange={e => setHint(e.target.value)}
-              placeholder="Ej: Llevo 3 días sin internet y nadie me da solución" required style={inputStyle} />
+              placeholder="Ej: Llevo 3 días sin internet y nadie me da solución" required className="profiles-input" />
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', gridColumn: '1 / -1' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-              <label style={{ fontSize: '12px', color: c.label }}>Color principal</label>
-              <input type="color" value={color} onChange={e => setColor(e.target.value)}
-                style={{ width: '100%', height: '40px', backgroundColor: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', cursor: 'pointer' }} />
+          {/* Color & Icon pickers row */}
+          <div className="profiles-row-pickers">
+            <div className="profiles-picker-group">
+              <label className="profiles-label">Color principal</label>
+              <input type="color" value={color} onChange={e => setColor(e.target.value)} className="profiles-color-picker-input" />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-              <label style={{ fontSize: '12px', color: c.label }}>Color de fondo</label>
-              <input type="color" value={bg} onChange={e => setBg(e.target.value)}
-                style={{ width: '100%', height: '40px', backgroundColor: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', cursor: 'pointer' }} />
+            <div className="profiles-picker-group">
+              <label className="profiles-label">Color de fondo</label>
+              <input type="color" value={bg} onChange={e => setBg(e.target.value)} className="profiles-color-picker-input" />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, position: 'relative' }}>
-              <label style={{ fontSize: '12px', color: c.label }}>Ícono (Tabler Icons)</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div style={{ width: '40px', height: '40px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.inputText }}>
+            <div className="profiles-picker-group" style={{ position: 'relative' }}>
+              <label className="profiles-label">Ícono (Tabler Icons)</label>
+              <div className="profiles-icon-picker-container">
+                <div className="profiles-icon-preview">
                   <i className={`ti ${icon}`} style={{ fontSize: '20px' }}></i>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIconPickerOpen(!iconPickerOpen)}
-                  style={{ flex: 1, padding: '0 12px', background: c.inputBg, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.inputText, fontSize: '14px', textAlign: 'left', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  className="profiles-icon-picker-btn"
                 >
                   {icon || 'Seleccionar Ícono'}
                   <i className="ti ti-chevron-down"></i>
@@ -415,31 +423,31 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               </div>
 
               {iconPickerOpen && (
-                <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '8px', background: c.card, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '12px', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                <div className="profiles-icon-picker-popover">
                   {COMMON_ICONS.map(ic => (
                     <button
                       key={ic}
                       type="button"
                       onClick={() => { setIcon(ic); setIconPickerOpen(false); }}
                       title={ic}
-                      style={{ height: '36px', background: icon === ic ? 'rgba(37,99,235,0.1)' : 'transparent', border: `1px solid ${icon === ic ? '#2563eb' : c.border}`, borderRadius: '6px', cursor: 'pointer', color: icon === ic ? '#2563eb' : c.inputText, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      className={`profiles-icon-grid-btn ${icon === ic ? 'active' : ''}`}
                     >
                       <i className={`ti ${ic}`} style={{ fontSize: '18px' }}></i>
                     </button>
                   ))}
                   <div style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
-                    <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="Código manual (ej: ti-home)" style={{ ...inputStyle, padding: '6px 10px', fontSize: '12px' }} />
+                    <input type="text" value={icon} onChange={e => setIcon(e.target.value)} placeholder="Código manual (ej: ti-home)" className="profiles-input" style={{ padding: '6px 10px', fontSize: '12px' }} />
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Destino de la Plantilla — solo visible para superAdmin cuando NO está impersonando */}
+          {/* Superadmin Destination dropdown */}
           {isSuperAdmin && (
-            <div style={{ gridColumn: '1 / -1', background: targetTenantId === 'global' ? c.globalBg : (isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb'), border: `1px solid ${targetTenantId === 'global' ? c.globalBdr : c.border}`, borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s' }}>
-              <label style={{ fontSize: '13px', color: c.title, fontWeight: 600 }}>Destino del Perfil IA</label>
-              <select value={targetTenantId} onChange={e => setTargetTenantId(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: `1px solid ${c.border}`, background: c.inputBg, color: c.inputText, outline: 'none', fontSize: 14 }}>
+            <div className={`profiles-superadmin-box ${targetTenantId === 'global' ? 'global' : ''}`}>
+              <label className="profiles-superadmin-box-title">Destino del Perfil IA</label>
+              <select value={targetTenantId} onChange={e => setTargetTenantId(e.target.value)} className="profiles-select">
                 <option value="own">Solo Interno (Kuden Demo Tenant)</option>
                 <option value="global">⭐ Plantilla Global (Visible en modo lectura para todos los clientes)</option>
                 {allTenants.map(t => (
@@ -447,10 +455,10 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                 ))}
               </select>
               {targetTenantId === 'global' && (
-                <p style={{ margin: 0, fontSize: '12px', color: c.subtitle }}>Este perfil estará disponible para todas las empresas clientes en su lista de "Plantillas Kuden".</p>
+                <p className="profiles-superadmin-desc">Este perfil estará disponible para todas las empresas clientes en su lista de "Plantillas Kuden".</p>
               )}
               {targetTenantId !== 'global' && targetTenantId !== 'own' && (
-                <p style={{ margin: 0, fontSize: '12px', color: c.subtitle }}>Este perfil se creará directamente en el entorno de la empresa seleccionada.</p>
+                <p className="profiles-superadmin-desc">Este perfil se creará directamente en el entorno de la empresa seleccionada.</p>
               )}
             </div>
           )}
@@ -462,49 +470,55 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
           )}
 
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-            <button type="submit" disabled={creating}
-              style={{ backgroundColor: '#2563eb', color: '#fff', fontWeight: '500', padding: '10px 28px', borderRadius: '8px', border: 'none', cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.7 : 1, fontSize: '14px' }}>
-              {creating ? 'Guardando...' : 'Guardar Perfil'}
+            <button type="submit" disabled={creating} className="profiles-btn-submit">
+              {creating ? (
+                <>
+                  <i className="ti ti-loader" style={{ animation: 'spin 1s linear infinite', marginRight: '6px' }}></i>
+                  Guardando...
+                </>
+              ) : (
+                'Guardar Perfil'
+              )}
             </button>
           </div>
         </form>
       </div>
 
       {/* ── Perfiles propios ── */}
-      <h3 style={{ fontSize: '18px', fontWeight: '600', color: c.title, margin: '0 0 16px' }}>
+      <h3 className="profiles-section-title">
         {isSuperAdmin ? 'Mis perfiles (Kuden Demo Tenant)' : 'Perfiles de mi empresa'}
-        <span style={{ marginLeft: '8px', fontSize: '13px', fontWeight: '400', color: c.subtitle }}>
+        <span className="profiles-section-count">
           {profiles.length} perfil{profiles.length !== 1 ? 'es' : ''}
         </span>
       </h3>
 
       {loading ? (
-        <p style={{ color: c.subtitle }}>Cargando perfiles...</p>
+        <p className="profiles-subtitle">Cargando perfiles...</p>
       ) : profiles.length === 0 ? (
-        <div style={{ background: c.card, border: `1px dashed ${c.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', marginBottom: '32px' }}>
-          <i className="ti ti-robot" style={{ fontSize: '40px', color: c.subtitle, display: 'block', marginBottom: '12px' }}></i>
-          <p style={{ margin: 0, color: c.subtitle, fontSize: '14px' }}>No hay perfiles propios. Crea uno para activar el Simulador.</p>
+        <div className="profiles-empty-state">
+          <i className="ti ti-robot profiles-empty-icon"></i>
+          <p className="profiles-empty-text">No hay perfiles propios. Crea uno para activar el Simulador.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+        <div className="profiles-grid">
           {profiles.map(p => <ProfileCard key={p.id} p={p} isOwnProfile={true} />)}
         </div>
       )}
 
-      {/* ── Plantillas Kuden globales (solo para tenants que NO son el maestro) ── */}
+      {/* ── Plantillas Kuden globales ── */}
       {!isSuperAdmin && globalProfiles.length > 0 && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '8px 0 20px' }}>
-            <hr style={{ flex: 1, border: 'none', borderTop: `1px solid ${c.divider}` }} />
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#f59e0b', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="profiles-global-divider-container">
+            <hr className="profiles-global-divider-line" />
+            <span className="profiles-global-divider-text">
               ⭐ Plantillas Kuden (globales) — disponibles para tu empresa
             </span>
-            <hr style={{ flex: 1, border: 'none', borderTop: `1px solid ${c.divider}` }} />
+            <hr className="profiles-global-divider-line" />
           </div>
-          <p style={{ margin: '-12px 0 20px', fontSize: '13px', color: c.subtitle }}>
+          <p className="profiles-global-desc">
             Estos perfiles fueron creados por Kuden y están disponibles para que los uses en el Simulador. Son de solo lectura.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          <div className="profiles-grid">
             {globalProfiles.map(p => <ProfileCard key={p.id} p={p} isOwnProfile={false} />)}
           </div>
         </div>
