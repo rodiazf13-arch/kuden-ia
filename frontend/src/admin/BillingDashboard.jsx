@@ -207,8 +207,8 @@ export default function BillingDashboard({ isDark = true }) {
 
               return (
                 <tr key={log.id} className="billing-tr">
-                  <td className="billing-td" style={{ color: 'var(--color-text-secondary)' }}>{date}</td>
-                  <td className="billing-td" style={{ fontWeight: 500 }}>{log.tenants?.name || 'N/A'}</td>
+                  <td className="billing-td billing-td-date">{date}</td>
+                  <td className="billing-td billing-td-tenant">{log.tenants?.name || 'N/A'}</td>
                   <td className="billing-td">
                     <span className={`billing-badge ${sourceClass}`}>{sourceLabel}</span>
                   </td>
@@ -217,9 +217,9 @@ export default function BillingDashboard({ isDark = true }) {
                     {log.model}
                   </td>
                   <td className="billing-td">{log.prompt_tokens} / {log.completion_tokens}</td>
-                  <td className="billing-td" style={{ color: 'var(--color-error)' }}>${Number(log.api_cost_usd).toFixed(5)}</td>
-                  <td className="billing-td" style={{ color: 'var(--color-primary)' }}>${Number(log.billed_usd).toFixed(5)}</td>
-                  <td className="billing-td" style={{ color: 'var(--color-success)', fontWeight: 600 }}>+${margin.toFixed(5)}</td>
+                  <td className="billing-td billing-td-cost">${Number(log.api_cost_usd).toFixed(5)}</td>
+                  <td className="billing-td billing-td-billed">${Number(log.billed_usd).toFixed(5)}</td>
+                  <td className="billing-td billing-td-margin">+${margin.toFixed(5)}</td>
                 </tr>
               );
             })}

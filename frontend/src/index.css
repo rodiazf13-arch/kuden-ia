@@ -5191,6 +5191,7 @@ button:disabled {
   letter-spacing: -0.03em;
   background: linear-gradient(90deg, var(--color-text-primary), var(--color-text-secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -6807,8 +6808,8 @@ button:disabled {
 }
 
 .billing-filters-bar {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius-lg);
   padding: 20px;
   margin-bottom: 24px;
@@ -6817,8 +6818,9 @@ button:disabled {
   flex-wrap: wrap;
   align-items: flex-end;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .billing-filter-group {
@@ -6840,8 +6842,8 @@ button:disabled {
 .billing-filter-input {
   padding: 10px 14px;
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
+  border: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
   color: var(--color-text-primary);
   outline: none;
   transition: all var(--transition-fast);
@@ -6882,12 +6884,13 @@ button:disabled {
 }
 
 .billing-kpi-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -6916,15 +6919,16 @@ button:disabled {
 .billing-kpi-value.margin { color: var(--color-success); }
 
 .billing-table-wrapper {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius-lg);
   overflow-x: auto;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .billing-table {
@@ -6939,8 +6943,8 @@ button:disabled {
 .billing-th {
   padding: 16px;
   font-weight: 600;
-  background: color-mix(in srgb, var(--color-surface) 90%, black);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-secondary);
+  border-bottom: 1px solid var(--color-border-tertiary);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -6961,12 +6965,34 @@ button:disabled {
 
 .billing-td {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-tertiary);
   vertical-align: middle;
 }
 
 .billing-tr:last-child .billing-td {
   border-bottom: none;
+}
+
+/* Specific cell helper classes to avoid inline styles */
+.billing-td-date {
+  color: var(--color-text-secondary);
+}
+
+.billing-td-tenant {
+  font-weight: 500;
+}
+
+.billing-td-cost {
+  color: var(--color-error);
+}
+
+.billing-td-billed {
+  color: var(--color-primary);
+}
+
+.billing-td-margin {
+  color: var(--color-success);
+  font-weight: 600;
 }
 
 .billing-empty-state {
@@ -7005,9 +7031,9 @@ button:disabled {
 }
 
 .billing-badge.provider {
-  background: var(--color-border);
+  background: var(--color-background-secondary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-tertiary);
   margin-right: 8px;
   border-radius: 6px;
   font-size: 10px;
