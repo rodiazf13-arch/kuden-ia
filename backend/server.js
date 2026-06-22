@@ -3907,10 +3907,39 @@ ${pdfText}`;
 app.get("/api/rag-suggestions", async (req, res) => {
   const { tenantId, status } = req.query;
   if (!tenantId) return res.status(400).json({ error: "tenantId requerido" });
+  
   let query = supabase.from('rag_suggestions').select('*, ai_profiles(label)').eq('tenant_id', tenantId).order('created_at', { ascending: false });
   if (status) query = query.eq('status', status);
-  const { data, error } = await query;
-  if (error) return res.status(500).json({ error: error.message });
+  
+  let { data, error } = await query;
+  
+  if (error && error.message.includes("relationship between 'rag_suggestions' and 'ai_profiles'")) {
+    console.warn("[RAG Suggestions] Fallback a join manual debido a caché de schema");
+    let fallbackQuery = supabase.from('rag_suggestions').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false });
+    if (status) fallbackQuery = fallbackQuery.eq('status', status);
+    
+    const fallbackRes = await fallbackQuery;
+    if (fallbackRes.error) return res.status(500).json({ error: fallbackRes.error.message });
+    
+    data = fallbackRes.data || [];
+    const profileIds = [...new Set(data.map(r => r.ai_profile_id).filter(Boolean))];
+    
+    if (profileIds.length > 0) {
+      const { data: profiles } = await supabase.from('ai_profiles').select('id, label').in('id', profileIds);
+      if (profiles) {
+        const profileMap = {};
+        profiles.forEach(p => profileMap[p.id] = { label: p.label });
+        data = data.map(r => ({
+          ...r,
+          ai_profiles: profileMap[r.ai_profile_id] || null
+        }));
+      }
+    }
+    error = null;
+  } else if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
   res.json(data);
 });
 
