@@ -11,14 +11,7 @@ export default function BillingDashboard({ isDark = true }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const c = {
-    card:      isDark ? '#111'    : '#ffffff',
-    border:    isDark ? '#222'    : '#e5e7eb',
-    title:     isDark ? '#ffffff' : '#111827',
-    subtitle:  isDark ? '#aaaaaa' : '#6b7280',
-    tableHd:   isDark ? '#1a1a1a' : '#f9fafb',
-    text:      isDark ? '#e5e7eb' : '#374151'
-  };
+
 
   const fetchTenants = async () => {
     try {
@@ -128,100 +121,105 @@ export default function BillingDashboard({ isDark = true }) {
   const totalMargin = totalBilled - totalApiCost;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', flex: 1, minHeight: 0 }}>
-      <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12, flexShrink: 0 }}>
-        <div>
-          <h2 style={{ fontSize: 24, fontWeight: 'bold', margin: '0 0 8px', color: c.title }}>Tarificador Multi-LLM</h2>
-          <p style={{ margin: 0, color: c.subtitle }}>Visualiza y exporta los consumos de API y márgenes de ganancia.</p>
+    <div className="billing-container">
+      <div className="billing-content-wrapper">
+      <div className="billing-header">
+        <div className="billing-title-box">
+          <h2>Tarificador Multi-LLM</h2>
+          <p>Visualiza y exporta los consumos de API y márgenes de ganancia.</p>
         </div>
-        <button onClick={exportToCSV} style={{ padding: '8px 16px', background: '#10b981', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button onClick={exportToCSV} className="billing-btn-export">
           <i className="ti ti-download" /> Exportar a CSV
         </button>
       </div>
 
       {/* Barra de Filtros */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: '16px', marginBottom: 24, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', flexShrink: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 200 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: c.subtitle }}>Empresa</label>
-          <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: isDark ? '#1a1a1a' : '#fff', color: c.text, outline: 'none' }}>
+      <div className="billing-filters-bar">
+        <div className="billing-filter-group">
+          <label>Empresa</label>
+          <select value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)} className="billing-filter-input">
             <option value="all">Todas las empresas</option>
             {tenantsList.map(t => (
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 150 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: c.subtitle }}>Fecha Inicio</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: isDark ? '#1a1a1a' : '#fff', color: c.text, outline: 'none', colorScheme: isDark ? 'dark' : 'light' }} />
+        <div className="billing-filter-group">
+          <label>Fecha Inicio</label>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="billing-filter-input" />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 150 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: c.subtitle }}>Fecha Fin</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${c.border}`, background: isDark ? '#1a1a1a' : '#fff', color: c.text, outline: 'none', colorScheme: isDark ? 'dark' : 'light' }} />
+        <div className="billing-filter-group">
+          <label>Fecha Fin</label>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="billing-filter-input" />
         </div>
         <div>
-          <button onClick={fetchLogs} style={{ padding: '9px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={fetchLogs} className="billing-btn-filter">
             <i className="ti ti-filter" /> Filtrar
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 24, flexShrink: 0 }}>
-        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 13, color: c.subtitle }}>Costo API (Mostrado)</p>
-          <p style={{ margin: 0, fontSize: 24, fontWeight: 'bold', color: '#ef4444' }}>${totalApiCost.toFixed(4)}</p>
+      <div className="billing-kpi-grid">
+        <div className="billing-kpi-card">
+          <p className="billing-kpi-title">Costo API (Mostrado)</p>
+          <p className="billing-kpi-value api-cost">${totalApiCost.toFixed(4)}</p>
         </div>
-        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 13, color: c.subtitle }}>Facturado al Cliente</p>
-          <p style={{ margin: 0, fontSize: 24, fontWeight: 'bold', color: '#3b82f6' }}>${totalBilled.toFixed(4)}</p>
+        <div className="billing-kpi-card">
+          <p className="billing-kpi-title">Facturado al Cliente</p>
+          <p className="billing-kpi-value billed">${totalBilled.toFixed(4)}</p>
         </div>
-        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, padding: 20 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 13, color: c.subtitle }}>Margen de Ganancia</p>
-          <p style={{ margin: 0, fontSize: 24, fontWeight: 'bold', color: '#10b981' }}>+${totalMargin.toFixed(4)}</p>
+        <div className="billing-kpi-card">
+          <p className="billing-kpi-title">Margen de Ganancia</p>
+          <p className="billing-kpi-value margin">+${totalMargin.toFixed(4)}</p>
         </div>
       </div>
 
       {/* Tabla de logs */}
-      <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 12, overflowX: 'auto', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13, color: c.text }}>
-          <thead style={{ background: c.tableHd, borderBottom: `1px solid ${c.border}`, position: 'sticky', top: 0, zIndex: 1 }}>
+      <div className="billing-table-wrapper">
+        <table className="billing-table">
+          <thead>
             <tr>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Fecha</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Empresa</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Origen</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Proveedor / Modelo</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Tokens (In/Out)</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Costo API</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Cobrado</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Margen</th>
+              <th className="billing-th">Fecha</th>
+              <th className="billing-th">Empresa</th>
+              <th className="billing-th">Origen</th>
+              <th className="billing-th">Proveedor / Modelo</th>
+              <th className="billing-th">Tokens (In/Out)</th>
+              <th className="billing-th">Costo API</th>
+              <th className="billing-th">Cobrado</th>
+              <th className="billing-th">Margen</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>Cargando datos...</td></tr>
+              <tr><td colSpan={8} className="billing-empty-state">Cargando datos...</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: c.subtitle }}>No se encontraron registros para los filtros seleccionados.</td></tr>
+              <tr><td colSpan={8} className="billing-empty-state">No se encontraron registros para los filtros seleccionados.</td></tr>
             ) : logs.map(log => {
               const date = new Date(log.created_at).toLocaleString();
               const margin = Number(log.billed_usd) - Number(log.api_cost_usd);
-                  const sourceLabels = { widget: '💬 Widget', copilot: '🤖 Co-Piloto', agent_assist: '🧑 Asistencia Agente', summary: '📋 Resumen', other: '⚙️ Otro' };
-                  const sourceLabel = sourceLabels[log.source] || `⚙️ ${log.source || 'widget'}`;
-                  return (
-                <tr key={log.id} style={{ borderBottom: `1px solid ${c.border}` }}>
-                  <td style={{ padding: '12px 16px', color: c.subtitle }}>{date}</td>
-                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{log.tenants?.name || 'N/A'}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: log.source === 'copilot' ? '#4c1d95' : log.source === 'agent_assist' ? '#164e63' : '#1e3a5f', color: '#fff', padding: '3px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{sourceLabel}</span>
+              const sourceLabels = { widget: '💬 Widget', copilot: '🤖 Co-Piloto', agent_assist: '🧑 Asistencia Agente', summary: '📋 Resumen', other: '⚙️ Otro' };
+              const sourceLabel = sourceLabels[log.source] || `⚙️ ${log.source || 'widget'}`;
+              
+              let sourceClass = 'source-other';
+              if (log.source === 'copilot') sourceClass = 'source-copilot';
+              else if (log.source === 'agent_assist') sourceClass = 'source-assist';
+
+              return (
+                <tr key={log.id} className="billing-tr">
+                  <td className="billing-td" style={{ color: 'var(--color-text-secondary)' }}>{date}</td>
+                  <td className="billing-td" style={{ fontWeight: 500 }}>{log.tenants?.name || 'N/A'}</td>
+                  <td className="billing-td">
+                    <span className={`billing-badge ${sourceClass}`}>{sourceLabel}</span>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: c.border, padding: '2px 6px', borderRadius: 4, fontSize: 11, marginRight: 6 }}>{log.provider}</span>
+                  <td className="billing-td">
+                    <span className="billing-badge provider">{log.provider}</span>
                     {log.model}
                   </td>
-                  <td style={{ padding: '12px 16px' }}>{log.prompt_tokens} / {log.completion_tokens}</td>
-                  <td style={{ padding: '12px 16px', color: '#ef4444' }}>${Number(log.api_cost_usd).toFixed(5)}</td>
-                  <td style={{ padding: '12px 16px', color: '#3b82f6' }}>${Number(log.billed_usd).toFixed(5)}</td>
-                  <td style={{ padding: '12px 16px', color: '#10b981', fontWeight: 600 }}>+${margin.toFixed(5)}</td>
+                  <td className="billing-td">{log.prompt_tokens} / {log.completion_tokens}</td>
+                  <td className="billing-td" style={{ color: 'var(--color-error)' }}>${Number(log.api_cost_usd).toFixed(5)}</td>
+                  <td className="billing-td" style={{ color: 'var(--color-primary)' }}>${Number(log.billed_usd).toFixed(5)}</td>
+                  <td className="billing-td" style={{ color: 'var(--color-success)', fontWeight: 600 }}>+${margin.toFixed(5)}</td>
                 </tr>
               );
             })}
