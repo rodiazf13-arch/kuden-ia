@@ -35,6 +35,9 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
+      },
+      workbox: {
+        navigateFallbackDenylist: [/^\/test-widget\.html/]
       }
     })
   ],
