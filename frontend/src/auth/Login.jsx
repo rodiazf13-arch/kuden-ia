@@ -29,7 +29,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <img
-            src="/kuden-logo.png"
+            src="/favicon-kuden-v2_sin_fondo.PNG"
             alt="KUDEN"
             className="login-logo"
           />
