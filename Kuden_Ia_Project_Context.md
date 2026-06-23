@@ -70,6 +70,7 @@ Las fases 1 a 4 están diseñadas para robustecer la plataforma interna para que
 ### FASE 1: Fundación Arquitectónica y Seguridad
 *   ✅ **Multi-Tenancy Genuino (Supabase RLS):** Blindar el aislamiento de datos por *tenant*. Completado.
 *   ✅ **Observabilidad Base:** Tablas de logs de auditoría estructuradas. 
+*   ⏳ **Refactorización de Validación SuperAdmin (Migración a UUID):** Desacoplar la validación de privilegios de administrador del nombre en duro del tenant ("Kuden Demo Tenant") en el frontend (`App.jsx` y dependencias), vinculándolo directamente al UUID del Tenant Maestro en lugar del *string*. Esto permitirá renombrar la empresa matriz libremente y darle una presentación corporativa definitiva ("Kuden IA - CRM" o similar) sin romper la arquitectura de permisos de impersonación y dashboards exclusivos.
 
 ### FASE 2: Multicanalidad Oficial y Campañas
 1.  ✅ **Estructura de Campañas y Tipificación:** Subdividir clientes en campañas y aplicar perfiles de IA distintos. Completado.
