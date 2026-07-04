@@ -220,7 +220,7 @@ export default function KimiInsights({ tenantId, isDark = true }) {
           <div className="insights-report-card">
             <div className="insights-report-header">
               <div className="insights-report-mascot-container">
-                <KimiMascot emotion="happy" isDark={isDark} />
+                <i className="ti ti-sparkles" style={{ fontSize: '32px', color: 'var(--color-primary)' }}></i>
               </div>
               <div>
                 <h2 className="insights-report-header-title">Reporte Ejecutivo de Kimi</h2>
@@ -235,7 +235,7 @@ export default function KimiInsights({ tenantId, isDark = true }) {
             ) : loading ? (
               <div className="insights-report-content loading">
                 <div className="insights-report-loading-mascot">
-                  <KimiMascot emotion="thinking" isDark={isDark} />
+                  <i className="ti ti-loader ti-spin" style={{ fontSize: '48px', color: 'var(--color-primary)' }}></i>
                 </div>
                 <p className="insights-report-content-text">Analizando miles de interacciones...</p>
                 <p style={{ margin: 0 }}>Estoy redactando mis conclusiones operacionales.</p>
@@ -243,7 +243,7 @@ export default function KimiInsights({ tenantId, isDark = true }) {
             ) : (
               <div className="insights-report-content empty">
                 <div className="insights-report-empty-mascot">
-                  <KimiMascot emotion="neutral" isDark={isDark} />
+                  <i className="ti ti-chart-bar" style={{ fontSize: '48px', color: 'var(--color-text-secondary)' }}></i>
                 </div>
                 <p className="insights-report-content-text">Aún no has generado el análisis de este mes.</p>
                 <p style={{ margin: 0 }}>Haz clic en "Generar Análisis con Kimi" en la parte superior.</p>

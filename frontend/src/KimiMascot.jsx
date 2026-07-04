@@ -15,7 +15,7 @@ export default function KimiMascot({ size = 120, state = 'idle', style = {} }) {
   };
 
   return (
-    <div className={`kimi ${state}`} style={containerStyle}>
+    <div className={`kimi-avatar ${state}`} style={containerStyle}>
       <div className="kimi-orbit orbit-outer"><span className="kimi-sat sat-1"></span></div>
       <div className="kimi-orbit orbit-inner"><span className="kimi-sat sat-2"></span></div>
       <img src="/assets/kimi.png" alt="Kimi AI" style={{ objectFit: 'contain' }} />
