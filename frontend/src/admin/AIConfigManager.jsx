@@ -222,7 +222,7 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
         <form onSubmit={handleSave} className="aiconfig-form-grid">
           
           {/* KIMI COPILOT */}
-          <div className="aiconfig-sub-card kimi">
+          <div className="aiconfig-sub-card kimi-config-card">
             <h4 className="aiconfig-sub-card-title">
               <i className="ti ti-cpu"></i>
               Kimi Co-Piloto

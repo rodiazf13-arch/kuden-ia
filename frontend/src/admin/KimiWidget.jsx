@@ -174,12 +174,16 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
       )}
 
       {/* Botón Flotante */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className={`kimi-widget-fab ${isOpen ? 'open' : ''}`}
-      >
-        {isOpen ? <i className="ti ti-x"></i> : <KimiMascot size={52} state={kimiState} />}
-      </button>
+      {isOpen ? (
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="kimi-widget-fab open"
+        >
+          <i className="ti ti-x"></i>
+        </button>
+      ) : (
+        <KimiMascot size={76} state={kimiState} onClick={() => setIsOpen(true)} />
+      )}
 
     </div>
   );

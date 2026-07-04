@@ -3808,12 +3808,12 @@ button:disabled {
   transition: var(--transition-fast);
 }
 
-.aiconfig-sub-card.kimi {
+.aiconfig-sub-card.kimi-config-card {
   background: color-mix(in srgb, var(--color-primary) 4%, transparent);
   border-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
-.aiconfig-sub-card.kimi:hover {
+.aiconfig-sub-card.kimi-config-card:hover {
   border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
   box-shadow: 0 0 16px rgba(99, 91, 255, 0.1);
 }
@@ -3837,7 +3837,7 @@ button:disabled {
   gap: 8px;
 }
 
-.aiconfig-sub-card.kimi .aiconfig-sub-card-title {
+.aiconfig-sub-card.kimi-config-card .aiconfig-sub-card-title {
   color: var(--color-primary);
 }
 
@@ -6941,148 +6941,7 @@ button:disabled {
   letter-spacing: -0.01em;
 }
 
-/* ==========================================================================
-   ESTADOS (STATES)
-   ========================================================================== */
 
-/* 1. THINKING */
-.kimi-avatar.thinking::before {
-  background: rgba(0, 240, 255, 0.4);
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-}
-.kimi-avatar.thinking .orbit-outer {
-  border-color: rgba(0, 240, 255, 0.6);
-  animation-duration: 8s;
-}
-.kimi-avatar.thinking .orbit-inner {
-  border-color: rgba(0, 240, 255, 0.4);
-  animation-duration: 6s;
-}
-.kimi-avatar.thinking .kimi-sat {
-  background: #00f0ff;
-  box-shadow: 0 0 10px #00f0ff;
-}
-
-/* 2. SUCCESS */
-.kimi-avatar.success::before {
-  background: rgba(250, 204, 21, 0.5);
-  box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
-}
-.kimi-avatar.success .orbit-outer,
-.kimi-avatar.success .orbit-inner {
-  border-color: rgba(250, 204, 21, 0.5);
-}
-.kimi-avatar.success .kimi-sat {
-  background: #facc15;
-  box-shadow: 0 0 10px #facc15;
-}
-
-/* 3. LISTENING */
-.kimi-avatar.listening::before {
-  background: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
-}
-.kimi-avatar.listening .orbit-outer {
-  border-color: rgba(16, 185, 129, 0.6);
-  border-style: solid;
-}
-.kimi-avatar.listening .orbit-inner {
-  border-color: rgba(16, 185, 129, 0.4);
-  border-style: solid;
-}
-.kimi-avatar.listening .kimi-sat {
-  background: #10b981;
-  box-shadow: 0 0 12px #10b981;
-}
-
-/* 4. SPEAKING */
-.kimi-avatar.speaking::before {
-  background: rgba(236, 72, 153, 0.4);
-  animation: kimi-pulse 1.5s infinite ease-in-out;
-}
-.kimi-avatar.speaking .orbit-outer {
-  border-color: rgba(236, 72, 153, 0.6);
-  border-style: double;
-}
-.kimi-avatar.speaking .kimi-sat {
-  background: #ec4899;
-  box-shadow: 0 0 10px #ec4899;
-}
-
-/* 5. ERROR / WARNING */
-.kimi-avatar.error::before {
-  background: rgba(239, 68, 68, 0.4);
-  animation: pulse-glow 2s infinite;
-}
-.kimi-avatar.error .orbit-outer {
-  border-color: rgba(239, 68, 68, 0.6);
-}
-.kimi-avatar.error .kimi-sat {
-  background: #ef4444;
-  box-shadow: 0 0 15px #ef4444;
-}
-
-/* 6. SLEEP / OFFLINE */
-.kimi-avatar.sleep {
-  opacity: 0.6;
-}
-.kimi-avatar.sleep::before {
-  background: rgba(156, 163, 175, 0.2);
-  filter: blur(10px);
-}
-.kimi-avatar.sleep .orbit-outer,
-.kimi-avatar.sleep .orbit-inner {
-  border-color: rgba(156, 163, 175, 0.3);
-  animation-duration: 40s;
-}
-.kimi-avatar.sleep .kimi-sat {
-  background: #9ca3af;
-  box-shadow: 0 0 5px #9ca3af;
-}
-
-/* 7. HANDOFF (Transferencia a Humano) */
-.kimi-avatar.handoff::before {
-  background: rgba(249, 115, 22, 0.4);
-  animation: spin 8s linear infinite;
-}
-.kimi-avatar.handoff .orbit-outer {
-  border-color: rgba(249, 115, 22, 0.5);
-  animation: spin-reverse 8s linear infinite;
-}
-.kimi-avatar.handoff .kimi-sat {
-  background: #f97316;
-  box-shadow: 0 0 10px #f97316;
-}
-
-/* ==========================================================================
-   WIDGET WRAPPER STYLES
-   ========================================================================== */
-.kimi-widget-wrap {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 16px;
-  font-family: var(--font-body);
-}
-
-.kimi-avatar {
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.kimi-avatar img {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-}
 
 .billing-title-box p {
   margin: 0;
@@ -8443,38 +8302,40 @@ button:disabled {
 /* ==========================================================================
    ESTILOS BASE DEL AVATAR DE KIMI
    ========================================================================== */
-.kimi-avatar {
+.kimi {
   position: relative;
-  width: 160px;
-  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: 0.4s ease;
+  flex-shrink: 0;
+  transition: transform 0.4s ease;
 }
 
-.kimi-avatar img {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 220%;
+.kimi:hover {
+  transform: scale(1.05); /* Efecto hover premium */
+}
+
+.kimi img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
   user-select: none;
   pointer-events: none;
-  transition: 0.4s ease;
   z-index: 2;
+  transition: transform 0.4s ease;
 }
 
-/* Halo de Energía Base */
-.kimi-avatar::before {
+/* Halo de Energía Trasero (Luminosidad) */
+.kimi::before {
   content: "";
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 85%;
+  height: 85%;
   border-radius: 50%;
   filter: blur(16px);
   z-index: 0;
-  transition: 0.4s ease;
+  transition: all 0.4s ease;
+  background: rgba(74, 107, 255, 0.15); /* Color de luz base */
 }
 
 /* Órbitas y Satélites */
@@ -8489,16 +8350,16 @@ button:disabled {
 }
 
 .kimi-orbit.orbit-outer {
-  width: 120%;
-  height: 120%;
-  border: 1px dashed rgba(157, 78, 221, 0.4);
+  width: 76%;
+  height: 76%;
+  border: 1px dashed rgba(157, 78, 221, 0.35); /* Color exterior púrpura */
   animation: spin-right 22s linear infinite;
 }
 
 .kimi-orbit.orbit-inner {
-  width: 90%;
-  height: 90%;
-  border: 1px dotted rgba(74, 107, 255, 0.4);
+  width: 54%;
+  height: 54%;
+  border: 1px dotted rgba(74, 107, 255, 0.4); /* Color interior azul */
   animation: spin-left 16s linear infinite;
 }
 
@@ -8510,7 +8371,7 @@ button:disabled {
   top: -3px;
   left: 50%;
   transform: translateX(-50%);
-  transition: 0.4s ease;
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 @keyframes spin-right {
@@ -8939,7 +8800,7 @@ button:disabled {
     right: 16px;
   }
 
-  .kimi-avatar {
+  .kimi {
     width: 90px;
     height: 90px;
   }
