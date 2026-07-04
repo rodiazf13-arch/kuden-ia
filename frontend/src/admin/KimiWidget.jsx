@@ -90,7 +90,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
       if (data.message) {
         setMessages(prev => [...prev, { sender_type: 'ai', content: data.message.content || data.message }]);
@@ -109,14 +109,14 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
 
   return (
     <div className="kimi-widget-container">
-      
+
       {/* Ventana de Chat */}
       {isOpen && (
         <div className="kimi-widget-window">
           {/* Header */}
           <div className="kimi-widget-header">
             <div className="kimi-widget-header-info">
-              <KimiMascot size={40} state={kimiState} />
+              <KimiMascot size={70} state={kimiState} />
               <div>
                 <h3 className="kimi-widget-title">Kimi Co-Piloto</h3>
                 <p className="kimi-widget-subtitle">Asistencia Contextual</p>
@@ -151,16 +151,16 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           {/* Input */}
           <div className="kimi-widget-footer">
             <form onSubmit={handleSend} className="kimi-widget-form">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Pregunta a Kimi sobre esta pantalla..."
                 className="kimi-widget-input"
                 disabled={loading}
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={loading || !input.trim()}
                 className="kimi-widget-send-btn"
               >
@@ -173,14 +173,14 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
 
       {/* Botón Flotante */}
       {isOpen ? (
-        <button 
+        <button
           onClick={() => setIsOpen(false)}
           className="kimi-widget-fab open"
         >
           <i className="ti ti-x"></i>
         </button>
       ) : (
-        <KimiMascot size={76} state={kimiState} onClick={() => setIsOpen(true)} />
+        <KimiMascot size={126} state={kimiState} onClick={() => setIsOpen(true)} />
       )}
 
     </div>
