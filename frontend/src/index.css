@@ -8300,7 +8300,7 @@ button:disabled {
 }
 
 .kimi img {
-  width: 160%;
+  width: 220%;
   user-select: none;
   pointer-events: none;
   transition: 0.4s ease;
@@ -8331,15 +8331,15 @@ button:disabled {
 }
 
 .kimi-orbit.orbit-outer {
-  width: 100%;
-  height: 100%;
+  width: 120%;
+  height: 120%;
   border: 1px dashed rgba(157, 78, 221, 0.4);
   animation: spin-right 22s linear infinite;
 }
 
 .kimi-orbit.orbit-inner {
-  width: 70%;
-  height: 70%;
+  width: 90%;
+  height: 90%;
   border: 1px dotted rgba(74, 107, 255, 0.4);
   animation: spin-left 16s linear infinite;
 }
