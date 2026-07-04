@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../lib/supabaseClient';
 import KimiMascot from '../KimiMascot.jsx';
+import { useKimi } from '../lib/KimiContext.jsx';
 
 export default function KimiWidget({ tenantId, isDark, currentTab }) {
+  const { kimiState, setKimiState } = useKimi();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -71,6 +73,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    setKimiState('thinking');
 
     try {
       const payload = {
@@ -94,8 +97,11 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
       } else if (data.error) {
         setMessages(prev => [...prev, { sender_type: 'ai', content: `Error: ${data.error}` }]);
       }
+      setKimiState('success');
+      setTimeout(() => setKimiState('idle'), 3000);
     } catch (err) {
       setMessages(prev => [...prev, { sender_type: 'ai', content: `Error de red: ${err.message}` }]);
+      setKimiState('idle');
     } finally {
       setLoading(false);
     }
@@ -111,7 +117,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           <div className="kimi-widget-header">
             <div className="kimi-widget-header-info">
               <div className="kimi-widget-avatar-bg">
-                <KimiMascot size={32} state={loading ? 'thinking' : 'happy'} />
+                <KimiMascot size={32} state={kimiState} />
               </div>
               <div>
                 <h3 className="kimi-widget-title">Kimi Co-Piloto</h3>
@@ -172,7 +178,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`kimi-widget-fab ${isOpen ? 'open' : ''}`}
       >
-        {isOpen ? <i className="ti ti-x"></i> : <KimiMascot size={52} state="happy" />}
+        {isOpen ? <i className="ti ti-x"></i> : <KimiMascot size={52} state={kimiState} />}
       </button>
 
     </div>
