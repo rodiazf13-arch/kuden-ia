@@ -8311,8 +8311,8 @@ button:disabled {
 .kimi::before {
   content: "";
   position: absolute;
-  width: 85%;
-  height: 85%;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   filter: blur(16px);
   z-index: 0;
@@ -8338,8 +8338,8 @@ button:disabled {
 }
 
 .kimi-orbit.orbit-inner {
-  width: 90%;
-  height: 90%;
+  width: 70%;
+  height: 70%;
   border: 1px dotted rgba(74, 107, 255, 0.4);
   animation: spin-left 16s linear infinite;
 }
