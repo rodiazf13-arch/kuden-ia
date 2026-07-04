@@ -7767,8 +7767,8 @@ button:disabled {
 }
 
 .kimi-widget-avatar-bg {
-  width: 34px;
-  height: 34px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: #ffffff;
   display: flex;
@@ -7959,11 +7959,11 @@ button:disabled {
 }
 
 .kimi-widget-fab {
-  width: 56px;
-  height: 56px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  background: var(--gradient-kuden);
-  color: #ffffff;
+  background: #ffffff;
+  color: var(--color-primary);
   border: none;
   box-shadow: var(--shadow-xl);
   display: flex;
@@ -8154,7 +8154,7 @@ button:disabled {
 }
 
 .kimi img {
-  width: 82%;
+  width: 110%;
   user-select: none;
   pointer-events: none;
   transition: 0.4s ease;
@@ -8185,15 +8185,15 @@ button:disabled {
 }
 
 .kimi-orbit.orbit-outer {
-  width: 68%;
-  height: 68%;
+  width: 45%;
+  height: 45%;
   border: 1px dashed rgba(157, 78, 221, 0.4);
   animation: spin-right 22s linear infinite;
 }
 
 .kimi-orbit.orbit-inner {
-  width: 48%;
-  height: 48%;
+  width: 30%;
+  height: 30%;
   border: 1px dotted rgba(74, 107, 255, 0.4);
   animation: spin-left 16s linear infinite;
 }
