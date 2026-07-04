@@ -7912,9 +7912,10 @@ button:disabled {
 }
 
 .kimi-widget-header {
-  background: var(--gradient-kuden);
+  background: var(--gradient-bg-main);
+  border-bottom: 1px solid var(--color-border-tertiary);
   padding: 16px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -7923,19 +7924,7 @@ button:disabled {
 .kimi-widget-header-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.kimi-widget-avatar-bg {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  gap: 12px;
 }
 
 .kimi-widget-title {
@@ -7948,13 +7937,13 @@ button:disabled {
 .kimi-widget-subtitle {
   margin: 0;
   font-size: 10px;
-  opacity: 0.85;
+  color: var(--color-text-secondary);
 }
 
 .kimi-widget-close-btn {
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 20px;
   cursor: pointer;
   transition: var(--transition-fast);
