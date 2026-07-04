@@ -79,26 +79,26 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const userMessage = { sender_type: 'user', content: `📎 Subió el documento: **${file.name}**\n\nPor favor, diseña la estructura de agentes IA para mi empresa basándote en este documento.` };
     setMessages(prev => [...prev, userMessage]);
     setLoading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('tenantId', tenantId);
-      
+
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(`${API_URL}/api/copilot/onboarding/pdf`, {
         method: 'POST',
         body: formData
       });
       const data = await res.json();
-      
+
       if (data.profiles) {
-        setMessages(prev => [...prev, { 
-          sender_type: 'ai', 
+        setMessages(prev => [...prev, {
+          sender_type: 'ai',
           content: `He analizado tu documento y diseñado la siguiente estructura de agentes IA para tu negocio. Revisa la propuesta y haz clic en "Autorizar y Crear Perfiles" si estás de acuerdo.`,
           proposedProfiles: data.profiles
         }]);
@@ -109,7 +109,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
       setMessages(prev => [...prev, { sender_type: 'ai', content: `**Error de conexión:** ${err.message}` }]);
     } finally {
       setLoading(false);
-      e.target.value = ''; 
+      e.target.value = '';
     }
   };
 
@@ -129,7 +129,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
       const nonRouters = profiles.filter(p => !p.is_router);
       const routers = profiles.filter(p => p.is_router);
       const labelToIdMap = {};
-      
+
       for (const p of nonRouters) {
         const payload = {
           tenant_id: tenantId, label: p.label, description: p.description, persona_prompt: p.persona_prompt,
@@ -141,7 +141,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         if (error) throw error;
         labelToIdMap[p.label] = data.id;
       }
-      
+
       for (const p of routers) {
         const subIds = (p.sub_profiles || []).map(lbl => labelToIdMap[lbl]).filter(Boolean);
         const payload = {
@@ -153,7 +153,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         const { error } = await supabase.from('ai_profiles').insert([payload]);
         if (error) throw error;
       }
-      
+
       setMessages(prev => [...prev, { sender_type: 'ai', content: `✅ ¡Listo! Los perfiles han sido creados con éxito. Puedes ir a "Perfiles del Agente IA" en el menú para verlos y editarlos.` }]);
     } catch (err) {
       alert("Error al crear perfiles: " + err.message);
@@ -179,11 +179,11 @@ export default function CopilotManager({ tenantId, isDark = true }) {
   return (
     <div className="copilot-container">
       <div className="copilot-wrapper">
-        
+
         {/* Cabecera */}
         <div className="copilot-header">
           <div className="copilot-header-info">
-            <KimiMascot size={40} state={loading ? 'thinking' : 'idle'} />
+            <KimiMascot size={70} state={loading ? 'thinking' : 'idle'} />
             <div>
               <h2 className="copilot-header-title">Co-Piloto (Kimi)</h2>
               <p className="copilot-header-subtitle">Tu consultora estratégica y asistente interna</p>
@@ -203,7 +203,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           ) : messages.length === 0 ? (
             <div className="copilot-empty-state">
               <div className="copilot-empty-icon-container">
-                <KimiMascot size={94} state="happy" />
+                <KimiMascot size={154} state="happy" />
               </div>
               <h3 className="copilot-empty-title">¡Hola! Soy Kimi.</h3>
               <p className="copilot-empty-desc">
@@ -219,7 +219,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {m.content}
                     </ReactMarkdown>
-                    
+
                     {m.proposedProfiles && (
                       <div className="copilot-proposal-container">
                         <div className="copilot-proposal-grid">
@@ -239,7 +239,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
                             </div>
                           ))}
                         </div>
-                        <button 
+                        <button
                           onClick={() => handleCreateProfiles(m.proposedProfiles)}
                           className="copilot-btn-create-profiles"
                         >
@@ -252,11 +252,11 @@ export default function CopilotManager({ tenantId, isDark = true }) {
               );
             })
           )}
-          
+
           {/* Indicador de pensamiento */}
           {loading && (
             <div className="copilot-thinking-row">
-              <KimiMascot size={32} state="thinking" />
+              <KimiMascot size={62} state="thinking" />
               <div className="copilot-thinking-bubble">
                 <div className="copilot-thinking-dots">
                   <span className="copilot-thinking-dot" />

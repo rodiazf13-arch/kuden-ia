@@ -5,12 +5,12 @@ import KimiMascot from '../KimiMascot.jsx';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const SEV_CONFIG = {
-  critical: { label: 'Crítico',    color: '#E24B4A', bg: '#FDECEA', icon: 'ti-alert-octagon'   },
-  error:    { label: 'Error',      color: '#D85A30', bg: '#FAECE7', icon: 'ti-circle-x'         },
+  critical: { label: 'Crítico', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-alert-octagon' },
+  error: { label: 'Error', color: '#D85A30', bg: '#FAECE7', icon: 'ti-circle-x' },
   critical_error: { label: 'Errores', color: '#E24B4A', bg: '#FDECEA', icon: 'ti-alert-octagon' },
-  warning:  { label: 'Advertencia',color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle'   },
-  info:     { label: 'Info',       color: '#2563eb', bg: '#EFF6FF', icon: 'ti-info-circle'       },
-  debug:    { label: 'Debug',      color: '#6b7280', bg: '#f3f4f6', icon: 'ti-bug'               },
+  warning: { label: 'Advertencia', color: '#EF9F27', bg: '#FEF3E0', icon: 'ti-alert-triangle' },
+  info: { label: 'Info', color: '#2563eb', bg: '#EFF6FF', icon: 'ti-info-circle' },
+  debug: { label: 'Debug', color: '#6b7280', bg: '#f3f4f6', icon: 'ti-bug' },
 };
 
 function SevBadge({ severity }) {
@@ -53,14 +53,14 @@ function KpiCard({ icon, label, value, color, sub, onClick, active }) {
 }
 
 export default function SystemHealthDashboard({ isDark }) {
-  const [logs,     setLogs]     = useState([]);
-  const [stats,    setStats]    = useState(null);
-  const [loading,  setLoading]  = useState(true);
+  const [logs, setLogs] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [severity, setSeverity] = useState('all');
-  const [search,   setSearch]   = useState('');
+  const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState(null);
-  const [from,     setFrom]     = useState(() => {
-    const d = new Date(); d.setHours(0,0,0,0); return d.toISOString().slice(0,16);
+  const [from, setFrom] = useState(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString().slice(0, 16);
   });
 
   const chartStrokeColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
@@ -74,8 +74,8 @@ export default function SystemHealthDashboard({ isDark }) {
       const params = new URLSearchParams({ limit: '200' });
       if (severity !== 'all') params.set('severity', severity);
       if (search) params.set('search', search);
-      if (from)   params.set('from', new Date(from).toISOString());
-      const res  = await fetch(`${API_URL}/api/admin/audit-logs?${params}`);
+      if (from) params.set('from', new Date(from).toISOString());
+      const res = await fetch(`${API_URL}/api/admin/audit-logs?${params}`);
       if (!res.ok) return;
       const data = await res.json();
       setLogs(data.logs || []);
@@ -115,10 +115,10 @@ export default function SystemHealthDashboard({ isDark }) {
   const systemOk = criticalCount === 0;
 
   const kpis = [
-    { icon: 'ti-list',          label: 'Total Eventos',   value: stats?.total || 0,          color: '#635BFF', id: 'all'      },
-    { icon: 'ti-alert-octagon', label: 'Errores Críticos',value: criticalCount,               color: '#FF5E73', id: 'critical_error' },
-    { icon: 'ti-alert-triangle',label: 'Advertencias',    value: stats?.bySeverity?.warning || 0, color: '#F6B940', id: 'warning' },
-    { icon: 'ti-info-circle',   label: 'Informativos',    value: stats?.bySeverity?.info || 0,    color: '#16D38A', id: 'info'    },
+    { icon: 'ti-list', label: 'Total Eventos', value: stats?.total || 0, color: '#635BFF', id: 'all' },
+    { icon: 'ti-alert-octagon', label: 'Errores Críticos', value: criticalCount, color: '#FF5E73', id: 'critical_error' },
+    { icon: 'ti-alert-triangle', label: 'Advertencias', value: stats?.bySeverity?.warning || 0, color: '#F6B940', id: 'warning' },
+    { icon: 'ti-info-circle', label: 'Informativos', value: stats?.bySeverity?.info || 0, color: '#16D38A', id: 'info' },
   ];
 
   return (
@@ -137,7 +137,7 @@ export default function SystemHealthDashboard({ isDark }) {
         </div>
         {/* Estado general */}
         <div className="health-status-box">
-          <KimiMascot size={32} state={systemOk ? 'idle' : 'alert'} />
+          <KimiMascot size={150} state={systemOk ? 'idle' : 'alert'} />
           <span className={`health-status-text ${systemOk ? 'ok' : 'alert'}`}>
             {systemOk ? 'Kimi dice: ¡Todo en orden!' : `${criticalCount} incidente${criticalCount > 1 ? 's' : ''} activo${criticalCount > 1 ? 's' : ''}`}
           </span>
@@ -179,9 +179,9 @@ export default function SystemHealthDashboard({ isDark }) {
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: chartTextColor }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: chartTextColor }} axisLine={false} tickLine={false} />
               <RTooltip contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBorder}`, borderRadius: 8, color: tooltipTextColor, fontSize: 12 }} />
-              <Area type="monotone" dataKey="error"   stroke="#FF5E73" fill="url(#grad-error)"   strokeWidth={2} />
+              <Area type="monotone" dataKey="error" stroke="#FF5E73" fill="url(#grad-error)" strokeWidth={2} />
               <Area type="monotone" dataKey="warning" stroke="#F6B940" fill="url(#grad-warning)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="info"    stroke="#635BFF" fill="url(#grad-info)"    strokeWidth={1.5} />
+              <Area type="monotone" dataKey="info" stroke="#635BFF" fill="url(#grad-info)" strokeWidth={1.5} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -200,7 +200,7 @@ export default function SystemHealthDashboard({ isDark }) {
             type="datetime-local" value={from} onChange={e => setFrom(e.target.value)}
             className="health-input-datetime"
           />
-          {['all','critical_error','warning','info','debug'].map(s => {
+          {['all', 'critical_error', 'warning', 'info', 'debug'].map(s => {
             const isSel = severity === s;
             const configColor = SEV_CONFIG[s]?.color || 'var(--color-primary)';
             const btnStyle = isSel ? {
@@ -238,7 +238,7 @@ export default function SystemHealthDashboard({ isDark }) {
                 <tr>
                   <td colSpan={6} className="health-empty-state">
                     <div className="health-empty-wrapper">
-                      <KimiMascot size={48} state="happy" />
+                      <KimiMascot size={150} state="happy" />
                       <p className="health-empty-title">¡Sin eventos en este período!</p>
                       <p className="health-empty-desc">Kimi está tranquila — el sistema opera con normalidad.</p>
                     </div>
@@ -253,7 +253,7 @@ export default function SystemHealthDashboard({ isDark }) {
                     <React.Fragment key={log.id}>
                       <tr className={`health-tr ${isResolved ? 'resolved' : ''} ${isActiveIncident ? 'incident-active' : ''}`}>
                         <td className="health-td health-td-timestamp">
-                          {new Date(log.created_at).toLocaleString('es-CL', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' })}
+                          {new Date(log.created_at).toLocaleString('es-CL', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </td>
                         <td className="health-td"><SevBadge severity={log.severity} /></td>
                         <td className="health-td health-td-source">{log.source}</td>
@@ -261,7 +261,7 @@ export default function SystemHealthDashboard({ isDark }) {
                           {isResolved && <span className="health-resolved-tag">[✓ Resuelto]</span>}
                           {log.message}
                         </td>
-                        <td className="health-td health-td-tenant">{log.tenant_id ? log.tenant_id.slice(0,8) + '…' : '—'}</td>
+                        <td className="health-td health-td-tenant">{log.tenant_id ? log.tenant_id.slice(0, 8) + '…' : '—'}</td>
                         <td className="health-td">
                           <div className="health-actions-cell">
                             {log.metadata && Object.keys(log.metadata).length > 0 && (
