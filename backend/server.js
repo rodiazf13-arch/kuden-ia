@@ -2884,6 +2884,7 @@ app.post("/api/widget/chat", async (req, res) => {
       if (errIns) throw errIns;
       if (!newConvs || newConvs.length === 0) throw new Error("No se pudo crear la conversación");
       convId = newConvs[0].id;
+      existingConv = newConvs[0];
 
       // Inyectar el mensaje de bienvenida del widget (System) si está configurado en el historial inicial de memoria
       if (widgetConfig && widgetConfig.welcome_message) {
@@ -2922,6 +2923,7 @@ app.post("/api/widget/chat", async (req, res) => {
           })
           .select();
         if (errIns) throw errIns;
+        existingConv = newConvs && newConvs[0] ? newConvs[0] : { status: "active" };
       } else if (!existing.is_ai_active) {
         // Guardar mensaje del cliente pero NO pasarlo a la IA si un humano tiene el control
         await insertConvMessage({ conversationId: convId, tenantId, senderType: "customer", content });
@@ -3213,7 +3215,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
       fuga_final: metadata.fuga,
       intencion: metadata.accion,
     };
-    let oldStage = existingConv.motivo_label;
+    let oldStage = existingConv?.motivo_label || null;
     if (metadata.etapa) {
       updateFields.motivo_label = metadata.etapa;
     }
@@ -3225,7 +3227,7 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     await supabase.from("conversations").update(updateFields).eq("id", convId);
 
     // Si la IA dio por finalizada la conversación, generar resumen en segundo plano
-    if (isFinished && existingConv.status !== "pending_csat") {
+    if (isFinished && existingConv?.status !== "pending_csat") {
       // Disparar hook de resumen asíncrono y sugerencia RAG
       generateExecutiveSummary(convId, tenantId).catch(console.error);
       generateRAGSuggestion(convId, tenantId).catch(console.error);
