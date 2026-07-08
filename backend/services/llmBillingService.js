@@ -8,6 +8,20 @@ const defaultSupabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
+export async function logSystemHealth(supabaseClient, severity, source, message, metadata = {}) {
+  try {
+    await supabaseClient.from('audit_logs').insert([{
+      severity,
+      source,
+      message,
+      metadata,
+      created_at: new Date().toISOString()
+    }]);
+  } catch (e) {
+    console.error("[HealthLog Error]", e.message);
+  }
+}
+
 /**
  * Valida si un modelo está activo en la bóveda y retorna su información y tarifas.
  * @param {string} modelName - ID exacto del modelo (ej: 'gpt-5.4', 'claude-sonnet-4-6')
@@ -29,11 +43,13 @@ export async function validateAndGetModelPricing(modelName, supabaseClient = def
 
   if (modelErr || !model) {
     // Si la tabla aún no se ha creado o falló, verificar si estamos en modo de transición
-    if (modelErr?.message?.includes("Could not find the table")) {
+    if (modelErr?.code === '42P01' || modelErr?.message?.includes("Could not find the table") || modelErr?.message?.includes("does not exist")) {
       console.warn(`[BillingService] Tabla llm_models_pricing no creada aún. Permitiendo temporalmente modelo ${modelName}.`);
       return { model_name: modelName, provider: 'anthropic', prompt_rate: 3.0, completion_rate: 15.0 };
     }
-    throw new Error(`[403 Forbidden] El modelo '${modelName}' no está registrado o se encuentra inactivo en la Bóveda Corporativa.`);
+    const msg = `[403 Forbidden] El modelo '${modelName}' no está registrado o se encuentra inactivo en la Bóveda Corporativa.`;
+    await logSystemHealth(supabaseClient, 'warning', 'gatekeeper_binding_rule', msg, { modelName, error: modelErr?.message });
+    throw new Error(msg);
   }
 
   // 2. Consultar si el proveedor tiene su API Key habilitada en la bóveda provider_keys
@@ -44,10 +60,12 @@ export async function validateAndGetModelPricing(modelName, supabaseClient = def
     .maybeSingle();
 
   if (keyErr || !providerKey || providerKey.is_enabled === false) {
-    if (keyErr?.message?.includes("Could not find the table")) {
+    if (keyErr?.code === '42P01' || keyErr?.message?.includes("Could not find the table") || keyErr?.message?.includes("does not exist")) {
       return model;
     }
-    throw new Error(`[403 Forbidden] El proveedor '${model.provider}' del modelo '${modelName}' está deshabilitado en la Bóveda Corporativa.`);
+    const msg = `[403 Forbidden] El proveedor '${model.provider}' del modelo '${modelName}' está deshabilitado en la Bóveda Corporativa.`;
+    await logSystemHealth(supabaseClient, 'warning', 'gatekeeper_binding_rule', msg, { modelName, provider: model.provider });
+    throw new Error(msg);
   }
 
   return model;
@@ -121,7 +139,7 @@ export async function calculateAndLogLlmCost({
       .from('usage_logs')
       .insert([logPayload]);
 
-    if (logErr && logErr.message?.includes("Could not find the table")) {
+    if (logErr && (logErr.code === '42P01' || logErr.message?.includes("Could not find the table") || logErr.message?.includes("does not exist"))) {
       // Fallback temporal a llm_usage_logs si la tabla usage_logs aún no está creada
       await supabaseClient.from('llm_usage_logs').insert([{
         tenant_id,
@@ -137,6 +155,7 @@ export async function calculateAndLogLlmCost({
       }]);
     } else if (logErr) {
       console.error("[BillingService] Error insertando en usage_logs:", logErr.message);
+      await logSystemHealth(supabaseClient, 'error', 'llm_billing_engine', `Error al registrar tarifa en usage_logs: ${logErr.message}`, { error: logErr.message, logPayload });
     }
 
     return {
@@ -147,6 +166,7 @@ export async function calculateAndLogLlmCost({
     };
   } catch (error) {
     console.error("[BillingService] Error en cálculo de tarificación:", error.message);
+    await logSystemHealth(supabaseClient, 'error', 'llm_billing_engine', `Error calculando tarificación: ${error.message}`, { error: error.message, stack: error.stack });
     return null;
   }
 }

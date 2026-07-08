@@ -30,7 +30,6 @@ export default function BillingDashboard({ isDark = true }) {
           .from(tableName)
           .select(`
             id, tenant_id, provider, model, prompt_tokens, completion_tokens, source, created_at,
-            tenants ( name ),
             ${tableName === 'usage_logs' ? 'cost_usd, billed_usd, campaign_id, ai_profile_id' : 'api_cost_usd, billed_usd'}
           `)
           .order('created_at', { ascending: false })
@@ -44,21 +43,29 @@ export default function BillingDashboard({ isDark = true }) {
       let { data, error } = await buildQuery('usage_logs');
       if (error || !data) {
         const fallback = await buildQuery('llm_usage_logs');
-        data = fallback.data;
-        if (data) {
-          data = data.map(item => ({ ...item, cost_usd: item.api_cost_usd || item.cost_usd || 0 }));
-        }
+        data = fallback.data || [];
+        data = data.map(item => ({
+          ...item,
+          cost_usd: item.api_cost_usd || item.cost_usd || 0,
+          api_cost_usd: item.api_cost_usd || item.cost_usd || 0,
+          tenants: item.tenants || { name: tenantsList.find(t => t.id === item.tenant_id)?.name || 'Empresa' }
+        }));
       } else {
-        data = data.map(item => ({ ...item, api_cost_usd: item.cost_usd || item.api_cost_usd || 0 }));
+        data = data.map(item => ({
+          ...item,
+          api_cost_usd: item.cost_usd || item.api_cost_usd || 0,
+          cost_usd: item.cost_usd || item.api_cost_usd || 0,
+          tenants: item.tenants || { name: tenantsList.find(t => t.id === item.tenant_id)?.name || 'Empresa' }
+        }));
       }
 
-      if (data) setLogs(data);
+      setLogs(data);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [selectedTenant, startDate, endDate]);
+  }, [selectedTenant, startDate, endDate, tenantsList]);
 
   useEffect(() => {
     fetchTenants();
@@ -74,8 +81,7 @@ export default function BillingDashboard({ isDark = true }) {
       let query = supabase
         .from('llm_usage_logs')
         .select(`
-          id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at,
-          tenants ( name )
+          id, tenant_id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at
         `)
         .order('created_at', { ascending: false });
 
@@ -92,9 +98,10 @@ export default function BillingDashboard({ isDark = true }) {
 
       data.forEach(log => {
         const margin = Number(log.billed_usd) - Number(log.api_cost_usd);
+        const tenantName = log.tenants?.name || tenantsList.find(t => t.id === log.tenant_id)?.name || 'N/A';
         const values = [
           new Date(log.created_at).toLocaleString('es-CL').replace(',', ''),
-          log.tenants?.name || 'N/A',
+          tenantName,
           log.source || 'widget',
           log.provider,
           log.model,
