@@ -54,6 +54,14 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
   let usage = { prompt_tokens: 0, completion_tokens: 0 };
   let responseText = "";
 
+  // Normalizar nombres de modelo antiguos de Anthropic al modelo activo
+  let targetModel = model;
+  if (provider === 'anthropic') {
+    if (!targetModel || targetModel.includes('claude-3-5-sonnet') || targetModel.includes('claude-3-sonnet')) {
+      targetModel = 'claude-sonnet-4-6';
+    }
+  }
+
   if (provider === 'anthropic') {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -63,7 +71,7 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: model || "claude-sonnet-4-6",
+        model: targetModel || "claude-sonnet-4-6",
         max_tokens,
         ...(system && { system }),
         messages,

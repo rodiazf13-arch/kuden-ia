@@ -16,3 +16,4 @@ evals/reporte_cas_*.json
 # Dependencias
 node_modules/
 **/node_modules/
+.vercel

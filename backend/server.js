@@ -3845,7 +3845,7 @@ app.post("/api/copilot/onboarding/pdf", upload.single("file"), async (req, res) 
 
     // 2. Obtener config de Kimi
     let kimiProvider = 'anthropic';
-    let kimiModel = 'claude-3-5-sonnet-20240620';
+    let kimiModel = 'claude-sonnet-4-6';
     const { data: tenantData } = await supabase.from('tenant_ai_config').select('kimi_llm_provider, kimi_llm_model').eq('tenant_id', tenantId).maybeSingle();
     if (tenantData) {
       if (tenantData.kimi_llm_provider) kimiProvider = tenantData.kimi_llm_provider;

@@ -25,7 +25,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [bg, setBg] = useState('#E1F5EE');
   const [icon, setIcon] = useState('ti-headset');
   const [llmProvider, setLlmProvider] = useState('anthropic');
-  const [llmModel, setLlmModel] = useState('claude-3-5-sonnet-20240620');
+  const [llmModel, setLlmModel] = useState('claude-sonnet-4-6');
   const [isRouter, setIsRouter] = useState(false);
   const [subProfileIds, setSubProfileIds] = useState([]);
   const [targetTenantId, setTargetTenantId] = useState('own'); // 'own', 'global', or a specific tenant.id
@@ -99,7 +99,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const resetForm = () => {
     setLabel(''); setDesc(''); setPersona(''); setHint('');
     setColor('#1D9E75'); setBg('#E1F5EE'); setIcon('ti-headset'); setTargetTenantId('own');
-    setLlmProvider('anthropic'); setLlmModel('claude-3-5-sonnet-20240620');
+    setLlmProvider('anthropic'); setLlmModel('claude-sonnet-4-6');
     setIsRouter(false); setSubProfileIds([]);
     setEditingId(null);
   };
@@ -115,7 +115,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
 
     setIsRouter(p.is_router || false);
     setSubProfileIds(p.sub_profile_ids || []);
-    setLlmProvider(p.llm_provider || 'anthropic'); setLlmModel(p.llm_model || 'claude-3-5-sonnet-20240620');
+    setLlmProvider(p.llm_provider || 'anthropic'); setLlmModel(p.llm_model || 'claude-sonnet-4-6');
     window.scrollTo(0, 0);
   };
 
@@ -329,9 +329,9 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
             <label className="profiles-label">Proveedor de Inteligencia (LLM)</label>
             <select value={llmProvider} onChange={e => {
               setLlmProvider(e.target.value);
-              if (e.target.value === 'anthropic') setLlmModel('claude-3-5-sonnet-20240620');
-              else if (e.target.value === 'openai') setLlmModel('gpt-4o-mini');
-              else if (e.target.value === 'gemini') setLlmModel('gemini-1.5-flash');
+              if (e.target.value === 'anthropic') setLlmModel('claude-sonnet-4-6');
+              else if (e.target.value === 'openai') setLlmModel('gpt-5-mini');
+              else if (e.target.value === 'gemini') setLlmModel('gemini-3.5-flash');
               else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
               else if (e.target.value === 'openrouter') {
                 if (openRouterModels.length > 0) setLlmModel(openRouterModels[0].id);
