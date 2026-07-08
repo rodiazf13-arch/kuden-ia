@@ -282,9 +282,9 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                   ) : (
                     <>
                       {kimiProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
-                      {kimiProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
-                      {kimiProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
-                      {kimiProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                      {kimiProvider === 'openai' && <><option value="gpt-5.5">GPT-5.5</option><option value="gpt-5.4">GPT-5.4</option><option value="gpt-5.4-mini">GPT-5.4 Mini</option></>}
+                      {kimiProvider === 'gemini' && <><option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option><option value="gemini-3.5-flash">Gemini 3.5 Flash</option></>}
+                      {kimiProvider === 'groq' && <><option value="llama-4-70b-8192">Llama 4 70B</option><option value="llama-4-8b-8192">Llama 4 8B</option></>}
                       {kimiProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
                     </>
                   )}
@@ -324,9 +324,9 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                   ) : (
                     <>
                       {summaryProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
-                      {summaryProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
-                      {summaryProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
-                      {summaryProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                      {summaryProvider === 'openai' && <><option value="gpt-5.5">GPT-5.5</option><option value="gpt-5.4">GPT-5.4</option><option value="gpt-5.4-mini">GPT-5.4 Mini</option></>}
+                      {summaryProvider === 'gemini' && <><option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option><option value="gemini-3.5-flash">Gemini 3.5 Flash</option></>}
+                      {summaryProvider === 'groq' && <><option value="llama-4-70b-8192">Llama 4 70B</option><option value="llama-4-8b-8192">Llama 4 8B</option></>}
                       {summaryProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
                     </>
                   )}

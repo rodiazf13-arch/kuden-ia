@@ -13,17 +13,56 @@ const supabase = createClient(
  * GET /api/master/llm-models
  * Lista todos los modelos del mantenedor (Para la tabla de administración del SuperAdmin)
  */
+const officialCatalog2026 = [
+  // OpenAI 2026
+  { model_name: 'gpt-5.5', friendly_name: 'gpt-5.5', provider: 'openai', prompt_rate: 5.0, completion_rate: 30.0, is_active: true },
+  { model_name: 'gpt-5.4', friendly_name: 'gpt-5.4', provider: 'openai', prompt_rate: 2.5, completion_rate: 15.0, is_active: true },
+  { model_name: 'gpt-5.4-mini', friendly_name: 'gpt-5.4-mini', provider: 'openai', prompt_rate: 0.75, completion_rate: 4.5, is_active: true },
+  { model_name: 'gpt-5.4-nano', friendly_name: 'gpt-5.4-nano', provider: 'openai', prompt_rate: 0.20, completion_rate: 1.25, is_active: true },
+  // Anthropic 2026
+  { model_name: 'claude-opus-4-8', friendly_name: 'claude-opus-4-8 mas inteligente', provider: 'anthropic', prompt_rate: 5.0, completion_rate: 25.0, is_active: true },
+  { model_name: 'claude-sonnet-4-6', friendly_name: 'claude-sonnet-4-6 (default) balanceado', provider: 'anthropic', prompt_rate: 3.0, completion_rate: 15.0, is_active: true },
+  { model_name: 'claude-haiku-4-5', friendly_name: 'claude-haiku-4-5 mas rapido', provider: 'anthropic', prompt_rate: 1.0, completion_rate: 5.0, is_active: true },
+  { model_name: 'claude-haiku-4-5-20251001', friendly_name: 'claude-haiku-4-5 (20251001)', provider: 'anthropic', prompt_rate: 1.0, completion_rate: 5.0, is_active: true },
+  // Gemini 2026
+  { model_name: 'gemini-3.1-pro-preview', friendly_name: 'gemini-3.1-pro-preview', provider: 'gemini', prompt_rate: 4.0, completion_rate: 18.0, is_active: true },
+  { model_name: 'gemini-2.5-pro', friendly_name: 'Gemini 2.5 Pro', provider: 'gemini', prompt_rate: 2.5, completion_rate: 15.0, is_active: true },
+  { model_name: 'gemini-3.5-flash', friendly_name: 'gemini-3.5-flash', provider: 'gemini', prompt_rate: 1.5, completion_rate: 9.0, is_active: true },
+  // Groq 2026
+  { model_name: 'llama-4-8b-8192', friendly_name: 'Llama 4 8B (Groq)', provider: 'groq', prompt_rate: 0.05, completion_rate: 0.08, is_active: true },
+  { model_name: 'llama-4-70b-8192', friendly_name: 'Llama 4 70B (Groq)', provider: 'groq', prompt_rate: 0.59, completion_rate: 0.79, is_active: true }
+];
+
+/**
+ * GET /api/master/llm-models
+ * Lista todos los modelos del mantenedor (Para la tabla de administración del SuperAdmin)
+ */
 router.get('/llm-models', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('llm_models_pricing')
       .select('*')
       .order('friendly_name', { ascending: true });
 
-    if (error) {
-      console.warn("Notice: llm_models_pricing table not available yet or query error:", error.message);
-      return res.json({ models: [] });
+    if (error || !data || data.length === 0) {
+      console.warn("Notice: llm_models_pricing empty or query error. Auto-seeding 2026 catalog.");
+      try {
+        await supabase.from('llm_models_pricing').upsert(officialCatalog2026, { onConflict: 'model_name' });
+      } catch (e) { /* ignore read-only/rls errors during seed */ }
+      return res.json({ models: officialCatalog2026 });
     }
+
+    // Comprobar si faltan proveedores clave en la base de datos para insertarlos silenciosamente
+    const existingProviders = new Set((data || []).map(m => m.provider));
+    const missingOfficial = officialCatalog2026.filter(m => !existingProviders.has(m.provider));
+    if (missingOfficial.length > 0) {
+      try {
+        await supabase.from('llm_models_pricing').upsert(missingOfficial, { onConflict: 'model_name' });
+        const refetch = await supabase.from('llm_models_pricing').select('*').order('friendly_name', { ascending: true });
+        if (refetch.data) data = refetch.data;
+      } catch (e) { /* fallback if RLS prevents auto seed */ }
+    }
+
     res.json({ models: data || [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -48,20 +87,18 @@ router.get('/provider-models', async (req, res) => {
       query = query.eq('provider', provider);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.warn("Notice: using fallback catalog models due to query error on llm_models_pricing:", error.message);
-      const fallbacks = [
-        { model_name: 'claude-sonnet-4-6', friendly_name: 'Claude 4.6 Sonnet (balanceado)', provider: 'anthropic', prompt_rate: 3, completion_rate: 15 },
-        { model_name: 'claude-haiku-4-5-20251001', friendly_name: 'Claude 4.5 Haiku (veloz)', provider: 'anthropic', prompt_rate: 0.8, completion_rate: 4 },
-        { model_name: 'gpt-4o', friendly_name: 'GPT-4o (Omni)', provider: 'openai', prompt_rate: 2.5, completion_rate: 10 },
-        { model_name: 'gpt-4o-mini', friendly_name: 'GPT-4o Mini', provider: 'openai', prompt_rate: 0.15, completion_rate: 0.6 },
-        { model_name: 'gemini-1.5-pro', friendly_name: 'Gemini 1.5 Pro', provider: 'gemini', prompt_rate: 1.25, completion_rate: 5 },
-        { model_name: 'gemini-1.5-flash', friendly_name: 'Gemini 1.5 Flash', provider: 'gemini', prompt_rate: 0.075, completion_rate: 0.3 },
-        { model_name: 'llama3-70b-8192', friendly_name: 'Llama 3 70B (Groq)', provider: 'groq', prompt_rate: 0.59, completion_rate: 0.79 },
-        { model_name: 'llama3-8b-8192', friendly_name: 'Llama 3 8B (Groq)', provider: 'groq', prompt_rate: 0.05, completion_rate: 0.08 }
-      ];
-      const filtered = (provider && provider !== 'all') ? fallbacks.filter(f => f.provider === provider) : fallbacks;
+    let { data, error } = await query;
+    if (error || !data || data.length === 0) {
+      const filtered = (provider && provider !== 'all') 
+        ? officialCatalog2026.filter(f => f.provider === provider) 
+        : officialCatalog2026;
+
+      if (provider && provider !== 'all' && (!data || data.length === 0)) {
+        try {
+          await supabase.from('llm_models_pricing').upsert(filtered, { onConflict: 'model_name' });
+        } catch (e) { /* ignore DB constraint during auto-seed */ }
+      }
+
       return res.json({
         models: filtered.map(m => ({
           id: m.model_name,
@@ -70,7 +107,8 @@ router.get('/provider-models', async (req, res) => {
           friendly_name: m.friendly_name,
           provider: m.provider,
           prompt_rate: m.prompt_rate,
-          completion_rate: m.completion_rate
+          completion_rate: m.completion_rate,
+          is_router_capable: Boolean(m.is_router_capable)
         }))
       });
     }

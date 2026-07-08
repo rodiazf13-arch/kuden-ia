@@ -381,13 +381,15 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
                   )}
                   {llmProvider === 'openai' && (
                     <>
-                      <option value="gpt-5">GPT-5 (Inteligente)</option>
-                      <option value="gpt-5-mini">GPT-5 Mini (Rápido)</option>
+                      <option value="gpt-5.5">GPT-5.5 (Flagship)</option>
+                      <option value="gpt-5.4">GPT-5.4 (Standard)</option>
+                      <option value="gpt-5.4-mini">GPT-5.4 Mini (Rápido)</option>
                     </>
                   )}
                   {llmProvider === 'gemini' && (
                     <>
-                      <option value="gemini-3.1-pro">Gemini 3.1 Pro (Inteligente)</option>
+                      <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
+                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
                       <option value="gemini-3.5-flash">Gemini 3.5 Flash (Rápido)</option>
                     </>
                   )}
