@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 import { GoogleGenAI } from '@google/genai';
@@ -41,10 +40,33 @@ function chunkText(text, chunkSize = 1000, overlap = 200) {
   return chunks.filter(c => c.length > 50); // Ignorar chunks muy pequeños
 }
 
+// Helper robusto para procesar buffer PDF con pdf-parse v2 o v1
+export async function parsePdfBuffer(buffer) {
+  const mod = require('pdf-parse');
+  // Compatibilidad con pdf-parse v2.x (clase PDFParse)
+  if (mod && mod.PDFParse) {
+    const parser = new mod.PDFParse({ data: buffer });
+    try {
+      const res = await parser.getText();
+      return { text: res.text, numpages: res.total };
+    } finally {
+      await parser.destroy();
+    }
+  }
+  // Compatibilidad con pdf-parse v1.x o default function
+  if (typeof mod === 'function') {
+    return await mod(buffer);
+  }
+  if (mod && typeof mod.default === 'function') {
+    return await mod.default(buffer);
+  }
+  throw new Error('No se pudo inicializar pdf-parse: formato del módulo no compatible o no es una función/clase.');
+}
+
 // Extrae texto de un buffer PDF
 export async function extractTextFromPDF(buffer) {
   try {
-    const data = await pdfParse(buffer);
+    const data = await parsePdfBuffer(buffer);
     return data.text;
   } catch (error) {
     throw new Error('Error parseando PDF: ' + error.message);

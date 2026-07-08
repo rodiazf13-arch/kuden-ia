@@ -8,8 +8,7 @@ import { callLLM, logLLMUsage } from "./llmService.js";
 import multer from "multer";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
-import { processAndStoreKnowledge, retrieveKnowledge } from "./ragService.js";
+import { processAndStoreKnowledge, retrieveKnowledge, parsePdfBuffer } from "./ragService.js";
 import { initRedis, getCachedHistory, setCachedHistory, invalidateHistory } from "./redisClient.js";
 import "./queueWorker.js"; // Inicia el worker asíncrono para WhatsApp
 
@@ -3841,7 +3840,7 @@ app.post("/api/copilot/onboarding/pdf", upload.single("file"), async (req, res) 
     if (!req.file || !tenantId) return res.status(400).json({ error: "Faltan datos" });
 
     // 1. Extraer texto del PDF
-    const pdfData = await pdfParse(req.file.buffer);
+    const pdfData = await parsePdfBuffer(req.file.buffer);
     const pdfText = pdfData.text.substring(0, 20000); // Limitar a ~20k caracteres por si es muy largo
 
     // 2. Obtener config de Kimi
