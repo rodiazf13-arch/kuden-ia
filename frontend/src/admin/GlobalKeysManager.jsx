@@ -271,80 +271,58 @@ export default function GlobalKeysManager({ isDark = true }) {
       {activeTab === 'keys' && (
         <div>
           {loadingKeys ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-              <i className="ti ti-loader ti-spin" style={{ fontSize: '28px', marginBottom: '12px' }}></i>
-              <p>Cargando bóveda de llaves API corporativas...</p>
+            <div className="llm-models-empty">
+              <i className="ti ti-loader ti-spin" style={{ fontSize: '28px', marginBottom: '12px', display: 'block' }}></i>
+              <p style={{ margin: 0 }}>Cargando bóveda de llaves API corporativas...</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))', gap: '20px' }}>
+            <div className="llm-keys-grid">
               {keysList.map(item => {
                 const isConfigured = item.api_key && item.api_key.length > 0;
                 const isSaving = savingKey[item.provider];
 
                 return (
-                  <div key={item.provider} style={{
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '14px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '14px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{
-                          width: '36px', height: '36px', borderRadius: '10px',
-                          background: 'rgba(36, 185, 235, 0.1)', color: '#24b9eb',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px'
-                        }}>
+                  <div key={item.provider} className="llm-key-card">
+                    <div className="llm-key-header">
+                      <div className="llm-key-info">
+                        <span className="llm-key-icon-wrapper">
                           <i className={`ti ti-${item.provider === 'anthropic' ? 'brain' : item.provider === 'openai' ? 'sparkles' : item.provider === 'gemini' ? 'flame' : 'cpu'}`}></i>
                         </span>
                         <div>
-                          <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text)', margin: '0' }}>{item.label}</h3>
-                          <span style={{ fontSize: '12px', color: item.is_enabled ? '#10b981' : '#ef4444', fontWeight: '600' }}>
+                          <h3 className="llm-key-title">{item.label}</h3>
+                          <span className={`llm-key-status ${item.is_enabled ? 'enabled' : 'disabled'}`}>
                             {item.is_enabled ? '● Proveedor Habilitado' : '○ Proveedor Deshabilitado'}
                           </span>
                         </div>
                       </div>
 
                       {/* Configured Badge & Toggle */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="llm-key-badges">
                         {isConfigured ? (
-                          <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="llm-badge configured">
                             <i className="ti ti-check"></i> Configurada
                           </span>
                         ) : (
-                          <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="llm-badge unconfigured">
                             <i className="ti ti-x"></i> Sin configurar
                           </span>
                         )}
 
-                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} title="Activar/Desactivar proveedor en todo el sistema">
+                        <label className="llm-toggle-switch" title="Activar/Desactivar proveedor en todo el sistema">
                           <input
                             type="checkbox"
                             checked={item.is_enabled}
                             onChange={() => handleToggleProvider(item.provider, item.is_enabled)}
                             style={{ display: 'none' }}
                           />
-                          <div style={{
-                            width: '44px', height: '24px',
-                            background: item.is_enabled ? '#10b981' : 'var(--color-border)',
-                            borderRadius: '12px', position: 'relative', transition: 'background 0.2s'
-                          }}>
-                            <div style={{
-                              width: '18px', height: '18px', background: '#fff',
-                              borderRadius: '50%', position: 'absolute',
-                              top: '3px', left: item.is_enabled ? '23px' : '3px',
-                              transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                            }} />
+                          <div className={`llm-toggle-track ${item.is_enabled ? 'active' : ''}`}>
+                            <div className="llm-toggle-thumb" />
                           </div>
                         </label>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                    <div className="llm-key-input-row">
                       <input
                         type="password"
                         placeholder={item.placeholder}
@@ -353,21 +331,12 @@ export default function GlobalKeysManager({ isDark = true }) {
                           const val = e.target.value;
                           setKeysList(prev => prev.map(k => k.provider === item.provider ? { ...k, api_key: val } : k));
                         }}
-                        style={{
-                          flex: 1, padding: '10px 14px', borderRadius: '8px',
-                          border: '1px solid var(--color-border)', background: 'var(--color-bg)',
-                          color: 'var(--color-text)', fontSize: '14px'
-                        }}
+                        className="llm-key-input"
                       />
                       <button
                         onClick={() => handleSaveKey(item.provider)}
                         disabled={isSaving}
-                        style={{
-                          background: '#24b9eb', color: '#fff', border: 'none',
-                          padding: '0 18px', borderRadius: '8px', fontWeight: '600',
-                          fontSize: '14px', cursor: isSaving ? 'not-allowed' : 'pointer',
-                          display: 'flex', alignItems: 'center', gap: '6px', opacity: isSaving ? 0.7 : 1
-                        }}
+                        className="llm-key-save-btn"
                       >
                         <i className="ti ti-device-floppy"></i>
                         {isSaving ? 'Guardando...' : 'Guardar'}
@@ -384,94 +353,81 @@ export default function GlobalKeysManager({ isDark = true }) {
       {/* ─── TAB 2: Catálogo de Modelos LLM ─── */}
       {activeTab === 'models' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--color-text-secondary)', fontWeight: '500' }}>
-              Tarifas por cada <strong style={{ color: 'var(--color-text)' }}>1,000,000 de tokens</strong> (Regla Binding Constraint activa)
+          <div className="llm-models-header-bar">
+            <span className="llm-models-subtitle">
+              Tarifas por cada <strong>1,000,000 de tokens</strong> (Regla Binding Constraint activa)
             </span>
             <button
               onClick={() => handleOpenModelModal()}
-              style={{
-                background: '#10b981', color: '#fff', border: 'none',
-                padding: '10px 18px', borderRadius: '8px', fontWeight: '600',
-                fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-              }}
+              className="llm-new-model-btn"
             >
               <i className="ti ti-plus"></i> Nuevo Modelo LLM
             </button>
           </div>
 
           {loadingModels ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-              <i className="ti ti-loader ti-spin" style={{ fontSize: '28px', marginBottom: '12px' }}></i>
-              <p>Cargando catálogo maestro de modelos...</p>
+            <div className="llm-models-empty">
+              <i className="ti ti-loader ti-spin" style={{ fontSize: '28px', marginBottom: '12px', display: 'block' }}></i>
+              <p style={{ margin: 0 }}>Cargando catálogo maestro de modelos...</p>
             </div>
           ) : modelsList.length === 0 ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center', background: 'var(--color-surface)', borderRadius: '14px', border: '1px solid var(--color-border)' }}>
-              <i className="ti ti-database-off" style={{ fontSize: '36px', color: 'var(--color-text-secondary)', marginBottom: '12px' }}></i>
-              <p style={{ margin: 0, color: 'var(--color-text)' }}>No hay modelos registrados en el mantenedor.</p>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Ejecuta el script SQL o haz clic en "Nuevo Modelo LLM".</p>
+            <div className="llm-models-empty">
+              <i className="ti ti-database-off" style={{ fontSize: '36px', color: 'var(--color-text-secondary)', marginBottom: '12px', display: 'block' }}></i>
+              <p style={{ margin: 0, fontWeight: '600' }}>No hay modelos registrados en el mantenedor.</p>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>Ejecuta el script SQL o haz clic en "Nuevo Modelo LLM".</p>
             </div>
           ) : (
-            <div style={{ background: 'var(--color-surface)', borderRadius: '14px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div className="kuden-table-container">
+              <table className="kuden-table">
                 <thead>
-                  <tr style={{ background: 'rgba(0,0,0,0.05)', borderBottom: '1px solid var(--color-border)', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                    <th style={{ padding: '14px 16px' }}>Modelo & Nombre Visible</th>
-                    <th style={{ padding: '14px 16px' }}>Proveedor</th>
-                    <th style={{ padding: '14px 16px' }}>Input Rate / 1M USD</th>
-                    <th style={{ padding: '14px 16px' }}>Output Rate / 1M USD</th>
-                    <th style={{ padding: '14px 16px', textAlign: 'center' }}>Estado</th>
-                    <th style={{ padding: '14px 16px', textAlign: 'right' }}>Acciones</th>
+                  <tr>
+                    <th>Modelo & Nombre Visible</th>
+                    <th>Proveedor</th>
+                    <th>Input Rate / 1M USD</th>
+                    <th>Output Rate / 1M USD</th>
+                    <th style={{ textAlign: 'center' }}>Estado</th>
+                    <th style={{ textAlign: 'right' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {modelsList.map(model => (
-                    <tr key={model.id} style={{ borderBottom: '1px solid var(--color-border)', fontSize: '14px', color: 'var(--color-text)' }}>
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: '600' }}>{model.friendly_name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>{model.model_name}</div>
+                    <tr key={model.id}>
+                      <td>
+                        <div className="llm-model-name-primary">{model.friendly_name}</div>
+                        <div className="llm-model-name-secondary">{model.model_name}</div>
                       </td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <span style={{
-                          padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase',
-                          background: model.provider === 'anthropic' ? 'rgba(139,92,246,0.15)' : model.provider === 'openai' ? 'rgba(16,185,129,0.15)' : 'rgba(36,185,235,0.15)',
-                          color: model.provider === 'anthropic' ? '#8b5cf6' : model.provider === 'openai' ? '#10b981' : '#24b9eb'
-                        }}>
+                      <td>
+                        <span className={`llm-provider-badge ${model.provider || 'default'}`}>
                           {model.provider}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: '500' }}>
+                      <td className="llm-rate-cell">
                         ${Number(model.prompt_rate).toFixed(4)} USD
                       </td>
-                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: '500' }}>
+                      <td className="llm-rate-cell">
                         ${Number(model.completion_rate).toFixed(4)} USD
                       </td>
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center' }}>
                         <button
                           onClick={() => handleToggleModelActive(model)}
-                          style={{
-                            background: model.is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                            color: model.is_active ? '#10b981' : '#ef4444',
-                            border: 'none', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
-                            display: 'inline-flex', alignItems: 'center', gap: '4px'
-                          }}
+                          className={`llm-status-toggle-btn ${model.is_active ? 'active' : 'inactive'}`}
                         >
                           <i className={`ti ti-${model.is_active ? 'check' : 'x'}`}></i>
                           {model.is_active ? 'Activo' : 'Inactivo'}
                         </button>
                       </td>
-                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '8px' }}>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="llm-action-btn-group">
                           <button
                             onClick={() => handleOpenModelModal(model)}
-                            style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                            className="llm-action-btn"
                             title="Editar tarifas"
                           >
                             <i className="ti ti-edit"></i>
                           </button>
                           <button
                             onClick={() => handleDeleteModel(model)}
-                            style={{ background: 'transparent', border: '1px solid var(--color-border)', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                            className="llm-action-btn delete"
                             title="Eliminar modelo"
                           >
                             <i className="ti ti-trash"></i>
@@ -489,40 +445,34 @@ export default function GlobalKeysManager({ isDark = true }) {
 
       {/* ─── MODAL CREAR / EDITAR MODELO ─── */}
       {showModelModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--color-surface)', borderRadius: '16px', border: '1px solid var(--color-border)',
-            width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>
+        <div className="llm-modal-overlay">
+          <div className="llm-modal-card">
+            <div className="llm-modal-header">
+              <h3 className="llm-modal-title">
                 {editingModel ? 'Editar Tarifa / Modelo LLM' : 'Nuevo Modelo LLM'}
               </h3>
-              <button onClick={() => setShowModelModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', fontSize: '20px', cursor: 'pointer' }}>
+              <button onClick={() => setShowModelModal(false)} className="llm-modal-close">
                 <i className="ti ti-x"></i>
               </button>
             </div>
 
-            <form onSubmit={handleSaveModel} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', marginBottom: '6px' }}>
+            <form onSubmit={handleSaveModel} className="llm-modal-form">
+              <div className="llm-form-group">
+                <label className="llm-form-label">
                   Nombre Técnico / ID exacto de la API (`model_name`) *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="ej: gpt-5.4, claude-sonnet-4-6"
+                  placeholder="ej: gpt-4o, claude-sonnet-4-6"
                   value={modelForm.model_name}
                   onChange={e => setModelForm({ ...modelForm, model_name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '14px' }}
+                  className="llm-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', marginBottom: '6px' }}>
+              <div className="llm-form-group">
+                <label className="llm-form-label">
                   Nombre Amigable (`friendly_name`) *
                 </label>
                 <input
@@ -531,18 +481,18 @@ export default function GlobalKeysManager({ isDark = true }) {
                   placeholder="ej: Claude 4.6 Sonnet (Balanceado)"
                   value={modelForm.friendly_name}
                   onChange={e => setModelForm({ ...modelForm, friendly_name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '14px' }}
+                  className="llm-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', marginBottom: '6px' }}>
+              <div className="llm-form-group">
+                <label className="llm-form-label">
                   Proveedor LLM (`provider`) *
                 </label>
                 <select
                   value={modelForm.provider}
                   onChange={e => setModelForm({ ...modelForm, provider: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '14px' }}
+                  className="llm-form-select"
                 >
                   <option value="anthropic">Anthropic</option>
                   <option value="openai">OpenAI</option>
@@ -552,9 +502,9 @@ export default function GlobalKeysManager({ isDark = true }) {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', marginBottom: '6px' }}>
+              <div className="llm-form-grid-2">
+                <div className="llm-form-group">
+                  <label className="llm-form-label">
                     Tarifa Input (USD / 1M tokens) *
                   </label>
                   <input
@@ -563,11 +513,11 @@ export default function GlobalKeysManager({ isDark = true }) {
                     required
                     value={modelForm.prompt_rate}
                     onChange={e => setModelForm({ ...modelForm, prompt_rate: parseFloat(e.target.value) || 0 })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '14px' }}
+                    className="llm-form-input"
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--color-text)', marginBottom: '6px' }}>
+                <div className="llm-form-group">
+                  <label className="llm-form-label">
                     Tarifa Output (USD / 1M tokens) *
                   </label>
                   <input
@@ -576,37 +526,38 @@ export default function GlobalKeysManager({ isDark = true }) {
                     required
                     value={modelForm.completion_rate}
                     onChange={e => setModelForm({ ...modelForm, completion_rate: parseFloat(e.target.value) || 0 })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: '14px' }}
+                    className="llm-form-input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
                 <input
                   type="checkbox"
                   id="modal_is_active"
                   checked={modelForm.is_active}
                   onChange={e => setModelForm({ ...modelForm, is_active: e.target.checked })}
-                  style={{ width: '18px', height: '18px' }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                 />
-                <label htmlFor="modal_is_active" style={{ fontSize: '14px', color: 'var(--color-text)', cursor: 'pointer', fontWeight: '500' }}>
+                <label htmlFor="modal_is_active" className="llm-form-label" style={{ cursor: 'pointer', margin: 0 }}>
                   Modelo Activo (Permitido para selección en perfiles IA)
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '14px' }}>
+              <div className="llm-modal-actions">
                 <button
                   type="button"
                   onClick={() => setShowModelModal(false)}
-                  style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', padding: '10px 18px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                  className="llm-btn-cancel"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={savingModel}
-                  style={{ background: '#24b9eb', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '8px', fontWeight: '600', cursor: savingModel ? 'not-allowed' : 'pointer' }}
+                  className="llm-btn-save"
                 >
+                  <i className="ti ti-device-floppy"></i>
                   {savingModel ? 'Guardando...' : 'Guardar Modelo'}
                 </button>
               </div>

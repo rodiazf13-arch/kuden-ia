@@ -21,10 +21,8 @@ router.get('/llm-models', async (req, res) => {
       .order('friendly_name', { ascending: true });
 
     if (error) {
-      if (error.message?.includes("Could not find the table")) {
-        return res.json({ models: [] });
-      }
-      throw error;
+      console.warn("Notice: llm_models_pricing table not available yet or query error:", error.message);
+      return res.json({ models: [] });
     }
     res.json({ models: data || [] });
   } catch (err) {
@@ -52,32 +50,29 @@ router.get('/provider-models', async (req, res) => {
 
     const { data, error } = await query;
     if (error) {
-      if (error.message?.includes("Could not find the table")) {
-        // Fallback robusto antes de que se ejecute la migración en Supabase
-        const fallbacks = [
-          { model_name: 'claude-sonnet-4-6', friendly_name: 'Claude 4.6 Sonnet (balanceado)', provider: 'anthropic', prompt_rate: 3, completion_rate: 15 },
-          { model_name: 'claude-haiku-4-5-20251001', friendly_name: 'Claude 4.5 Haiku (veloz)', provider: 'anthropic', prompt_rate: 0.8, completion_rate: 4 },
-          { model_name: 'gpt-4o', friendly_name: 'GPT-4o (Omni)', provider: 'openai', prompt_rate: 2.5, completion_rate: 10 },
-          { model_name: 'gpt-4o-mini', friendly_name: 'GPT-4o Mini', provider: 'openai', prompt_rate: 0.15, completion_rate: 0.6 },
-          { model_name: 'gemini-1.5-pro', friendly_name: 'Gemini 1.5 Pro', provider: 'gemini', prompt_rate: 1.25, completion_rate: 5 },
-          { model_name: 'gemini-1.5-flash', friendly_name: 'Gemini 1.5 Flash', provider: 'gemini', prompt_rate: 0.075, completion_rate: 0.3 },
-          { model_name: 'llama3-70b-8192', friendly_name: 'Llama 3 70B (Groq)', provider: 'groq', prompt_rate: 0.59, completion_rate: 0.79 },
-          { model_name: 'llama3-8b-8192', friendly_name: 'Llama 3 8B (Groq)', provider: 'groq', prompt_rate: 0.05, completion_rate: 0.08 }
-        ];
-        const filtered = (provider && provider !== 'all') ? fallbacks.filter(f => f.provider === provider) : fallbacks;
-        return res.json({
-          models: filtered.map(m => ({
-            id: m.model_name,
-            name: m.friendly_name,
-            model_name: m.model_name,
-            friendly_name: m.friendly_name,
-            provider: m.provider,
-            prompt_rate: m.prompt_rate,
-            completion_rate: m.completion_rate
-          }))
-        });
-      }
-      throw error;
+      console.warn("Notice: using fallback catalog models due to query error on llm_models_pricing:", error.message);
+      const fallbacks = [
+        { model_name: 'claude-sonnet-4-6', friendly_name: 'Claude 4.6 Sonnet (balanceado)', provider: 'anthropic', prompt_rate: 3, completion_rate: 15 },
+        { model_name: 'claude-haiku-4-5-20251001', friendly_name: 'Claude 4.5 Haiku (veloz)', provider: 'anthropic', prompt_rate: 0.8, completion_rate: 4 },
+        { model_name: 'gpt-4o', friendly_name: 'GPT-4o (Omni)', provider: 'openai', prompt_rate: 2.5, completion_rate: 10 },
+        { model_name: 'gpt-4o-mini', friendly_name: 'GPT-4o Mini', provider: 'openai', prompt_rate: 0.15, completion_rate: 0.6 },
+        { model_name: 'gemini-1.5-pro', friendly_name: 'Gemini 1.5 Pro', provider: 'gemini', prompt_rate: 1.25, completion_rate: 5 },
+        { model_name: 'gemini-1.5-flash', friendly_name: 'Gemini 1.5 Flash', provider: 'gemini', prompt_rate: 0.075, completion_rate: 0.3 },
+        { model_name: 'llama3-70b-8192', friendly_name: 'Llama 3 70B (Groq)', provider: 'groq', prompt_rate: 0.59, completion_rate: 0.79 },
+        { model_name: 'llama3-8b-8192', friendly_name: 'Llama 3 8B (Groq)', provider: 'groq', prompt_rate: 0.05, completion_rate: 0.08 }
+      ];
+      const filtered = (provider && provider !== 'all') ? fallbacks.filter(f => f.provider === provider) : fallbacks;
+      return res.json({
+        models: filtered.map(m => ({
+          id: m.model_name,
+          name: m.friendly_name,
+          model_name: m.model_name,
+          friendly_name: m.friendly_name,
+          provider: m.provider,
+          prompt_rate: m.prompt_rate,
+          completion_rate: m.completion_rate
+        }))
+      });
     }
 
     const formatted = (data || []).map(m => ({
@@ -185,8 +180,8 @@ router.get('/provider-keys', async (req, res) => {
       .select('*')
       .order('provider', { ascending: true });
 
-    if (error && error.message?.includes("Could not find the table")) {
-      // Fallback si no se ha corrido la migración aún: leer de global_settings
+    if (error) {
+      console.warn("Notice: provider_keys table not available or query error, using global_settings fallback:", error.message);
       const { data: gs } = await supabase.from('global_settings').select('key, value').in('key', ['anthropic_key', 'openai_key', 'gemini_key', 'groq_key', 'openrouter_key']);
       const formatted = ['anthropic', 'openai', 'gemini', 'groq', 'openrouter'].map(p => {
         const found = gs?.find(g => g.key === `${p}_key`);
@@ -198,8 +193,6 @@ router.get('/provider-keys', async (req, res) => {
         };
       });
       return res.json({ keys: formatted });
-    } else if (error) {
-      throw error;
     }
 
     res.json({ keys: data || [] });
@@ -228,16 +221,14 @@ router.put('/provider-keys/:provider', async (req, res) => {
       .select()
       .maybeSingle();
 
-    if (error && error.message?.includes("Could not find the table")) {
-      // Fallback a global_settings si la tabla no ha sido creada aún
+    if (error) {
+      console.warn("Notice: provider_keys upsert error, falling back to global_settings:", error.message);
       if (api_key !== undefined) {
         await supabase
           .from('global_settings')
           .upsert([{ key: `${provider.toLowerCase()}_key`, value: { api_key } }], { onConflict: 'key' });
       }
       return res.json({ success: true, fallback: true });
-    } else if (error) {
-      throw error;
     }
 
     // Sincronizar también con global_settings para compatibilidad
