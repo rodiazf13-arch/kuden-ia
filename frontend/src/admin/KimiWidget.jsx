@@ -59,7 +59,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
       insights: "Kimi Insights",
       users: "Usuarios",
       tenants: "Empresas",
-      global_keys: "Llaves API",
+      global_keys: "Gestión APIs y LLM",
       billing: "Tarificador"
     };
     return map[tabId] || tabId || "Dashboard";

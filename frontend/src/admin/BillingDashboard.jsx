@@ -25,29 +25,34 @@ export default function BillingDashboard({ isDark = true }) {
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('llm_usage_logs')
-        .select(`
-          id, tenant_id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at,
-          tenants ( name )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(200);
-        
-      if (selectedTenant !== 'all') {
-        query = query.eq('tenant_id', selectedTenant);
-      }
-      if (startDate) {
-        query = query.gte('created_at', new Date(startDate + 'T00:00:00').toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', new Date(endDate + 'T23:59:59').toISOString());
+      const buildQuery = (tableName) => {
+        let q = supabase
+          .from(tableName)
+          .select(`
+            id, tenant_id, provider, model, prompt_tokens, completion_tokens, source, created_at,
+            tenants ( name ),
+            ${tableName === 'usage_logs' ? 'cost_usd, billed_usd, campaign_id, ai_profile_id' : 'api_cost_usd, billed_usd'}
+          `)
+          .order('created_at', { ascending: false })
+          .limit(200);
+        if (selectedTenant !== 'all') q = q.eq('tenant_id', selectedTenant);
+        if (startDate) q = q.gte('created_at', new Date(startDate + 'T00:00:00').toISOString());
+        if (endDate) q = q.lte('created_at', new Date(endDate + 'T23:59:59').toISOString());
+        return q;
+      };
+
+      let { data, error } = await buildQuery('usage_logs');
+      if (error || !data) {
+        const fallback = await buildQuery('llm_usage_logs');
+        data = fallback.data;
+        if (data) {
+          data = data.map(item => ({ ...item, cost_usd: item.api_cost_usd || item.cost_usd || 0 }));
+        }
+      } else {
+        data = data.map(item => ({ ...item, api_cost_usd: item.cost_usd || item.api_cost_usd || 0 }));
       }
 
-      const { data, error } = await query;
-      if (!error && data) {
-        setLogs(data);
-      }
+      if (data) setLogs(data);
     } catch (e) {
       console.error(e);
     } finally {

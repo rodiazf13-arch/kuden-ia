@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 import { processAndStoreKnowledge, retrieveKnowledge, parsePdfBuffer } from "./ragService.js";
 import { initRedis, getCachedHistory, setCachedHistory, invalidateHistory } from "./redisClient.js";
 import "./queueWorker.js"; // Inicia el worker asíncrono para WhatsApp
+import llmPricingRouter from "./routes/llmPricing.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -120,6 +121,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "20kb" }));
+app.use("/api/master", llmPricingRouter);
 
 // ── Firmas de Correo ───────────────────────────────────────────────────────────
 app.get("/api/users/:userId/signature", async (req, res) => {
@@ -888,6 +890,9 @@ app.post("/api/chat", async (req, res) => {
   } catch (e) {
     console.error("[/api/chat]", e);
     await insertAuditLog('error', 'api_chat_claude', e.message, { stack: e.stack, reqBody: req.body }, contactData?.tenantId);
+    if (e.message && e.message.includes("403 Forbidden")) {
+      return res.status(403).json({ error: e.message, code: "BINDING_CONSTRAINT_VIOLATION" });
+    }
     return res.status(e.status || 500).json({ error: e.message || "Error interno." });
   }
 });
@@ -3259,6 +3264,9 @@ Utiliza esta información de manera natural y empática para resolver sus dudas.
     });
   } catch (e) {
     console.error("[POST /api/widget/chat]", e.message);
+    if (e.message?.includes("403 Forbidden")) {
+      return res.status(403).json({ error: e.message, ai_response: "El modelo de IA o proveedor para este canal se encuentra inactivo. Por favor contacte al administrador.", code: "BINDING_CONSTRAINT_VIOLATION" });
+    }
     return res.status(500).json({ error: e.message });
   }
 });

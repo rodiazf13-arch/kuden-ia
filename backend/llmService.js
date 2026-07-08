@@ -1,30 +1,33 @@
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
-
-const PRICING = {
-  'anthropic': {
-    'claude-sonnet-4-6': { input: 3.0, output: 15.0 },
-    'claude-haiku-4-5-20251001': { input: 0.25, output: 1.25 }
-  },
-  'openai': {
-    'gpt-5': { input: 5.0, output: 15.0 },
-    'gpt-5-mini': { input: 0.150, output: 0.600 }
-  },
-  'gemini': {
-    'gemini-3.1-pro': { input: 3.5, output: 10.5 },
-    'gemini-3.5-flash': { input: 0.075, output: 0.3 }
-  },
-  'groq': {
-    'llama-4-8b-8192': { input: 0.05, output: 0.08 },
-    'llama-4-70b-8192': { input: 0.59, output: 0.79 }
-  }
-};
+import { validateAndGetModelPricing, calculateAndLogLlmCost } from "./services/llmBillingService.js";
 
 let cachedKeys = null;
 let keysLastFetched = 0;
 
 async function getApiKey(supabase, provider) {
-  // Simple cache for 5 mins
+  // 1. Intentar consultar desde la bóveda corporativa provider_keys
+  try {
+    const { data: pk, error } = await supabase
+      .from('provider_keys')
+      .select('api_key, is_enabled')
+      .eq('provider', provider.toLowerCase())
+      .maybeSingle();
+
+    if (!error && pk) {
+      if (pk.is_enabled === false) {
+        throw new Error(`[403 Forbidden] El proveedor '${provider}' está deshabilitado en la Bóveda Corporativa.`);
+      }
+      if (pk.api_key && pk.api_key.trim() !== '') {
+        return pk.api_key;
+      }
+    }
+  } catch (err) {
+    if (err.message?.includes("403 Forbidden")) throw err;
+    // Si no existe la tabla aún, caer al fallback de global_settings
+  }
+
+  // 2. Fallback temporal a global_settings para transición sin caídas
   if (!cachedKeys || Date.now() - keysLastFetched > 300000) {
     const { data } = await supabase.from('global_settings').select('key, value').in('key', ['anthropic_key', 'openai_key', 'gemini_key', 'groq_key', 'openrouter_key']);
     cachedKeys = {};
@@ -37,7 +40,7 @@ async function getApiKey(supabase, provider) {
   const dbKey = cachedKeys[`${provider}_key`];
   if (dbKey) return dbKey;
 
-  // Fallbacks .env
+  // 3. Fallbacks variables de entorno (.env)
   if (provider === 'anthropic') return process.env.ANTHROPIC_API_KEY;
   if (provider === 'openai') return process.env.OPENAI_API_KEY;
   if (provider === 'gemini') return process.env.GEMINI_API_KEY;
@@ -48,12 +51,6 @@ async function getApiKey(supabase, provider) {
 }
 
 export async function callLLM(supabase, { provider = 'anthropic', model, system, messages, max_tokens = 1000 }) {
-  const apiKey = await getApiKey(supabase, provider);
-  if (!apiKey) throw new Error(`API Key not found for provider: ${provider}`);
-
-  let usage = { prompt_tokens: 0, completion_tokens: 0 };
-  let responseText = "";
-
   // Normalizar nombres de modelo antiguos de Anthropic al modelo activo
   let targetModel = model;
   if (provider === 'anthropic') {
@@ -61,6 +58,17 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
       targetModel = 'claude-sonnet-4-6';
     }
   }
+
+  // REGLA DE ORO: BINDING CONSTRAINT CHECK PRE-FLIGHT
+  if (targetModel) {
+    await validateAndGetModelPricing(targetModel, supabase);
+  }
+
+  const apiKey = await getApiKey(supabase, provider);
+  if (!apiKey) throw new Error(`API Key not found for provider: ${provider}`);
+
+  let usage = { prompt_tokens: 0, completion_tokens: 0 };
+  let responseText = "";
 
   if (provider === 'anthropic') {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -100,7 +108,7 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
     if (system) combinedMessages = [{ role: 'system', content: system }, ...messages];
     
     const completion = await openai.chat.completions.create({
-      model: model || (provider === 'groq' ? "llama3-8b-8192" : (provider === 'openrouter' ? "meta-llama/llama-3-8b-instruct" : "gpt-4o-mini")),
+      model: targetModel || (provider === 'groq' ? "llama-4-8b-8192" : (provider === 'openrouter' ? "meta-llama/llama-3-8b-instruct" : "gpt-4o-mini")),
       messages: combinedMessages,
       max_tokens
     });
@@ -114,7 +122,7 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
       parts: [{ text: m.content }] 
     }));
     const response = await ai.models.generateContent({
-      model: model || 'gemini-1.5-flash',
+      model: targetModel || 'gemini-2.5-pro',
       contents,
       config: { systemInstruction: system, maxOutputTokens: max_tokens }
     });
@@ -131,33 +139,19 @@ export async function callLLM(supabase, { provider = 'anthropic', model, system,
   return { text: responseText, usage };
 }
 
-export async function logLLMUsage(supabase, { tenantId, campaignId, aiProfileId, provider, model, usage, source }) {
+export async function logLLMUsage(supabase, { tenantId, campaignId, aiProfileId, provider, model, usage, source, conversationId }) {
   if (!tenantId || !usage) return;
   try {
-    const { data: tenant } = await supabase.from('tenants').select('llm_markup_multiplier').eq('id', tenantId).maybeSingle();
-    const multiplier = tenant?.llm_markup_multiplier || 1.20;
-    
-    let inputCost = 0;
-    let outputCost = 0;
-    if (PRICING[provider] && PRICING[provider][model]) {
-      inputCost = (usage.prompt_tokens / 1000000) * PRICING[provider][model].input;
-      outputCost = (usage.completion_tokens / 1000000) * PRICING[provider][model].output;
-    }
-    const apiCostUsd = inputCost + outputCost;
-    const billedUsd = apiCostUsd * multiplier;
-
-    await supabase.from('llm_usage_logs').insert([{
+    await calculateAndLogLlmCost({
+      supabaseClient: supabase,
       tenant_id: tenantId,
-      campaign_id: campaignId || null,
-      ai_profile_id: aiProfileId || null,
-      provider,
-      model,
-      prompt_tokens: usage.prompt_tokens,
-      completion_tokens: usage.completion_tokens,
-      api_cost_usd: apiCostUsd,
-      billed_usd: billedUsd,
-      source: source || 'widget'
-    }]);
+      profile_id: aiProfileId || null,
+      conversation_id: conversationId || null,
+      model_name: model,
+      prompt_tokens: usage.prompt_tokens || 0,
+      completion_tokens: usage.completion_tokens || 0,
+      feature_type: source || 'widget'
+    });
   } catch (e) {
     console.error("Error logging LLM usage:", e.message);
   }

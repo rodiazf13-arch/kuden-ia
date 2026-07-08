@@ -34,6 +34,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [openRouterModels, setOpenRouterModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [catalogModels, setCatalogModels] = useState([]);
 
   const c = {
     card: isDark ? '#111' : '#ffffff',
@@ -52,22 +53,34 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
   useEffect(() => { if (tenantId) fetchProfiles(); }, [tenantId]);
 
   useEffect(() => {
-    if (llmProvider === 'openrouter' && openRouterModels.length === 0) {
-      setLoadingModels(true);
-      fetch('https://openrouter.ai/api/v1/models')
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.data) {
-            const sortedModels = data.data.sort((a,b) => a.id.localeCompare(b.id));
-            setOpenRouterModels(sortedModels);
-            if (!llmModel || !sortedModels.find(m => m.id === llmModel)) {
-              setLlmModel(sortedModels[0].id);
-            }
+    setLoadingModels(true);
+    fetch(`${API_URL}/api/master/provider-models?provider=${llmProvider}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.models && Array.isArray(data.models)) {
+          setCatalogModels(data.models);
+          if (data.models.length > 0 && !editingId) {
+            setLlmModel(data.models[0].model_name);
           }
-        })
-        .catch(err => console.error("Error fetching openrouter models:", err))
-        .finally(() => setLoadingModels(false));
-    }
+        }
+      })
+      .catch(err => console.error("Error fetching models from central catalog:", err))
+      .finally(() => {
+        if (llmProvider === 'openrouter' && openRouterModels.length === 0) {
+          fetch('https://openrouter.ai/api/v1/models')
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.data) {
+                const sortedModels = data.data.sort((a,b) => a.id.localeCompare(b.id));
+                setOpenRouterModels(sortedModels);
+              }
+            })
+            .catch(err => console.error("Error fetching openrouter models:", err))
+            .finally(() => setLoadingModels(false));
+        } else {
+          setLoadingModels(false);
+        }
+      });
   }, [llmProvider]);
 
   const fetchProfiles = async () => {
@@ -329,14 +342,6 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
             <label className="profiles-label">Proveedor de Inteligencia (LLM)</label>
             <select value={llmProvider} onChange={e => {
               setLlmProvider(e.target.value);
-              if (e.target.value === 'anthropic') setLlmModel('claude-sonnet-4-6');
-              else if (e.target.value === 'openai') setLlmModel('gpt-5-mini');
-              else if (e.target.value === 'gemini') setLlmModel('gemini-3.5-flash');
-              else if (e.target.value === 'groq') setLlmModel('llama3-8b-8192');
-              else if (e.target.value === 'openrouter') {
-                if (openRouterModels.length > 0) setLlmModel(openRouterModels[0].id);
-                else setLlmModel('');
-              }
             }} className="profiles-select">
               <option value="anthropic">Anthropic (Claude)</option>
               <option value="openai">OpenAI (GPT)</option>
@@ -351,33 +356,55 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               Modelo Específico {loadingModels && <span style={{ fontSize: 10, color: 'var(--color-primary)' }}>(Cargando...)</span>}
             </label>
             <select value={llmModel} onChange={e => setLlmModel(e.target.value)} disabled={loadingModels} className="profiles-select">
-              {llmProvider === 'anthropic' && (
+              {catalogModels.length > 0 ? (
                 <>
-                  <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Inteligente)</option>
-                  <option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku (Rápido)</option>
+                  {catalogModels.map(m => (
+                    <option key={m.id || m.model_name} value={m.model_name}>
+                      {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in - ${Number(m.completion_rate).toFixed(2)}/1M out)
+                    </option>
+                  ))}
+                  {llmModel && !catalogModels.some(m => m.model_name === llmModel) && (
+                    <option value={llmModel} style={{ color: '#ef4444' }}>
+                      ⚠️ {llmModel} (Inactivo / Deprecado - No en Catálogo)
+                    </option>
+                  )}
+                </>
+              ) : (
+                <>
+                  {llmProvider === 'anthropic' && (
+                    <>
+                      <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Inteligente)</option>
+                      <option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku (Rápido)</option>
+                    </>
+                  )}
+                  {llmProvider === 'openai' && (
+                    <>
+                      <option value="gpt-5">GPT-5 (Inteligente)</option>
+                      <option value="gpt-5-mini">GPT-5 Mini (Rápido)</option>
+                    </>
+                  )}
+                  {llmProvider === 'gemini' && (
+                    <>
+                      <option value="gemini-3.1-pro">Gemini 3.1 Pro (Inteligente)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash (Rápido)</option>
+                    </>
+                  )}
+                  {llmProvider === 'groq' && (
+                    <>
+                      <option value="llama-4-70b-8192">Llama 4 70B (Inteligente)</option>
+                      <option value="llama-4-8b-8192">Llama 4 8B (Rápido)</option>
+                    </>
+                  )}
+                  {llmProvider === 'openrouter' && openRouterModels.map(m => (
+                    <option key={m.id} value={m.id}>{m.id} ({m.pricing?.prompt ? `$${(m.pricing.prompt * 1000000).toFixed(2)}/1M` : 'Gratis'})</option>
+                  ))}
+                  {llmModel && !catalogModels.some(m => m.model_name === llmModel) && (
+                    <option value={llmModel} style={{ color: '#ef4444' }}>
+                      ⚠️ {llmModel} (Inactivo / Deprecado)
+                    </option>
+                  )}
                 </>
               )}
-              {llmProvider === 'openai' && (
-                <>
-                  <option value="gpt-5">GPT-5 (Inteligente)</option>
-                  <option value="gpt-5-mini">GPT-5 Mini (Rápido)</option>
-                </>
-              )}
-              {llmProvider === 'gemini' && (
-                <>
-                  <option value="gemini-3.1-pro">Gemini 3.1 Pro (Inteligente)</option>
-                  <option value="gemini-3.5-flash">Gemini 3.5 Flash (Rápido)</option>
-                </>
-              )}
-              {llmProvider === 'groq' && (
-                <>
-                  <option value="llama-4-70b-8192">Llama 4 70B (Inteligente)</option>
-                  <option value="llama-4-8b-8192">Llama 4 8B (Rápido)</option>
-                </>
-              )}
-              {llmProvider === 'openrouter' && openRouterModels.map(m => (
-                <option key={m.id} value={m.id}>{m.id} ({m.pricing?.prompt ? `$${(m.pricing.prompt * 1000000).toFixed(2)}/1M` : 'Gratis'})</option>
-              ))}
             </select>
           </div>
 

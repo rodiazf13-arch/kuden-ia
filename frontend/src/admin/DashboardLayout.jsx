@@ -97,7 +97,7 @@ export default function DashboardLayout({ userEmail, tenantName, tenantId, tenan
       items: [
         { id: 'users', label: 'Usuarios y Grupos', icon: 'ti-users', adminOnly: true },
         { id: 'tenants', label: 'Empresas', icon: 'ti-building', superAdminOnly: true },
-        { id: 'global_keys', label: 'Llaves API', icon: 'ti-key', superAdminOnly: true },
+        { id: 'global_keys', label: 'Gestión APIs y LLM', icon: 'ti-key', superAdminOnly: true },
         { id: 'billing', label: 'Tarificador', icon: 'ti-receipt', superAdminOnly: true },
         { id: 'monitoring', label: 'Health Monitor', icon: 'ti-activity', superAdminOnly: true },
       ]

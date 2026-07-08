@@ -24,6 +24,22 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   const [summaryModel, setSummaryModel] = useState('claude-haiku-4-5-20251001');
   const [openRouterModels, setOpenRouterModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [kimiCatalogModels, setKimiCatalogModels] = useState([]);
+  const [summaryCatalogModels, setSummaryCatalogModels] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/master/provider-models?provider=${kimiProvider}`)
+      .then(res => res.json())
+      .then(data => { if (data?.models) setKimiCatalogModels(data.models); })
+      .catch(err => console.error("Error fetching kimi catalog:", err));
+  }, [kimiProvider]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/master/provider-models?provider=${summaryProvider}`)
+      .then(res => res.json())
+      .then(data => { if (data?.models) setSummaryCatalogModels(data.models); })
+      .catch(err => console.error("Error fetching summary catalog:", err));
+  }, [summaryProvider]);
 
   // RAG Suggestions
   const [suggestions, setSuggestions] = useState([]);
@@ -232,14 +248,6 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                 <label className="aiconfig-label">Proveedor LLM</label>
                 <select value={kimiProvider} onChange={e => {
                   setKimiProvider(e.target.value);
-                  if (e.target.value === 'anthropic') setKimiModel('claude-sonnet-4-6');
-                  else if (e.target.value === 'openai') setKimiModel('gpt-4o');
-                  else if (e.target.value === 'gemini') setKimiModel('gemini-1.5-pro');
-                  else if (e.target.value === 'groq') setKimiModel('llama-3-70b-8192');
-                  else if (e.target.value === 'openrouter') {
-                    if (openRouterModels.length > 0) setKimiModel(openRouterModels[0].id);
-                    else setKimiModel('');
-                  }
                 }}>
                   <option value="anthropic">Anthropic</option>
                   <option value="openai">OpenAI</option>
@@ -251,11 +259,21 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
               <div className="aiconfig-input-wrapper">
                 <label className="aiconfig-label">Modelo Específico</label>
                 <select value={kimiModel} onChange={e => setKimiModel(e.target.value)} disabled={loadingModels}>
-                  {kimiProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
-                  {kimiProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
-                  {kimiProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
-                  {kimiProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
-                  {kimiProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                  {kimiCatalogModels.length > 0 ? (
+                    kimiCatalogModels.map(m => (
+                      <option key={m.id || m.model_name} value={m.model_name}>
+                        {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in)
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      {kimiProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
+                      {kimiProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
+                      {kimiProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
+                      {kimiProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                      {kimiProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                    </>
+                  )}
                 </select>
               </div>
             </div>
@@ -272,14 +290,6 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                 <label className="aiconfig-label">Proveedor LLM</label>
                 <select value={summaryProvider} onChange={e => {
                   setSummaryProvider(e.target.value);
-                  if (e.target.value === 'anthropic') setSummaryModel('claude-haiku-4-5-20251001');
-                  else if (e.target.value === 'openai') setSummaryModel('gpt-4o-mini');
-                  else if (e.target.value === 'gemini') setSummaryModel('gemini-1.5-flash');
-                  else if (e.target.value === 'groq') setSummaryModel('llama3-8b-8192');
-                  else if (e.target.value === 'openrouter') {
-                    if (openRouterModels.length > 0) setSummaryModel(openRouterModels[0].id);
-                    else setSummaryModel('');
-                  }
                 }}>
                   <option value="anthropic">Anthropic</option>
                   <option value="openai">OpenAI</option>
@@ -291,11 +301,21 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
               <div className="aiconfig-input-wrapper">
                 <label className="aiconfig-label">Modelo Específico</label>
                 <select value={summaryModel} onChange={e => setSummaryModel(e.target.value)} disabled={loadingModels}>
-                  {summaryProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
-                  {summaryProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
-                  {summaryProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
-                  {summaryProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
-                  {summaryProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                  {summaryCatalogModels.length > 0 ? (
+                    summaryCatalogModels.map(m => (
+                      <option key={m.id || m.model_name} value={m.model_name}>
+                        {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in)
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      {summaryProvider === 'anthropic' && <><option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option><option value="claude-haiku-4-5-20251001">Claude 4.5 Haiku</option></>}
+                      {summaryProvider === 'openai' && <><option value="gpt-4o">GPT-4o</option><option value="gpt-4o-mini">GPT-4o Mini</option></>}
+                      {summaryProvider === 'gemini' && <><option value="gemini-1.5-pro">Gemini 1.5 Pro</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option></>}
+                      {summaryProvider === 'groq' && <><option value="llama3-70b-8192">Llama 3 70B</option><option value="llama3-8b-8192">Llama 3 8B</option></>}
+                      {summaryProvider === 'openrouter' && openRouterModels.map(m => <option key={m.id} value={m.id}>{m.id}</option>)}
+                    </>
+                  )}
                 </select>
               </div>
             </div>
