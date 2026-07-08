@@ -42,7 +42,7 @@ router.get('/provider-models', async (req, res) => {
     const { provider } = req.query;
     let query = supabase
       .from('llm_models_pricing')
-      .select('model_name, friendly_name, provider')
+      .select('model_name, friendly_name, provider, prompt_rate, completion_rate, is_active, is_router_capable')
       .eq('is_active', true)
       .order('friendly_name', { ascending: true });
 
@@ -54,15 +54,27 @@ router.get('/provider-models', async (req, res) => {
     if (error) {
       if (error.message?.includes("Could not find the table")) {
         // Fallback robusto antes de que se ejecute la migración en Supabase
+        const fallbacks = [
+          { model_name: 'claude-sonnet-4-6', friendly_name: 'Claude 4.6 Sonnet (balanceado)', provider: 'anthropic', prompt_rate: 3, completion_rate: 15 },
+          { model_name: 'claude-haiku-4-5-20251001', friendly_name: 'Claude 4.5 Haiku (veloz)', provider: 'anthropic', prompt_rate: 0.8, completion_rate: 4 },
+          { model_name: 'gpt-4o', friendly_name: 'GPT-4o (Omni)', provider: 'openai', prompt_rate: 2.5, completion_rate: 10 },
+          { model_name: 'gpt-4o-mini', friendly_name: 'GPT-4o Mini', provider: 'openai', prompt_rate: 0.15, completion_rate: 0.6 },
+          { model_name: 'gemini-1.5-pro', friendly_name: 'Gemini 1.5 Pro', provider: 'gemini', prompt_rate: 1.25, completion_rate: 5 },
+          { model_name: 'gemini-1.5-flash', friendly_name: 'Gemini 1.5 Flash', provider: 'gemini', prompt_rate: 0.075, completion_rate: 0.3 },
+          { model_name: 'llama3-70b-8192', friendly_name: 'Llama 3 70B (Groq)', provider: 'groq', prompt_rate: 0.59, completion_rate: 0.79 },
+          { model_name: 'llama3-8b-8192', friendly_name: 'Llama 3 8B (Groq)', provider: 'groq', prompt_rate: 0.05, completion_rate: 0.08 }
+        ];
+        const filtered = (provider && provider !== 'all') ? fallbacks.filter(f => f.provider === provider) : fallbacks;
         return res.json({
-          models: [
-            { id: 'claude-sonnet-4-6', name: 'claude-sonnet-4-6 (default) balanceado', provider: 'anthropic' },
-            { id: 'claude-haiku-4-5-20251001', name: 'claude-haiku-4-5 mas rapido', provider: 'anthropic' },
-            { id: 'gpt-5', name: 'gpt-5', provider: 'openai' },
-            { id: 'gpt-4o-mini', name: 'gpt-4o-mini', provider: 'openai' },
-            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'gemini' },
-            { id: 'gemini-3.5-flash', name: 'gemini-3.5-flash', provider: 'gemini' }
-          ]
+          models: filtered.map(m => ({
+            id: m.model_name,
+            name: m.friendly_name,
+            model_name: m.model_name,
+            friendly_name: m.friendly_name,
+            provider: m.provider,
+            prompt_rate: m.prompt_rate,
+            completion_rate: m.completion_rate
+          }))
         });
       }
       throw error;
@@ -71,7 +83,12 @@ router.get('/provider-models', async (req, res) => {
     const formatted = (data || []).map(m => ({
       id: m.model_name,
       name: m.friendly_name,
-      provider: m.provider
+      model_name: m.model_name,
+      friendly_name: m.friendly_name,
+      provider: m.provider,
+      prompt_rate: Number(m.prompt_rate || 0),
+      completion_rate: Number(m.completion_rate || 0),
+      is_router_capable: Boolean(m.is_router_capable)
     }));
 
     res.json({ models: formatted });

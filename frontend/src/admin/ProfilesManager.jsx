@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import KnowledgeBaseManager from './KnowledgeBaseManager';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 const COMMON_ICONS = [
   'ti-headset', 'ti-robot', 'ti-messages', 'ti-user', 'ti-user-check', 'ti-shield-check',
   'ti-shopping-cart', 'ti-currency-dollar', 'ti-credit-card', 'ti-receipt',
@@ -60,7 +62,7 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
         if (data && data.models && Array.isArray(data.models)) {
           setCatalogModels(data.models);
           if (data.models.length > 0 && !editingId) {
-            setLlmModel(data.models[0].model_name);
+            setLlmModel(data.models[0].model_name || data.models[0].id);
           }
         }
       })
@@ -359,11 +361,11 @@ export default function ProfilesManager({ tenantId, isDark = true, isSuperAdmin 
               {catalogModels.length > 0 ? (
                 <>
                   {catalogModels.map(m => (
-                    <option key={m.id || m.model_name} value={m.model_name}>
-                      {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in - ${Number(m.completion_rate).toFixed(2)}/1M out)
+                    <option key={m.id || m.model_name} value={m.model_name || m.id}>
+                      {m.friendly_name || m.name} (${Number(m.prompt_rate || 0).toFixed(2)}/1M in - ${Number(m.completion_rate || 0).toFixed(2)}/1M out)
                     </option>
                   ))}
-                  {llmModel && !catalogModels.some(m => m.model_name === llmModel) && (
+                  {llmModel && !catalogModels.some(m => (m.model_name || m.id) === llmModel) && (
                     <option value={llmModel} style={{ color: '#ef4444' }}>
                       ⚠️ {llmModel} (Inactivo / Deprecado - No en Catálogo)
                     </option>

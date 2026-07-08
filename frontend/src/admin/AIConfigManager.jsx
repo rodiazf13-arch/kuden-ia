@@ -30,14 +30,28 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
   useEffect(() => {
     fetch(`${API_URL}/api/master/provider-models?provider=${kimiProvider}`)
       .then(res => res.json())
-      .then(data => { if (data?.models) setKimiCatalogModels(data.models); })
+      .then(data => {
+        if (data?.models && Array.isArray(data.models)) {
+          setKimiCatalogModels(data.models);
+          if (data.models.length > 0 && !data.models.some(m => (m.model_name || m.id) === kimiModel)) {
+            setKimiModel(data.models[0].model_name || data.models[0].id);
+          }
+        }
+      })
       .catch(err => console.error("Error fetching kimi catalog:", err));
   }, [kimiProvider]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/master/provider-models?provider=${summaryProvider}`)
       .then(res => res.json())
-      .then(data => { if (data?.models) setSummaryCatalogModels(data.models); })
+      .then(data => {
+        if (data?.models && Array.isArray(data.models)) {
+          setSummaryCatalogModels(data.models);
+          if (data.models.length > 0 && !data.models.some(m => (m.model_name || m.id) === summaryModel)) {
+            setSummaryModel(data.models[0].model_name || data.models[0].id);
+          }
+        }
+      })
       .catch(err => console.error("Error fetching summary catalog:", err));
   }, [summaryProvider]);
 
@@ -261,8 +275,8 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                 <select value={kimiModel} onChange={e => setKimiModel(e.target.value)} disabled={loadingModels}>
                   {kimiCatalogModels.length > 0 ? (
                     kimiCatalogModels.map(m => (
-                      <option key={m.id || m.model_name} value={m.model_name}>
-                        {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in)
+                      <option key={m.id || m.model_name} value={m.model_name || m.id}>
+                        {m.friendly_name || m.name} (${Number(m.prompt_rate || 0).toFixed(2)}/1M in)
                       </option>
                     ))
                   ) : (
@@ -303,8 +317,8 @@ export default function AIConfigManager({ tenantId, isDark = true }) {
                 <select value={summaryModel} onChange={e => setSummaryModel(e.target.value)} disabled={loadingModels}>
                   {summaryCatalogModels.length > 0 ? (
                     summaryCatalogModels.map(m => (
-                      <option key={m.id || m.model_name} value={m.model_name}>
-                        {m.friendly_name} (${Number(m.prompt_rate).toFixed(2)}/1M in)
+                      <option key={m.id || m.model_name} value={m.model_name || m.id}>
+                        {m.friendly_name || m.name} (${Number(m.prompt_rate || 0).toFixed(2)}/1M in)
                       </option>
                     ))
                   ) : (
