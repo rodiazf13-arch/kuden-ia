@@ -28,10 +28,7 @@ export default function BillingDashboard({ isDark = true }) {
       const buildQuery = (tableName) => {
         let q = supabase
           .from(tableName)
-          .select(`
-            id, tenant_id, provider, model, prompt_tokens, completion_tokens, source, created_at,
-            ${tableName === 'usage_logs' ? 'cost_usd, billed_usd, campaign_id, ai_profile_id' : 'api_cost_usd, billed_usd'}
-          `)
+          .select('*')
           .order('created_at', { ascending: false })
           .limit(200);
         if (selectedTenant !== 'all') q = q.eq('tenant_id', selectedTenant);
@@ -40,28 +37,29 @@ export default function BillingDashboard({ isDark = true }) {
         return q;
       };
 
-      let { data, error } = await buildQuery('usage_logs');
+      const normalizeLogItem = (item) => ({
+        ...item,
+        model: item.model || item.model_name || 'N/A',
+        source: item.source || item.feature_type || 'widget',
+        cost_usd: Number(item.cost_usd || item.api_cost_usd || 0),
+        api_cost_usd: Number(item.api_cost_usd || item.cost_usd || 0),
+        billed_usd: Number(item.billed_usd || 0),
+        prompt_tokens: Number(item.prompt_tokens || 0),
+        completion_tokens: Number(item.completion_tokens || 0),
+        ai_profile_id: item.ai_profile_id || item.profile_id || null,
+        tenants: item.tenants || { name: tenantsList.find(t => t.id === item.tenant_id)?.name || 'Empresa' }
+      });
+
+      // Consultar llm_usage_logs primero (vista retrocompatible), si falla o no tiene datos probar usage_logs
+      let { data, error } = await buildQuery('llm_usage_logs');
       if (error || !data) {
-        const fallback = await buildQuery('llm_usage_logs');
+        const fallback = await buildQuery('usage_logs');
         data = fallback.data || [];
-        data = data.map(item => ({
-          ...item,
-          cost_usd: item.api_cost_usd || item.cost_usd || 0,
-          api_cost_usd: item.api_cost_usd || item.cost_usd || 0,
-          tenants: item.tenants || { name: tenantsList.find(t => t.id === item.tenant_id)?.name || 'Empresa' }
-        }));
-      } else {
-        data = data.map(item => ({
-          ...item,
-          api_cost_usd: item.cost_usd || item.api_cost_usd || 0,
-          cost_usd: item.cost_usd || item.api_cost_usd || 0,
-          tenants: item.tenants || { name: tenantsList.find(t => t.id === item.tenant_id)?.name || 'Empresa' }
-        }));
       }
 
-      setLogs(data);
+      setLogs((data || []).map(normalizeLogItem));
     } catch (e) {
-      console.error(e);
+      console.error("[BillingDashboard fetchLogs Error]", e);
     } finally {
       setLoading(false);
     }
@@ -80,35 +78,42 @@ export default function BillingDashboard({ isDark = true }) {
       // Fetch full dataset without limit for the CSV
       let query = supabase
         .from('llm_usage_logs')
-        .select(`
-          id, tenant_id, provider, model, prompt_tokens, completion_tokens, api_cost_usd, billed_usd, source, created_at
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (selectedTenant !== 'all') query = query.eq('tenant_id', selectedTenant);
       if (startDate) query = query.gte('created_at', new Date(startDate + 'T00:00:00').toISOString());
       if (endDate) query = query.lte('created_at', new Date(endDate + 'T23:59:59').toISOString());
 
-      const { data, error } = await query;
-      if (error || !data) throw error;
+      let { data, error } = await query;
+      if (error || !data) {
+        let fallbackQuery = supabase.from('usage_logs').select('*').order('created_at', { ascending: false });
+        if (selectedTenant !== 'all') fallbackQuery = fallbackQuery.eq('tenant_id', selectedTenant);
+        if (startDate) fallbackQuery = fallbackQuery.gte('created_at', new Date(startDate + 'T00:00:00').toISOString());
+        if (endDate) fallbackQuery = fallbackQuery.lte('created_at', new Date(endDate + 'T23:59:59').toISOString());
+        const fallbackRes = await fallbackQuery;
+        data = fallbackRes.data || [];
+      }
 
       const csvRows = [];
       const headers = ['Fecha', 'Empresa', 'Origen', 'Proveedor', 'Modelo', 'Prompt Tokens', 'Completion Tokens', 'Costo API (USD)', 'Cobrado (USD)', 'Margen (USD)'];
       csvRows.push(headers.join(','));
 
-      data.forEach(log => {
-        const margin = Number(log.billed_usd) - Number(log.api_cost_usd);
-        const tenantName = log.tenants?.name || tenantsList.find(t => t.id === log.tenant_id)?.name || 'N/A';
+      (data || []).forEach(item => {
+        const costUsd = Number(item.api_cost_usd || item.cost_usd || 0);
+        const billedUsd = Number(item.billed_usd || 0);
+        const margin = billedUsd - costUsd;
+        const tenantName = item.tenants?.name || tenantsList.find(t => t.id === item.tenant_id)?.name || 'N/A';
         const values = [
-          new Date(log.created_at).toLocaleString('es-CL').replace(',', ''),
+          new Date(item.created_at || Date.now()).toLocaleString('es-CL').replace(',', ''),
           tenantName,
-          log.source || 'widget',
-          log.provider,
-          log.model,
-          log.prompt_tokens,
-          log.completion_tokens,
-          Number(log.api_cost_usd).toFixed(5),
-          Number(log.billed_usd).toFixed(5),
+          item.source || item.feature_type || 'widget',
+          item.provider || 'anthropic',
+          item.model || item.model_name || 'N/A',
+          item.prompt_tokens || 0,
+          item.completion_tokens || 0,
+          costUsd.toFixed(5),
+          billedUsd.toFixed(5),
           margin.toFixed(5)
         ];
         csvRows.push(values.map(v => `"${v}"`).join(','));
