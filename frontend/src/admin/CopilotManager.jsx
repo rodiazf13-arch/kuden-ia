@@ -183,7 +183,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         {/* Cabecera */}
         <div className="copilot-header">
           <div className="copilot-header-info">
-            <KimiMascot size={40} hideBubble={true} state={loading ? 'thinking' : 'idle'} />
+            <KimiMascot size={40} hideBubble={true} state={loading ? 'thinking' : 'idle'} style={{ marginTop: '8px' }} />
             <div>
               <h2 className="copilot-header-title">Co-Piloto (Kimi)</h2>
               <p className="copilot-header-subtitle">Tu consultora estratégica y asistente interna</p>
@@ -257,7 +257,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           {/* Indicador de pensamiento */}
           {loading && (
             <div className="copilot-thinking-row">
-              <KimiMascot size={40} hideBubble={true} state="thinking" />
+              <KimiMascot size={40} hideBubble={true} state="thinking" style={{ marginTop: '8px' }} />
               <h3>Buscando reportes con Inteligencia Artificial...</h3>
               <div className="copilot-thinking-bubble">
                 <div className="copilot-thinking-dots">

@@ -977,7 +977,7 @@ export default function KudenSimulator({ tenantId }) {
                       <div style={{ display: "flex", justifyContent: m.role === "assistant" ? "flex-start" : "flex-end" }}>
                         {m.role === "assistant" && (
                           <div style={{ width: 22, height: 22, borderRadius: "50%", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 5, alignSelf: "flex-end" }}>
-                            <KimiMascot size={42} hideBubble={true} state={loading ? "thinking" : "idle"} />
+                            <KimiMascot size={42} hideBubble={true} state={loading ? "thinking" : "idle"} style={{ marginTop: '6px' }} />
                           </div>
                         )}
                         <div style={{
@@ -993,7 +993,7 @@ export default function KudenSimulator({ tenantId }) {
                   {loading && (
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 5 }}>
                       <div style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <KimiMascot size={42} hideBubble={true} state="thinking" />
+                        <KimiMascot size={42} hideBubble={true} state="thinking" style={{ marginTop: '6px' }} />
                       </div>
                       <div style={{ background: "var(--color-background-secondary)", borderRadius: "12px 12px 12px 3px", padding: "8px 12px" }}>
                         <span style={{ color: "var(--color-text-secondary)", fontSize: 12 }}>escribiendo...</span>

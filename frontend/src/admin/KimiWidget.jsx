@@ -118,7 +118,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           {/* Header */}
           <div className="kimi-widget-header">
             <div className="kimi-widget-header-info">
-              <KimiMascot size={40} hideBubble={true} state={kimiState} />
+              <KimiMascot size={40} hideBubble={true} state={kimiState} style={{ marginTop: '8px' }} />
               <div>
                 <h3 className="kimi-widget-title">Kimi Co-Piloto</h3>
                 <p className="kimi-widget-subtitle">Asistencia Contextual</p>
