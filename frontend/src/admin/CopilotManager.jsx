@@ -183,7 +183,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         {/* Cabecera */}
         <div className="copilot-header">
           <div className="copilot-header-info">
-            <KimiMascot size={70} state={loading ? 'thinking' : 'idle'} />
+            <KimiMascot size={40} hideBubble={true} state={loading ? 'thinking' : 'idle'} />
             <div>
               <h2 className="copilot-header-title">Co-Piloto (Kimi)</h2>
               <p className="copilot-header-subtitle">Tu consultora estratégica y asistente interna</p>
@@ -203,7 +203,8 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           ) : messages.length === 0 ? (
             <div className="copilot-empty-state">
               <div className="copilot-empty-icon-container">
-                <KimiMascot size={154} state="happy" />
+                <KimiMascot size={154} hideBubble={true} state="happy" />
+                <p>No se encontraron reportes. ¡Gran trabajo!</p>
               </div>
               <h3 className="copilot-empty-title">¡Hola! Soy Kimi.</h3>
               <p className="copilot-empty-desc">
@@ -256,7 +257,8 @@ export default function CopilotManager({ tenantId, isDark = true }) {
           {/* Indicador de pensamiento */}
           {loading && (
             <div className="copilot-thinking-row">
-              <KimiMascot size={62} state="thinking" />
+              <KimiMascot size={40} hideBubble={true} state="thinking" />
+              <h3>Buscando reportes con Inteligencia Artificial...</h3>
               <div className="copilot-thinking-bubble">
                 <div className="copilot-thinking-dots">
                   <span className="copilot-thinking-dot" />

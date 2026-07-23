@@ -118,7 +118,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           {/* Header */}
           <div className="kimi-widget-header">
             <div className="kimi-widget-header-info">
-              <KimiMascot size={70} state={kimiState} />
+              <KimiMascot size={40} hideBubble={true} state={kimiState} />
               <div>
                 <h3 className="kimi-widget-title">Kimi Co-Piloto</h3>
                 <p className="kimi-widget-subtitle">Asistencia Contextual</p>
@@ -182,7 +182,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
           <i className="ti ti-x"></i>
         </button>
       ) : (
-        <KimiMascot size={126} state={kimiState} onClick={() => setIsOpen(true)} />
+        <KimiMascot size={126} state={kimiState} closable={true} onClick={() => setIsOpen(true)} />
       )}
 
     </div>

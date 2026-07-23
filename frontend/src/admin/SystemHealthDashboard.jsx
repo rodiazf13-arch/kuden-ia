@@ -137,7 +137,7 @@ export default function SystemHealthDashboard({ isDark }) {
         </div>
         {/* Estado general */}
         <div className="health-status-box">
-          <KimiMascot size={70} state={systemOk ? 'idle' : 'alert'} />
+          <KimiMascot size={40} hideBubble={true} state={systemOk ? 'idle' : 'alert'} />
           <span className={`health-status-text ${systemOk ? 'ok' : 'alert'}`}>
             {systemOk ? 'Kimi dice: ¡Todo en orden!' : `${criticalCount} incidente${criticalCount > 1 ? 's' : ''} activo${criticalCount > 1 ? 's' : ''}`}
           </span>
@@ -238,7 +238,7 @@ export default function SystemHealthDashboard({ isDark }) {
                 <tr>
                   <td colSpan={6} className="health-empty-state">
                     <div className="health-empty-wrapper">
-                      <KimiMascot size={150} state="happy" />
+                      <KimiMascot size={150} hideBubble={true} state="happy" />
                       <p className="health-empty-title">¡Sin eventos en este período!</p>
                       <p className="health-empty-desc">Kimi está tranquila — el sistema opera con normalidad.</p>
                     </div>
