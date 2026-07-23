@@ -1,32 +1,27 @@
 import React from 'react';
 
 /**
- * KimiMascot — La nueva mascota de Kuden IA usando kimi.png y CSS orbits.
- * Estados soportados por kimi-widget.css:
- *   idle, listening, thinking, speaking, success, handoff, sleep
+ * KimiMascot — Wrapper React para el Web Component interactivo de Kimi (kuden-kimi-widget).
  */
 export default function KimiMascot({ size = 120, state = 'idle', onClick, style = {} }) {
+  // Convertimos el prop 'size' a un valor CSS válido para la variable del Web Component
   const sizeStyle = typeof size === 'number' ? `${size}px` : size;
 
   return (
-    <div 
-      className={`kimi ${state}`} 
-      style={{ 
-        width: sizeStyle, 
-        height: sizeStyle, 
-        cursor: onClick ? 'pointer' : 'default', 
-        flexShrink: 0, 
-        position: 'relative', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        ...style 
-      }}
+    <kuden-kimi-widget
+      state={state}
+      product="Kuden IA"
+      theme="auto"
+      closable="false"
       onClick={onClick}
-    >
-      <div className="kimi-orbit orbit-outer"><span className="kimi-sat sat-1"></span></div>
-      <div className="kimi-orbit orbit-inner"><span className="kimi-sat sat-2"></span></div>
-      <img src="/assets/kimi.png" alt="Kimi AI" style={{ width: '82%', height: '82%', objectFit: 'contain', userSelect: 'none', pointerEvents: 'none', zIndex: 2 }} />
-    </div>
+      style={{
+        '--kimi-size': sizeStyle,
+        cursor: onClick ? 'pointer' : 'default',
+        position: 'relative',
+        display: 'inline-block',
+        flexShrink: 0,
+        ...style
+      }}
+    ></kuden-kimi-widget>
   );
 }

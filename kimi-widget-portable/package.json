@@ -1,0 +1,22 @@
+{
+  "name": "@kuden/kimi-widget",
+  "version": "1.0.0",
+  "description": "Kimi SVG reutilizable como Web Component para productos Kuden.",
+  "type": "module",
+  "main": "./kuden-kimi-widget.js",
+  "module": "./kuden-kimi-widget.js",
+  "types": "./kuden-kimi-widget.d.ts",
+  "exports": {
+    ".": {
+      "types": "./kuden-kimi-widget.d.ts",
+      "import": "./kuden-kimi-widget.js"
+    }
+  },
+  "files": [
+    "kuden-kimi-widget.js",
+    "kuden-kimi-widget.d.ts",
+    "README.md"
+  ],
+  "sideEffects": true,
+  "license": "UNLICENSED"
+}
