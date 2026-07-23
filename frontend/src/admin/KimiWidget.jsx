@@ -5,7 +5,7 @@ import KimiMascot from '../KimiMascot.jsx';
 import { useKimi } from '../lib/KimiContext.jsx';
 
 export default function KimiWidget({ tenantId, isDark, currentTab }) {
-  const { kimiState, setKimiState } = useKimi();
+  const { kimiState, setKimiState, isKimiHidden } = useKimi();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -107,6 +107,7 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
     }
   };
 
+  if (isKimiHidden) return null;
 
   return (
     <div className="kimi-widget-container">

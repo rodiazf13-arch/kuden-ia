@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import EmojiPicker from 'emoji-picker-react';
 import Contact360View from './Contact360View';
-
+import { useKimi } from '../lib/KimiContext.jsx';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -324,6 +324,13 @@ function MessageBubble({ msg, c, isDark }) {
 
 // ── Vista de detalle de conversación ─────────────────────────────────────────
 function ConversationDetail({ convId, tenantId, userId, displayName, userRole, isSuperAdmin, c, campaigns = [], groups = [], tenantUsers = [], onBack, onView360, hasTooManyForgotten = false, forgottenCount = 0, isDark }) {
+  const { setIsKimiHidden } = useKimi();
+
+  useEffect(() => {
+    setIsKimiHidden(true);
+    return () => setIsKimiHidden(false);
+  }, [setIsKimiHidden]);
+
   const [data, setData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
