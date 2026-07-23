@@ -107,7 +107,6 @@ export default function KimiWidget({ tenantId, isDark, currentTab }) {
     }
   };
 
-  if (currentTab === 'crm') return null;
 
   return (
     <div className="kimi-widget-container">
