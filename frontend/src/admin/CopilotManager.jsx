@@ -183,7 +183,7 @@ export default function CopilotManager({ tenantId, isDark = true }) {
         {/* Cabecera */}
         <div className="copilot-header">
           <div className="copilot-header-info">
-            <KimiMascot size={40} hideBubble={true} state={loading ? 'thinking' : 'idle'} style={{ marginTop: '8px' }} />
+            <KimiMascot size={40} hideBubble={true} state={loading ? 'thinking' : 'idle'} style={{ marginTop: '30px', marginLeft: '20px' }} />
             <div>
               <h2 className="copilot-header-title">Co-Piloto (Kimi)</h2>
               <p className="copilot-header-subtitle">Tu consultora estratégica y asistente interna</p>
